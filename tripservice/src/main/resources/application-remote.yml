@@ -1,0 +1,6 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://<REMOTE-HOST>:<PORT>/tripanalytics
+      # Example: mongodb://user:password@remotehost:27017/tripanalytics
+

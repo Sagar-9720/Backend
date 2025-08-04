@@ -1,0 +1,46 @@
+# Project exclude paths
+/eureka-server/.gradle/
+/eureka-server/build/
+/eureka-server/build/classes/java/main/
+
+# Java build and IDE files
+**/build/
+**/.gradle/
+**/out/
+**/.idea/
+**/.vscode/
+**/.classpath
+**/.project
+**/.settings/
+
+# Node.js
+user-service/node_modules/
+user-service/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+
+# Generated JARs
+*.jar
+*.war
+*.ear
+
+# Coverage reports
+**/coverage/
+**/jacoco/
+**/jacocoHtml/
+
+# Misc
+*.iml
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
