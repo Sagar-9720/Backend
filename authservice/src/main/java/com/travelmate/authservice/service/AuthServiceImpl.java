@@ -34,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
 
     private final PasswordEncoder passwordEncoder;
+    @Autowired
     private final JwtUtil jwtUtil;
 
     private final PasswordResetTokenRepository passwordResetTokenRepository;
@@ -69,15 +70,24 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
 
+        // Generate tokens immediately after registration
+        String token = jwtUtil.generateToken(
+                savedUser.getUserId().toString(),
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getRole().getName()
+        );
+        String refreshToken = jwtUtil.generateRefreshToken(savedUser.getUserId().toString());
+
         // Generate and send verification email
         try {
-            String token = UUID.randomUUID().toString();
+            String emailToken = UUID.randomUUID().toString();
             LocalDateTime expiryDate = LocalDateTime.now().plusHours(24);
 
-            EmailVerificationToken verificationToken = new EmailVerificationToken(token, savedUser, expiryDate);
+            EmailVerificationToken verificationToken = new EmailVerificationToken(emailToken, savedUser, expiryDate);
             emailVerificationTokenRepository.save(verificationToken);
 
-            String verificationLink = frontendUrl + "/verify-email?token=" + token;
+            String verificationLink = frontendUrl + "/verify-email?token=" + emailToken;
             emailServiceClient.sendVerificationEmail(savedUser.getEmail(), savedUser.getName(), verificationLink);
         } catch (Exception e) {
             // Log the error but continue with registration
@@ -96,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
                 savedUser.getRole().getName()
         );
 
-        return new AuthResponse(true, "User registered successfully. Please check your email to verify your account.", null, null, userInfo);
+        return new AuthResponse(true, "User registered successfully. Please check your email to verify your account.", token, refreshToken, userInfo);
     }
 
     @Override

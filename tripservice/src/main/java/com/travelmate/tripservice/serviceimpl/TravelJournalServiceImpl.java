@@ -9,6 +9,7 @@ import com.travelmate.tripservice.mapper.TravelJournalMapper;
 import com.travelmate.tripservice.repository.TravelJournalRepository;
 import com.travelmate.tripservice.service.TravelJournalService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
@@ -31,8 +32,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
 
     @Override
     public TravelJournalModel createJournal(String token, TravelJournalModel journalModel) {
-        // Example: Validate token, map model to entity, save, and return model
-        if (token == null || token.isEmpty()) return null;
+        if (token == null || token.isEmpty()) throw new AccessDeniedException("unauthorized access");
         TravelJournal entity = TravelJournalMapper.toEntity(journalModel);
         TravelJournal saved = travelJournalRepository.save(entity);
         return TravelJournalMapper.toModel(saved);

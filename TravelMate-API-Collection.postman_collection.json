@@ -1,0 +1,286 @@
+{
+  "info": {
+    "_postman_id": "travel-mate-api-collection",
+    "name": "Travel Mate API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Unified API collection for all Travel Mate backend services. All Swagger UIs are protected by HTTP Basic Auth (admin credentials)."
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "admin", "type": "string" },
+      { "key": "password", "value": "admin", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth Service",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/register", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "register" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass\",\n  \"email\": \"test@example.com\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/login", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "login" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Trip Service",
+      "item": [
+        {
+          "name": "Get All Countries",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/countries", "host": [ "{{tripservice_url}}" ], "path": [ "countries" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Itineraries",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/itineraries", "host": [ "{{tripservice_url}}" ], "path": [ "itineraries" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Itinerary By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/itineraries/:id", "host": [ "{{tripservice_url}}" ], "path": [ "itineraries", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Itinerary",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{tripservice_url}}/itineraries", "host": [ "{{tripservice_url}}" ], "path": [ "itineraries" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Itinerary\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Destinations",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/api/destinations", "host": [ "{{tripservice_url}}" ], "path": [ "api", "destinations" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Destination",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{tripservice_url}}/api/destinations", "host": [ "{{tripservice_url}}" ], "path": [ "api", "destinations" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Destination\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Destination",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{tripservice_url}}/api/destinations/:id", "host": [ "{{tripservice_url}}" ], "path": [ "api", "destinations", ":id" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Destination\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Destination",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{tripservice_url}}/api/destinations/:id", "host": [ "{{tripservice_url}}" ], "path": [ "api", "destinations", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Regions",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/regions", "host": [ "{{tripservice_url}}" ], "path": [ "regions" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Journals",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/journals", "host": [ "{{tripservice_url}}" ], "path": [ "journals" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Journal",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{tripservice_url}}/journals", "host": [ "{{tripservice_url}}" ], "path": [ "journals" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Sample Journal\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Journal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{tripservice_url}}/journals", "host": [ "{{tripservice_url}}" ], "path": [ "journals" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Journal\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Trips",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/api/trips", "host": [ "{{tripservice_url}}" ], "path": [ "api", "trips" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Trip By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/api/trips/:id", "host": [ "{{tripservice_url}}" ], "path": [ "api", "trips", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Trip",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{tripservice_url}}/api/trips", "host": [ "{{tripservice_url}}" ], "path": [ "api", "trips" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Trip\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Trip",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{tripservice_url}}/api/trips/:id", "host": [ "{{tripservice_url}}" ], "path": [ "api", "trips", ":id" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Trip\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Tags",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/tags", "host": [ "{{tripservice_url}}" ], "path": [ "tags" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tag By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/tags/:id", "host": [ "{{tripservice_url}}" ], "path": [ "tags", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tag By Name",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{tripservice_url}}/tags/name/:name", "host": [ "{{tripservice_url}}" ], "path": [ "tags", "name", ":name" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Tag",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{tripservice_url}}/tags", "host": [ "{{tripservice_url}}" ], "path": [ "tags" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Tag\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Tag",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{tripservice_url}}/tags/:id", "host": [ "{{tripservice_url}}" ], "path": [ "tags", ":id" ] }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

@@ -13,9 +13,6 @@ scrape_configs:
     static_configs:
       - targets: ['auth-service:8083', 'trip-service:8082', 'gateway:8080']
 
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis-master:6379']
 
   - job_name: 'user-service'
     metrics_path: '/metrics'

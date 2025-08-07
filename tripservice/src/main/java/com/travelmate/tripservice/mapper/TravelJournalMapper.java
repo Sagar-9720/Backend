@@ -15,10 +15,10 @@ public class TravelJournalMapper {
                 .title(entity.getTitle())
                 .note(entity.getNote())
                 .entryDate(entity.getEntryDate())
-                .location(entity.getLocation() != null ? entity.getLocation().toString() : null)
+                .location(entity.getLocation())
+                .images(entity.getImages())
                 .tags(entity.getTags())
                 .isPublic(entity.getIsPublic())
-                .images(entity.getImages() != null ? entity.getImages().stream().map(Object::toString).collect(Collectors.toList()) : null)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -33,12 +33,12 @@ public class TravelJournalMapper {
                 .title(model.getTitle())
                 .note(model.getNote())
                 .entryDate(model.getEntryDate())
-                // location and images mapping should be handled in serviceImpl
                 .tags(model.getTags())
+                .location(model.getLocation())
+                .images(model.getImages())
                 .isPublic(model.getIsPublic())
                 .createdAt(model.getCreatedAt())
                 .updatedAt(model.getUpdatedAt())
                 .build();
     }
 }
-

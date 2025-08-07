@@ -31,7 +31,7 @@ public class Role {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @OneToMany(mappedBy = "roles")
+    @OneToMany(mappedBy = "role")
     private Set<User> users;
     
     @PrePersist

@@ -21,5 +21,6 @@ public class TripModel {
     private LocalDateTime endDate;
     private BigDecimal price;
     private Long mainDestinationId;
+    private String createdBy;
     private List<Itinerary> itineraries; // List of Itinerary IDs for mapping
 }

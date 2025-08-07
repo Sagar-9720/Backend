@@ -1,4 +1,4 @@
-package com.travelmate.authservice.config;
+package com.travelmate.tripservice.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

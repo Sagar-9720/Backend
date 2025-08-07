@@ -18,8 +18,12 @@ public class RedisCacheConfig {
 
     private static final String CACHE_SYNC_TOPIC = "cache:sync:trips";
 
+    private final MeterRegistry meterRegistry;
+
     @Autowired
-    private MeterRegistry meterRegistry;
+    public RedisCacheConfig(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
@@ -37,10 +41,6 @@ public class RedisCacheConfig {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener(listenerAdapter, new ChannelTopic(CACHE_SYNC_TOPIC));
-
-        // Register metrics
-        meterRegistry.gauge("cache.sync.listeners.count", container,
-            c -> (double) c.getRegisteredListeners().size());
 
         return container;
     }
