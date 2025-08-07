@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .email-container {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <h2>Email Verification</h2>
+        <p>Hello <span th:text="${name}">User</span>,</p>
+        <p>Welcome to TravelMate! Please verify your email address by clicking the button below:</p>
+        <p>
+            <a th:href="${verificationLink}" class="button">Verify Email</a>
+        </p>
+        <p>This link will expire in 24 hours.</p>
+        <p>If you did not create an account with TravelMate, please ignore this email.</p>
+        <br>
+        <p>Best regards,<br>The TravelMate Team</p>
+    </div>
+</body>
+</html>
+

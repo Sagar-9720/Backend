@@ -4,6 +4,7 @@ import { connectPostgres } from './config/postgres';
 import { connectMongo } from './config/mongo';
 import bodyParser from 'body-parser';
 import eurekaClient from './config/eureka';
+import promClient from 'prom-client';
 
 // Only import relevant routes
 import savedTripRoutes from './routes/saved_trip.routes';
@@ -16,6 +17,13 @@ import Like from './models/like.model';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Prometheus metrics setup
+promClient.collectDefaultMetrics();
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', promClient.register.contentType);
+  res.end(await promClient.register.metrics());
+});
 
 app.use(cors());
 app.use(express.json());

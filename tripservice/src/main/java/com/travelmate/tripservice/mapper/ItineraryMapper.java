@@ -1,6 +1,6 @@
 package com.travelmate.tripservice.mapper;
 
-import com.travelmate.tripservice.domain.Itinerary;
+import com.travelmate.tripservice.entity.Itinerary;
 import com.travelmate.tripservice.model.ItineraryModel;
 
 public class ItineraryMapper {

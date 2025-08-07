@@ -14,6 +14,6 @@ public class TokenValidationResponse {
     private String userId;
     private String username;
     private String email;
-    private List<String> roles;
+    private String role;
     private String message;
 }

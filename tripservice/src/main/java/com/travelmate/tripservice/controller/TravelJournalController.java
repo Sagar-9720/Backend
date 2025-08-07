@@ -23,38 +23,86 @@ public class TravelJournalController {
     }
 
     @PostMapping
-    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> createJournal(@RequestBody TravelJournalModel journalModel) {
-        TravelJournalModel created = travelJournalService.createJournal(journalModel);
-        return ResponseEntity.ok(CustomResponseEntity.success(201, "Journal created", created, "/journals"));
+    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> createJournal(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody TravelJournalModel journalModel) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        try {
+            TravelJournalModel created = travelJournalService.createJournal(token, journalModel);
+            return ResponseEntity.status(201).body(CustomResponseEntity.success(201, "Journal created", created, "/journals"));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to create journal: " + e.getMessage(), "/journals"));
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> updateJournal(@PathVariable String id, @RequestBody TravelJournalModel journalModel) {
-        TravelJournalModel updated = travelJournalService.updateJournal(id, journalModel);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal updated", updated, "/journals/" + id));
+    @PutMapping
+    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> updateJournal(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody TravelJournalModel journalModel) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        try {
+            TravelJournalModel updated = travelJournalService.updateJournal(token, journalModel);
+            if (updated != null) {
+                return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal updated", updated, "/journals/" + journalModel.getId()));
+            } else {
+                return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "Journal not found", "/journals/" + journalModel.getId()));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to update journal: " + e.getMessage(), "/journals/" + journalModel.getId()));
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<Void>> deleteJournal(@PathVariable String id) {
-        travelJournalService.deleteJournal(id);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal deleted", null, "/journals/" + id));
+    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> deleteJournal(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String id) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        try {
+            TravelJournalModel deleted = travelJournalService.deleteJournal(token, id);
+            if (deleted != null) {
+                return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal deleted", deleted, "/journals/" + id));
+            } else {
+                return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "Journal not found", "/journals/" + id));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to delete journal: " + e.getMessage(), "/journals/" + id));
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> getJournalById(@PathVariable String id) {
-        TravelJournalModel journal = travelJournalService.getJournalById(id);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal fetched", journal, "/journals/" + id));
+    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> getJournalById(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String id) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        TravelJournalModel journal = travelJournalService.getJournalById(token, id);
+        if (journal != null) {
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal fetched", journal, "/journals/" + id));
+        } else {
+            return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "Journal not found", "/journals/" + id));
+        }
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<CustomResponseEntity<List<TravelJournalModel>>> getJournalsByUserId(@PathVariable String userId) {
-        List<TravelJournalModel> journals = travelJournalService.getJournalsByUserId(userId);
+    public ResponseEntity<CustomResponseEntity<List<TravelJournalModel>>> getJournalsByUserId(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String userId) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        List<TravelJournalModel> journals = travelJournalService.getJournalsByUserId(token, userId);
+        if (journals == null || journals.isEmpty()) {
+            return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "No journals found for user", "/journals/user/" + userId));
+        }
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Journals fetched by user", journals, "/journals/user/" + userId));
     }
 
     @GetMapping("/trip/{tripId}")
-    public ResponseEntity<CustomResponseEntity<List<TravelJournalModel>>> getJournalsByTripId(@PathVariable String tripId) {
-        List<TravelJournalModel> journals = travelJournalService.getJournalsByTripId(tripId);
+    public ResponseEntity<CustomResponseEntity<List<TravelJournalModel>>> getJournalsByTripId(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String tripId) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        List<TravelJournalModel> journals = travelJournalService.getJournalsByTripId(token, tripId);
+        if (journals == null || journals.isEmpty()) {
+            return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "No journals found for trip", "/journals/trip/" + tripId));
+        }
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Journals fetched by trip", journals, "/journals/trip/" + tripId));
     }
 
@@ -67,6 +115,9 @@ public class TravelJournalController {
     @GetMapping("/tag/{tag}")
     public ResponseEntity<CustomResponseEntity<List<TravelJournalModel>>> searchByTag(@PathVariable String tag) {
         List<TravelJournalModel> journals = travelJournalService.searchByTag(tag);
+        if (journals == null || journals.isEmpty()) {
+            return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "No journals found for tag", "/journals/tag/" + tag));
+        }
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Journals fetched by tag", journals, "/journals/tag/" + tag));
     }
 }

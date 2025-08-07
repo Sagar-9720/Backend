@@ -1,55 +1,36 @@
 spring:
-  profiles:
-    active: local
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
+      enable-statistics: true
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000
+    database: 0
+    sentinel:
+      master: mymaster
+      nodes: ${REDIS_SENTINEL_NODES:localhost:26379,localhost:26380,localhost:26381}
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 2
+        max-wait: -1ms
   application:
-    name: trip-service
-
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres-trip:5432/trip_service_db}
-    username: ${SPRING_DATASOURCE_USERNAME:traveluser}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
-
-  data:
-    mongodb:
-      host: mongo
-      port: 27017
-      database: tripdb
-      username: admin
-      password: password
-      authentication-database: admin
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-server:
-  port: ${SERVER_PORT:8082}
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://eureka-server:8761/eureka/}
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    prefer-ip-address: true
+    name: tripservice
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
-
-logging:
-  level:
-    root: INFO
-    org.hibernate.SQL: DEBUG
-
-app:
-  user-service:
-    base-url: ${APP_USER_SERVICE_BASE_URL:http://gateway:8080}
+        include: health,metrics,prometheus,caches
+  metrics:
+    cache:
+      enabled: true
+    distribution:
+      percentiles-histogram:
+        cache: true
+      sla:
+        cache: 50ms,100ms,200ms

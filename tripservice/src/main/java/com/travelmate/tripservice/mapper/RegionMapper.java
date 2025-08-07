@@ -1,6 +1,6 @@
 package com.travelmate.tripservice.mapper;
 
-import com.travelmate.tripservice.domain.Region;
+import com.travelmate.tripservice.entity.Region;
 import com.travelmate.tripservice.model.RegionModel;
 
 public class RegionMapper {

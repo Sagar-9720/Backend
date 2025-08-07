@@ -25,7 +25,7 @@ public class DataInitializer implements CommandLineRunner {
     private void initializeRoles() {
         createRoleIfNotExists("USER", "Standard user role");
         createRoleIfNotExists("ADMIN", "Administrator role");
-        createRoleIfNotExists("GUEST", "Guest user role");
+        createRoleIfNotExists("SUBADMIN", "Guest user role");
     }
 
     private void createRoleIfNotExists(String roleName, String description) {

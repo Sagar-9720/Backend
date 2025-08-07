@@ -1,6 +1,6 @@
 package com.travelmate.tripservice.repository;
 
-import com.travelmate.tripservice.domain.Trip;
+import com.travelmate.tripservice.entity.Trip;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

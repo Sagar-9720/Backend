@@ -1,6 +1,6 @@
 package com.travelmate.tripservice.repository;
 
-import com.travelmate.tripservice.domain.Region;
+import com.travelmate.tripservice.entity.Region;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

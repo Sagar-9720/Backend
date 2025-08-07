@@ -1,6 +1,6 @@
 package com.travelmate.tripservice.serviceimpl;
 
-import com.travelmate.tripservice.domain.Tag;
+import com.travelmate.tripservice.entity.Tag;
 import com.travelmate.tripservice.repository.TagRepository;
 import com.travelmate.tripservice.service.TagService;
 import com.travelmate.tripservice.model.TagModel;
@@ -53,7 +53,7 @@ public class TagServiceImpl implements TagService {
             tagRepository.deleteById(id);
         } catch (RuntimeException e) {
             logger.warn("Tag not found for deletion: {}", id);
-            // Do not rethrow, just log
+
         }
     }
 }

@@ -1,0 +1,3 @@
+rootProject.name = 'Travel-Mate'
+include 'authservice', 'emailservice', 'eureka-server', 'gateway', 'tripservice', 'user-service'
+

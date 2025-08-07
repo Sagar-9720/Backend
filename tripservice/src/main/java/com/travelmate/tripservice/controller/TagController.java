@@ -1,6 +1,5 @@
 package com.travelmate.tripservice.controller;
 
-import com.travelmate.tripservice.domain.Tag;
 import com.travelmate.tripservice.model.TagModel;
 import com.travelmate.tripservice.response.CustomResponseEntity;
 import com.travelmate.tripservice.service.TagService;

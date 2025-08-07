@@ -1,10 +1,12 @@
 package com.travelmate.tripservice.serviceimpl;
 
-import com.travelmate.tripservice.domain.Country;
-import com.travelmate.tripservice.domain.Destination;
-import com.travelmate.tripservice.domain.Region;
+import com.travelmate.tripservice.client.AuthServiceClient;
+import com.travelmate.tripservice.entity.Country;
+import com.travelmate.tripservice.entity.Destination;
+import com.travelmate.tripservice.entity.Region;
 import com.travelmate.tripservice.exceptions.DestinationExistException;
 import com.travelmate.tripservice.exceptions.DestinationNotFoundException;
+import com.travelmate.tripservice.exceptions.RegionNotFoundException;
 import com.travelmate.tripservice.mapper.DestinationMapper;
 import com.travelmate.tripservice.model.DestinationModel;
 import com.travelmate.tripservice.repository.CountryRepository;
@@ -32,6 +34,9 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Autowired
     private RegionRepository regionRepository;
+
+    @Autowired
+    private AuthServiceClient authServiceClient;
 
     private static final Logger logger = LoggerFactory.getLogger(DestinationServiceImpl.class);
 
@@ -68,23 +73,58 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
-    public DestinationModel updateDestination(Long id, DestinationModel updatedDestinationModel) throws DestinationNotFoundException {
-        logger.info("Updating destination id: {}", id);
-        Destination entity = DestinationMapper.toEntity(updatedDestinationModel);
-        entity.setId(id);
-        Destination saved = destinationRepository.save(entity);
-        return DestinationMapper.toModel(saved);
+    public DestinationModel updateDestination(String token, DestinationModel model) throws DestinationNotFoundException {
+        String role = authServiceClient.validateToken(token).getRole();
+        if (role != null && !"user".equalsIgnoreCase(role)) {
+            logger.info("Updating destination id: {}", model.getId());
+            Destination entity = DestinationMapper.toEntity(model);
+            entity.setId(model.getId());
+            Destination saved = destinationRepository.save(entity);
+            return DestinationMapper.toModel(saved);
+        } else {
+            throw new SecurityException("User role is not authorized to update destination");
+        }
     }
 
     @Override
-    public void deleteDestination(Long id) {
-        logger.info("Deleting destination id: {}", id);
-        destinationRepository.deleteById(id);
+    public List<DestinationModel> getDestinationsByRegionId(Long regionId) {
+        logger.info("Fetching destinations by region id: {}", regionId);
+        Optional<Region> region = regionRepository.findById(regionId);
+        if (region.isPresent()) {
+            List<Destination> destinations = destinationRepository.findByRegion(region.get());
+            return destinations.stream().map(DestinationMapper::toModel).toList();
+        }
+        throw new RegionNotFoundException(regionId);
     }
 
     @Override
-    public List<DestinationModel> searchDestinationsByName(String name) {
+    public List<DestinationModel> getDestinationsByCountryId(Long countryId) {
+        return List.of();
+    }
+
+    @Override
+    public List<DestinationModel> searchDestinationByName(String name) {
         logger.info("Searching destinations by name: {}", name);
-        return destinationRepository.findByNameContainingIgnoreCase(name).stream().map(DestinationMapper::toModel).toList();
+        List<Destination> destinations = destinationRepository.findByNameContainingIgnoreCase(name);
+        if (destinations.isEmpty()) {
+            throw new DestinationNotFoundException(name);
+        }
+        return destinations.stream().map(DestinationMapper::toModel).toList();
     }
+
+
+    @Override
+    public DestinationModel deleteDestination(String token, DestinationModel model) {
+        String role = authServiceClient.validateToken(token).getRole();
+        if (role != null && !"user".equalsIgnoreCase(role)) {
+            DestinationModel deleted = destinationRepository.findById(model.getId()).map(DestinationMapper::toModel).orElse(null);
+            destinationRepository.deleteById(model.getId());
+            logger.info("Deleting destination id: {}", model.getId());
+            return deleted;
+        } else {
+            throw new SecurityException("User role is not authorized to delete destination");
+        }
+    }
+
+
 }

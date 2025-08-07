@@ -1,6 +1,5 @@
 package com.travelmate.tripservice.controller;
 
-import com.travelmate.tripservice.domain.Country;
 import com.travelmate.tripservice.model.CountryModel;
 import com.travelmate.tripservice.response.CustomResponseEntity;
 import com.travelmate.tripservice.service.CountryService;

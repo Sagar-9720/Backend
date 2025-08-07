@@ -1,6 +1,5 @@
 package com.travelmate.tripservice.serviceimpl;
 
-import com.travelmate.tripservice.domain.Country;
 import com.travelmate.tripservice.repository.CountryRepository;
 import com.travelmate.tripservice.service.CountryService;
 import com.travelmate.tripservice.model.CountryModel;
@@ -14,6 +13,7 @@ import java.util.List;
 
 @Service
 public class CountryServiceImpl implements CountryService {
+
     @Autowired
     private CountryRepository countryRepository;
 

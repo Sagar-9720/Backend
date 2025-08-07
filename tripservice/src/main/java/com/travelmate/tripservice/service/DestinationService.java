@@ -8,14 +8,16 @@ import java.util.Optional;
 public interface DestinationService {
 
     DestinationModel createDestination(DestinationModel destinationModel);
-
     Optional<DestinationModel> getDestinationById(Long id);
-
     List<DestinationModel> getAllDestinations();
+    DestinationModel deleteDestination(String token, DestinationModel destinationModel);
 
-    DestinationModel updateDestination(Long id, DestinationModel updatedDestinationModel);
+    DestinationModel updateDestination(String token, DestinationModel destinationModel);
 
-    void deleteDestination(Long id);
+    List<DestinationModel> getDestinationsByRegionId(Long regionId);
 
-    List<DestinationModel> searchDestinationsByName(String name);
+    List<DestinationModel> getDestinationsByCountryId(Long countryId);
+
+    List<DestinationModel> searchDestinationByName(String name);
+
 }

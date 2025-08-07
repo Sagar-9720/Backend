@@ -1,21 +1,23 @@
 package com.travelmate.tripservice.service;
 
+import com.travelmate.tripservice.dto.TripInteractionDTO;
 import com.travelmate.tripservice.model.TravelJournalModel;
 
 import java.util.List;
 
 public interface TravelJournalService {
-    TravelJournalModel createJournal(TravelJournalModel journalModel);
 
-    TravelJournalModel updateJournal(String id, TravelJournalModel journalModel);
+    TravelJournalModel createJournal(String token, TravelJournalModel journalModel);
 
-    void deleteJournal(String id);
+    TravelJournalModel updateJournal(String token, TravelJournalModel journalModel);
 
-    TravelJournalModel getJournalById(String id);
+    TravelJournalModel deleteJournal(String token, String id);
 
-    List<TravelJournalModel> getJournalsByUserId(String userId);
+    TravelJournalModel getJournalById(String token, String id);
 
-    List<TravelJournalModel> getJournalsByTripId(String tripId);
+    List<TravelJournalModel> getJournalsByUserId(String token, String userId);
+
+    List<TravelJournalModel> getJournalsByTripId(String token, String tripId);
 
     List<TravelJournalModel> getPublicJournals();
 

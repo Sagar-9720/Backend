@@ -1,6 +1,5 @@
 package com.travelmate.tripservice.serviceimpl;
 
-import com.travelmate.tripservice.domain.Region;
 import com.travelmate.tripservice.model.RegionModel;
 import com.travelmate.tripservice.mapper.RegionMapper;
 import com.travelmate.tripservice.repository.RegionRepository;

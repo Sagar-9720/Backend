@@ -1,6 +1,6 @@
 package com.travelmate.tripservice.mapper;
 
-import com.travelmate.tripservice.domain.Tag;
+import com.travelmate.tripservice.entity.Tag;
 import com.travelmate.tripservice.model.TagModel;
 
 public class TagMapper {

@@ -1,6 +1,6 @@
 package com.travelmate.tripservice.mapper;
 
-import com.travelmate.tripservice.domain.TravelJournal;
+import com.travelmate.tripservice.entity.TravelJournal;
 import com.travelmate.tripservice.model.TravelJournalModel;
 
 import java.util.stream.Collectors;

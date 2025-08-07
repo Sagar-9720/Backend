@@ -1,8 +1,8 @@
 package com.travelmate.tripservice.serviceimpl;
 
-import com.travelmate.tripservice.domain.Destination;
-import com.travelmate.tripservice.domain.Itinerary;
-import com.travelmate.tripservice.domain.Trip;
+import com.travelmate.tripservice.entity.Destination;
+import com.travelmate.tripservice.entity.Itinerary;
+import com.travelmate.tripservice.entity.Trip;
 import com.travelmate.tripservice.exceptions.ItineraryNotFoundException;
 import com.travelmate.tripservice.exceptions.TripExistsException;
 import com.travelmate.tripservice.exceptions.TripNotFoundException;

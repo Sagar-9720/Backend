@@ -2,12 +2,19 @@ package com.travelmate.authservice.dto;
 
 import java.time.LocalDate;
 
+import com.travelmate.authservice.entity.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Data
+@Builder
+@Getter
+@Setter
 public class RegisterRequest {
     
     @NotBlank(message = "Name is required")
@@ -25,6 +32,8 @@ public class RegisterRequest {
     private String password;
     
     private LocalDate dob;
-    
+
     private String gender;
+
+    private String requestedSent;
 }

@@ -1,5 +1,6 @@
 package com.travelmate.tripservice.model;
 
+import com.travelmate.tripservice.entity.Itinerary;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -20,5 +21,5 @@ public class TripModel {
     private LocalDateTime endDate;
     private BigDecimal price;
     private Long mainDestinationId;
-    private List<Long> itineraryIds; // List of Itinerary IDs for mapping
+    private List<Itinerary> itineraries; // List of Itinerary IDs for mapping
 }

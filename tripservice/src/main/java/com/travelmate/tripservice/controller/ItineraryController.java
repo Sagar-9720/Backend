@@ -1,6 +1,5 @@
 package com.travelmate.tripservice.controller;
 
-import com.travelmate.tripservice.domain.Itinerary;
 import com.travelmate.tripservice.model.ItineraryModel;
 import com.travelmate.tripservice.response.CustomResponseEntity;
 import com.travelmate.tripservice.service.ItineraryService;
@@ -15,6 +14,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/itineraries")
 public class ItineraryController {
+
     @Autowired
     private ItineraryService itineraryService;
 
@@ -27,24 +27,66 @@ public class ItineraryController {
     @GetMapping("/{id}")
     public ResponseEntity<CustomResponseEntity<ItineraryModel>> getItineraryById(@PathVariable Long id) {
         Optional<ItineraryModel> itinerary = itineraryService.getItineraryById(id);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary fetched", itinerary.orElse(null), "/itineraries/" + id));
+        if (itinerary.isPresent()) {
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary fetched", itinerary.get(), "/itineraries/" + id));
+        } else {
+            return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "Itinerary not found", "/itineraries/" + id));
+        }
     }
 
     @PostMapping
-    public ResponseEntity<CustomResponseEntity<ItineraryModel>> createItinerary(@RequestBody ItineraryModel itineraryModel) {
-        ItineraryModel created = itineraryService.createItinerary(itineraryModel);
-        return ResponseEntity.ok(CustomResponseEntity.success(201, "Itinerary created", created, "/itineraries"));
+    public ResponseEntity<CustomResponseEntity<ItineraryModel>> createItinerary(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody ItineraryModel itineraryModel) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        try {
+            ItineraryModel created = itineraryService.createItinerary(token, itineraryModel);
+            return ResponseEntity.status(201).body(CustomResponseEntity.success(201, "Itinerary created", created, "/itineraries"));
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to create itinerary: " + e.getMessage(), "/itineraries"));
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<ItineraryModel>> updateItinerary(@PathVariable Long id, @RequestBody ItineraryModel itineraryModel) {
-        ItineraryModel updated = itineraryService.updateItinerary(id, itineraryModel);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary updated", updated, "/itineraries/" + id));
+    @PutMapping
+    public ResponseEntity<CustomResponseEntity<ItineraryModel>> updateItinerary(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody ItineraryModel itineraryModel) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        try {
+            ItineraryModel updated = itineraryService.updateItinerary(token, itineraryModel);
+            if (updated != null) {
+                return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary updated", updated, "/itineraries/" + itineraryModel.getId()));
+            } else {
+                return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "Itinerary not found", "/itineraries/" + itineraryModel.getId()));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to update itinerary: " + e.getMessage(), "/itineraries/" + itineraryModel.getId()));
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<Void>> deleteItinerary(@PathVariable Long id) {
-        itineraryService.deleteItinerary(id);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary deleted", null, "/itineraries/" + id));
+    public ResponseEntity<CustomResponseEntity<ItineraryModel>> deleteItinerary(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        try {
+            ItineraryModel deleted = itineraryService.deleteItinerary(token, id);
+            if (deleted != null) {
+                return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary deleted", deleted, "/itineraries/" + id));
+            } else {
+                return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "Itinerary not found", "/itineraries/" + id));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to delete itinerary: " + e.getMessage(), "/itineraries/" + id));
+        }
+    }
+
+    @GetMapping("/destination/{destinationId}")
+    public ResponseEntity<CustomResponseEntity<List<ItineraryModel>>> getItinerariesByDestinationId(@PathVariable Long destinationId) {
+        List<ItineraryModel> itineraries = itineraryService.getItinerariesByDestinationId(destinationId);
+        if (itineraries == null || itineraries.isEmpty()) {
+            return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "No itineraries found for destination", "/itineraries/destination/" + destinationId));
+        }
+        return ResponseEntity.ok(CustomResponseEntity.success(200, "Itineraries fetched by destination", itineraries, "/itineraries/destination/" + destinationId));
     }
 }

@@ -1,6 +1,6 @@
 package com.travelmate.tripservice.repository;
 
-import com.travelmate.tripservice.domain.TravelJournal;
+import com.travelmate.tripservice.entity.TravelJournal;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
