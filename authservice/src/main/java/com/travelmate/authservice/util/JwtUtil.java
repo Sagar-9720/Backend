@@ -40,13 +40,13 @@ public class JwtUtil {
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
-                .setSubject(userId)
                 .claim("name", name)
                 .claim("email", email)
                 .claim("role", role)
+                .setSubject(userId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey())
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -58,7 +58,7 @@ public class JwtUtil {
                 .setSubject(userId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getRefreshSigningKey())
+                .signWith(getRefreshSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -112,6 +112,8 @@ public class JwtUtil {
 
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            // Log the exception if needed
+            e.printStackTrace();
             return false;
         }
     }

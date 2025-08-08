@@ -7,6 +7,9 @@ import com.travelmate.authservice.service.AuthServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +21,9 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class AuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
+    @Autowired
     private final AuthServiceImpl authServiceImpl;
 
     @PostMapping("/register")
@@ -57,6 +63,9 @@ public class AuthController {
     @GetMapping("/validate")
     public ResponseEntity<CustomResponseEntity<TokenValidationResponse>> validateToken(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
+            logger.info("Validating token from request: {}", servletRequest.getRequestURI());
+            logger.debug("Authorization header: {}", authHeader);
+
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
