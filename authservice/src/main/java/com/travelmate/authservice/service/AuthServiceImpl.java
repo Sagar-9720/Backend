@@ -188,11 +188,6 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid credentials");
         }
-
-        if (!user.getEmailVerified()) {
-            return new AuthResponse(false, "Please verify your email before logging in", null, null, null);
-        }
-
         // Generate tokens
         String role = user.getRole().getName();
 

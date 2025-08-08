@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/tags")
+@RequestMapping("/api/trip/tags")
 public class TagController {
     @Autowired
     private TagService tagService;

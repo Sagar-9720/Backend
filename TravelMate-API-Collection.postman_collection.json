@@ -27,7 +27,24 @@
               "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass\",\n  \"email\": \"test@example.com\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 201,\n  \"message\": \"User registered successfully. Please check your email to verify your account.\",\n  \"data\": {\n    \"success\": true,\n    \"message\": \"User registered successfully. Please check your email to verify your account.\",\n    \"token\": null,\n    \"refreshToken\": null,\n    \"userInfo\": {\n      \"userId\": \"2\",\n      \"name\": \"testuser\",\n      \"email\": \"test@example.com\",\n      \"phone\": null,\n      \"dob\": null,\n      \"gender\": null,\n      \"profileImg\": \"\",\n      \"role\": \"USER\"\n    }\n  },\n  \"path\": \"/api/auth/register\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {},
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 400,\n  \"message\": \"Email already exists\",\n  \"data\": null,\n  \"path\": \"/api/auth/register\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Login",
@@ -40,7 +57,135 @@
               "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"success\": true,\n    \"message\": \"Login successful\",\n    \"token\": \"<jwt_token>\",\n    \"refreshToken\": \"<refresh_token>\",\n    \"userInfo\": {\n      \"userId\": \"2\",\n      \"name\": \"testuser\",\n      \"email\": \"test@example.com\",\n      \"phone\": null,\n      \"dob\": null,\n      \"gender\": null,\n      \"profileImg\": \"\",\n      \"role\": \"USER\"\n    }\n  },\n  \"path\": \"/api/auth/login\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {},
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 401,\n  \"message\": \"Invalid credentials\",\n  \"data\": null,\n  \"path\": \"/api/auth/login\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
+        },
+        {
+          "name": "Validate Token",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/validate", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "validate" ] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Token is valid\",\n  \"data\": {\n    \"valid\": true,\n    \"userId\": \"2\"\n  },\n  \"path\": \"/api/auth/validate\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {},
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 401,\n  \"message\": \"Invalid or expired token\",\n  \"data\": null,\n  \"path\": \"/api/auth/validate\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/refresh", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "refresh" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"<refresh_token>\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Token refreshed successfully\",\n  \"data\": {\n    \"token\": \"<new_jwt_token>\",\n    \"refreshToken\": \"<new_refresh_token>\"\n  },\n  \"path\": \"/api/auth/refresh\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {},
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 401,\n  \"message\": \"Invalid refresh token\",\n  \"data\": null,\n  \"path\": \"/api/auth/refresh\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{authservice_url}}/api/auth/verify-email?token=<token>", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "verify-email" ], "query": [ { "key": "token", "value": "<token>" } ] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Email verified successfully\",\n  \"data\": {\n    \"verified\": true\n  },\n  \"path\": \"/api/auth/verify-email\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {},
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 400,\n  \"message\": \"Invalid or expired verification token\",\n  \"data\": null,\n  \"path\": \"/api/auth/verify-email\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
+        },
+        {
+          "name": "Resend Verification Email",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/resend-verification", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "resend-verification" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"user@example.com\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Verification email sent\",\n  \"data\": {\n    \"sent\": true\n  },\n  \"path\": \"/api/auth/resend-verification\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {},
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 400,\n  \"message\": \"Email not found or already verified\",\n  \"data\": null,\n  \"path\": \"/api/auth/resend-verification\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         }
       ]
     },
@@ -53,7 +198,16 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/countries", "host": [ "{{tripservice_url}}" ], "path": [ "countries" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Countries fetched successfully\",\n  \"data\": [\n    {\"id\": 1, \"name\": \"Country 1\"},\n    {\"id\": 2, \"name\": \"Country 2\"}\n  ],\n  \"path\": \"/countries\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get All Itineraries",
@@ -61,7 +215,16 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/itineraries", "host": [ "{{tripservice_url}}" ], "path": [ "itineraries" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Itineraries fetched successfully\",\n  \"data\": [\n    {\"id\": 1, \"name\": \"Itinerary 1\"},\n    {\"id\": 2, \"name\": \"Itinerary 2\"}\n  ],\n  \"path\": \"/itineraries\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get Itinerary By ID",
@@ -69,7 +232,24 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/itineraries/:id", "host": [ "{{tripservice_url}}" ], "path": [ "itineraries", ":id" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Itinerary details fetched successfully\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Itinerary 1\",\n    \"description\": \"Detailed description of Itinerary 1\",\n    \"destinations\": [\n      {\"id\": 1, \"name\": \"Destination 1\"},\n      {\"id\": 2, \"name\": \"Destination 2\"}\n    ],\n    \"activities\": [\n      {\"id\": 1, \"name\": \"Activity 1\"},\n      {\"id\": 2, \"name\": \"Activity 2\"}\n    ]\n  },\n  \"path\": \"/itineraries/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Itinerary not found\",\n  \"data\": null,\n  \"path\": \"/itineraries/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Create Itinerary",
@@ -85,7 +265,24 @@
               "raw": "{\n  \"name\": \"Sample Itinerary\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 201,\n  \"message\": \"Itinerary created successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"name\": \"Sample Itinerary\",\n    \"description\": \"\",\n    \"destinations\": [],\n    \"activities\": []\n  },\n  \"path\": \"/itineraries\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {},
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 400,\n  \"message\": \"Invalid itinerary data\",\n  \"data\": null,\n  \"path\": \"/itineraries\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get All Destinations",
@@ -93,7 +290,16 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/api/destinations", "host": [ "{{tripservice_url}}" ], "path": [ "api", "destinations" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Destinations fetched successfully\",\n  \"data\": [\n    {\"id\": 1, \"name\": \"Destination 1\"},\n    {\"id\": 2, \"name\": \"Destination 2\"}\n  ],\n  \"path\": \"/api/destinations\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Create Destination",
@@ -109,7 +315,24 @@
               "raw": "{\n  \"name\": \"Sample Destination\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 201,\n  \"message\": \"Destination created successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"name\": \"Sample Destination\"\n  },\n  \"path\": \"/api/destinations\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {},
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 400,\n  \"message\": \"Invalid destination data\",\n  \"data\": null,\n  \"path\": \"/api/destinations\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Update Destination",
@@ -125,7 +348,24 @@
               "raw": "{\n  \"name\": \"Updated Destination\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Destination updated successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"name\": \"Updated Destination\"\n  },\n  \"path\": \"/api/destinations/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Destination not found\",\n  \"data\": null,\n  \"path\": \"/api/destinations/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Delete Destination",
@@ -136,7 +376,24 @@
             ],
             "url": { "raw": "{{tripservice_url}}/api/destinations/:id", "host": [ "{{tripservice_url}}" ], "path": [ "api", "destinations", ":id" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {},
+              "status": "No Content",
+              "code": 204,
+              "body": "",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Destination not found\",\n  \"data\": null,\n  \"path\": \"/api/destinations/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get All Regions",
@@ -144,7 +401,16 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/regions", "host": [ "{{tripservice_url}}" ], "path": [ "regions" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Regions fetched successfully\",\n  \"data\": [\n    {\"id\": 1, \"name\": \"Region 1\"},\n    {\"id\": 2, \"name\": \"Region 2\"}\n  ],\n  \"path\": \"/regions\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get All Journals",
@@ -152,7 +418,16 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/journals", "host": [ "{{tripservice_url}}" ], "path": [ "journals" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Journals fetched successfully\",\n  \"data\": [\n    {\"id\": 1, \"title\": \"Journal 1\"},\n    {\"id\": 2, \"title\": \"Journal 2\"}\n  ],\n  \"path\": \"/journals\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Create Journal",
@@ -168,7 +443,24 @@
               "raw": "{\n  \"title\": \"Sample Journal\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 201,\n  \"message\": \"Journal created successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"title\": \"Sample Journal\"\n  },\n  \"path\": \"/journals\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {},
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 400,\n  \"message\": \"Invalid journal data\",\n  \"data\": null,\n  \"path\": \"/journals\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Update Journal",
@@ -184,7 +476,24 @@
               "raw": "{\n  \"title\": \"Updated Journal\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Journal updated successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"title\": \"Updated Journal\"\n  },\n  \"path\": \"/journals\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Journal not found\",\n  \"data\": null,\n  \"path\": \"/journals\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get All Trips",
@@ -192,7 +501,16 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/api/trips", "host": [ "{{tripservice_url}}" ], "path": [ "api", "trips" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Trips fetched successfully\",\n  \"data\": [\n    {\"id\": 1, \"name\": \"Trip 1\"},\n    {\"id\": 2, \"name\": \"Trip 2\"}\n  ],\n  \"path\": \"/api/trips\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get Trip By ID",
@@ -200,7 +518,24 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/api/trips/:id", "host": [ "{{tripservice_url}}" ], "path": [ "api", "trips", ":id" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Trip details fetched successfully\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Trip 1\",\n    \"description\": \"Detailed description of Trip 1\",\n    \"itinerary\": {\n      \"id\": 1,\n      \"name\": \"Itinerary 1\"\n    },\n    \"journal\": {\n      \"id\": 1,\n      \"title\": \"Journal 1\"\n    }\n  },\n  \"path\": \"/api/trips/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Trip not found\",\n  \"data\": null,\n  \"path\": \"/api/trips/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Create Trip",
@@ -216,7 +551,24 @@
               "raw": "{\n  \"name\": \"Sample Trip\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 201,\n  \"message\": \"Trip created successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"name\": \"Sample Trip\",\n    \"description\": \"\",\n    \"itinerary\": null,\n    \"journal\": null\n  },\n  \"path\": \"/api/trips\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {},
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 400,\n  \"message\": \"Invalid trip data\",\n  \"data\": null,\n  \"path\": \"/api/trips\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Update Trip",
@@ -232,7 +584,24 @@
               "raw": "{\n  \"name\": \"Updated Trip\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Trip updated successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"name\": \"Updated Trip\"\n  },\n  \"path\": \"/api/trips/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Trip not found\",\n  \"data\": null,\n  \"path\": \"/api/trips/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get All Tags",
@@ -240,7 +609,16 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/tags", "host": [ "{{tripservice_url}}" ], "path": [ "tags" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Tags fetched successfully\",\n  \"data\": [\n    {\"id\": 1, \"name\": \"Tag 1\"},\n    {\"id\": 2, \"name\": \"Tag 2\"}\n  ],\n  \"path\": \"/tags\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get Tag By ID",
@@ -248,7 +626,24 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/tags/:id", "host": [ "{{tripservice_url}}" ], "path": [ "tags", ":id" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Tag details fetched successfully\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Tag 1\"\n  },\n  \"path\": \"/tags/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Tag not found\",\n  \"data\": null,\n  \"path\": \"/tags/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Get Tag By Name",
@@ -256,7 +651,24 @@
             "method": "GET",
             "url": { "raw": "{{tripservice_url}}/tags/name/:name", "host": [ "{{tripservice_url}}" ], "path": [ "tags", "name", ":name" ] }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 200,\n  \"message\": \"Tag details fetched successfully\",\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Tag 1\"\n  },\n  \"path\": \"/tags/name/:name\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Tag not found\",\n  \"data\": null,\n  \"path\": \"/tags/name/:name\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Create Tag",
@@ -269,7 +681,24 @@
               "raw": "{\n  \"name\": \"Sample Tag\"\n}"
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {},
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 201,\n  \"message\": \"Tag created successfully\",\n  \"data\": {\n    \"id\": 3,\n    \"name\": \"Sample Tag\"\n  },\n  \"path\": \"/tags\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {},
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 400,\n  \"message\": \"Invalid tag data\",\n  \"data\": null,\n  \"path\": \"/tags\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         },
         {
           "name": "Delete Tag",
@@ -277,10 +706,163 @@
             "method": "DELETE",
             "url": { "raw": "{{tripservice_url}}/tags/:id", "host": [ "{{tripservice_url}}" ], "path": [ "tags", ":id" ] }
           },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {},
+              "status": "No Content",
+              "code": 204,
+              "body": "",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {},
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"timestamp\": \"2025-08-08T10:08:42.879680755\",\n  \"status\": 404,\n  \"message\": \"Tag not found\",\n  \"data\": null,\n  \"path\": \"/tags/:id\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "User Service",
+      "item": [
+        {
+          "name": "Create Comment",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{userservice_url}}/comments", "host": [ "{{userservice_url}}" ], "path": [ "comments" ] },
+            "body": { "mode": "raw", "raw": "{\n  /* comment fields */\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Comments",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{userservice_url}}/comments", "host": [ "{{userservice_url}}" ], "path": [ "comments" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comment By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{userservice_url}}/comments/:id", "host": [ "{{userservice_url}}" ], "path": [ "comments", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Comment",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{userservice_url}}/comments/:id", "host": [ "{{userservice_url}}" ], "path": [ "comments", ":id" ] },
+            "body": { "mode": "raw", "raw": "{\n  /* comment fields */\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{userservice_url}}/comments/:id", "host": [ "{{userservice_url}}" ], "path": [ "comments", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Like",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{userservice_url}}/likes", "host": [ "{{userservice_url}}" ], "path": [ "likes" ] },
+            "body": { "mode": "raw", "raw": "{\n  /* like fields */\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Likes",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{userservice_url}}/likes", "host": [ "{{userservice_url}}" ], "path": [ "likes" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Like By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{userservice_url}}/likes/:id", "host": [ "{{userservice_url}}" ], "path": [ "likes", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Like",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{userservice_url}}/likes/:id", "host": [ "{{userservice_url}}" ], "path": [ "likes", ":id" ] },
+            "body": { "mode": "raw", "raw": "{\n  /* like fields */\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Like",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{userservice_url}}/likes/:id", "host": [ "{{userservice_url}}" ], "path": [ "likes", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Saved Trip",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{userservice_url}}/saved-trips", "host": [ "{{userservice_url}}" ], "path": [ "saved-trips" ] },
+            "body": { "mode": "raw", "raw": "{\n  /* saved trip fields */\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Saved Trips",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{userservice_url}}/saved-trips", "host": [ "{{userservice_url}}" ], "path": [ "saved-trips" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Saved Trip By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{userservice_url}}/saved-trips/:id", "host": [ "{{userservice_url}}" ], "path": [ "saved-trips", ":id" ] }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Saved Trip",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{userservice_url}}/saved-trips/:id", "host": [ "{{userservice_url}}" ], "path": [ "saved-trips", ":id" ] },
+            "body": { "mode": "raw", "raw": "{\n  /* saved trip fields */\n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Saved Trip",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{userservice_url}}/saved-trips/:id", "host": [ "{{userservice_url}}" ], "path": [ "saved-trips", ":id" ] }
+          },
           "response": []
         }
       ]
     }
   ]
 }
-

@@ -20,7 +20,7 @@ public class WebSecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).hasRole("ADMIN")
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator/**","/api/trip/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults());

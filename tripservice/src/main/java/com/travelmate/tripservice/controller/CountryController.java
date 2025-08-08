@@ -14,7 +14,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/countries")
+@RequestMapping("/api/trip/countries")
 public class CountryController {
     @Autowired
     private CountryService countryService;

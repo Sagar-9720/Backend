@@ -14,7 +14,7 @@ import java.util.List;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/regions")
+@RequestMapping("/api/trip/regions")
 public class RegionController {
     @Autowired
     private RegionService regionService;

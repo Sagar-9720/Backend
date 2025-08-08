@@ -48,7 +48,8 @@ dependencies {
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
-
+	implementation 'org.postgresql:postgresql:42.7.3'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	compileOnly libraries.lombok
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly libraries.postgresql
