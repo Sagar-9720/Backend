@@ -1,0 +1,18 @@
+spring:
+  config:
+    import: "configserver:"
+  application:
+    name: authservice
+  cloud:
+    config:
+      uri: http://config-server:8888
+      fail-fast: true
+    bus:
+      enabled: true
+  kafka:
+    bootstrap-servers: kafka:9092
+management:
+  endpoints:
+    web:
+      exposure:
+        include: bus-refresh,refresh,health,info

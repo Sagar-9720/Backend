@@ -4,7 +4,24 @@ spring:
   cloud:
     config:
       server:
+        git:
+          uri: https://github.com/Sagar-9720/Travelmate-configs.git
+          username: Sagar-9720
+          password: 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
+          default-label: main
+          clone-on-start: true
         native:
-          search-locations: file:////Users/sagargupta/Desktop/Travel-Mate/Backend/config-repo
+          enabled: false
+    bus:
+      enabled: true
+  kafka:
+    bootstrap-servers: kafka:9092
   application:
     name: config-server
+    profiles:
+      active: git
+management:
+  endpoints:
+    web:
+      exposure:
+        include: bus-refresh,refresh,health,info

@@ -101,10 +101,8 @@ services:
       - "8888:8888"
     networks:
       - backend_travel-mate-network
-    volumes:
-      - ./config-repo:/config-repo
     environment:
-      - SPRING_PROFILES_ACTIVE=native
+      - SPRING_PROFILES_ACTIVE=git
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8888/actuator/health"]
       interval: 30s
@@ -124,9 +122,9 @@ services:
       kafka:
         condition: service_started
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
-      SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG: DEBUG
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=DEBUG
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
       # DB_URL: ...
       # DB_USER: ...
@@ -163,6 +161,7 @@ services:
       # MAIL_USERNAME: ...
       # MAIL_PASSWORD: ...
       # etc.
+      CONFIG_SERVER_PROFILE: docker
     networks:
       - backend_travel-mate-network
     deploy:
@@ -184,9 +183,9 @@ services:
       eureka-server:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
-      SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG: DEBUG
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=DEBUG
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
       # DB_URL: ...
       # DB_USER: ...
@@ -219,9 +218,9 @@ services:
       trip-service:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
-      SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG: DEBUG
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=DEBUG
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
     networks:
       - backend_travel-mate-network
@@ -422,8 +421,6 @@ services:
       retries: 3
 
 volumes:
-  config-repo:
-    driver: local
   postgres_trip_data:
   postgres_auth_data:
   postgres_user_data:

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import promClient from 'prom-client';
 import loadConfig from './config/loadConfig';
+import { startConfigBusListener } from './services/configBusListener';
 
 const startServer = async () => {
   try {
@@ -75,6 +76,9 @@ const startServer = async () => {
         }
       });
     });
+
+    // Start Kafka config bus listener (non-blocking)
+    startConfigBusListener().catch(err => console.error('[ConfigBus] Failed to start:', err));
 
   } catch (err) {
     console.error('❌ Failed to start User Service:', err);

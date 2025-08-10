@@ -25,6 +25,14 @@ spring:
           uri: lb://trip-service
           predicates:
             - Path=/api/trip/**
+    config:
+      uri: http://config-server:8888
+      fail-fast: true
+  config:
+    import: "configserver:"
+  profiles:
+    active: docker
+
 
 eureka:
   client:
@@ -39,7 +47,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: bus-refresh,refresh,health,info,gateway
 
 logging:
   level:
@@ -54,4 +62,3 @@ resilience4j.circuitbreaker:
       minimumNumberOfCalls: 5
       waitDurationInOpenState: 5s
       failureRateThreshold: 50
-

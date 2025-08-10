@@ -1,4 +1,16 @@
 spring:
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      uri: http://config-server:8888
+      fail-fast: true
+    bus:
+      enabled: true
+  kafka:
+    bootstrap-servers: kafka:9092
+  profiles:
+    active: docker
   cache:
     type: redis
     redis:
@@ -40,7 +52,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus,caches
+        include: bus-refresh,refresh,health,info
   metrics:
     cache:
       enabled: true

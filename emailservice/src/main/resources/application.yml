@@ -58,7 +58,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus
+        include: bus-refresh,refresh,health,info
   metrics:
     tags:
       application: ${spring.application.name}
