@@ -1,7 +1,5 @@
+// postgres.js (updated)
 import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const {
   PG_HOST,
@@ -25,19 +23,10 @@ const sequelize = new Sequelize(PG_DATABASE, PG_USER, PG_PASSWORD, {
 export const connectPostgres = async () => {
   try {
     await sequelize.authenticate();
-    console.log('PostgreSQL connection established successfully.');
+    console.log('✅ PostgreSQL connection established successfully.');
   } catch (error) {
-    console.error('Unable to connect to PostgreSQL:', error);
+    console.error('❌ Unable to connect to PostgreSQL:', error);
     process.exit(1);
-  }
-};
-
-export const closePostgres = async () => {
-  try {
-    await sequelize.close();
-    console.log('PostgreSQL connection closed.');
-  } catch (error) {
-    console.error('Error closing PostgreSQL connection:', error);
   }
 };
 

@@ -8,4 +8,9 @@ public interface CountryService {
 
     List<CountryModel> getAllCountries();
 
+    CountryModel getCountryById(Long id);
+    CountryModel addCountry(CountryModel countryModel);
+    CountryModel updateCountry(Long id, CountryModel countryModel);
+    void deleteCountry(Long id);
+
 }

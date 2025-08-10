@@ -24,4 +24,32 @@ public class CountryServiceImpl implements CountryService {
         logger.info("Fetching all countries");
         return countryRepository.findAll().stream().map(CountryMapper::toModel).toList();
     }
+
+    @Override
+    public CountryModel getCountryById(Long id) {
+        return countryRepository.findById(id)
+                .map(CountryMapper::toModel)
+                .orElse(null);
+    }
+
+    @Override
+    public CountryModel addCountry(CountryModel countryModel) {
+        var entity = CountryMapper.toEntity(countryModel);
+        var saved = countryRepository.save(entity);
+        return CountryMapper.toModel(saved);
+    }
+
+    @Override
+    public CountryModel updateCountry(Long id, CountryModel countryModel) {
+        var existing = countryRepository.findById(id).orElse(null);
+        if (existing == null) return null;
+        existing.setName(countryModel.getName());
+        var saved = countryRepository.save(existing);
+        return CountryMapper.toModel(saved);
+    }
+
+    @Override
+    public void deleteCountry(Long id) {
+        countryRepository.deleteById(id);
+    }
 }

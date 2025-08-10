@@ -5,6 +5,7 @@ import com.travelmate.authservice.entity.Role;
 import com.travelmate.authservice.entity.User;
 import com.travelmate.authservice.entity.PasswordResetToken;
 import com.travelmate.authservice.entity.EmailVerificationToken;
+import com.travelmate.authservice.mapper.UserMapper;
 import com.travelmate.authservice.repository.RoleRepository;
 import com.travelmate.authservice.repository.UserRepository;
 import com.travelmate.authservice.repository.PasswordResetTokenRepository;
@@ -23,6 +24,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.time.LocalDateTime;
+
+import com.travelmate.authservice.exception.EmailNotFoundException;
+import com.travelmate.authservice.exception.UserNotFoundException;
+import com.travelmate.authservice.exception.UnauthorizedAccessException;
+import com.travelmate.authservice.exception.EmailAlreadyExistException;
 
 
 @Service
@@ -48,23 +54,22 @@ public class AuthServiceImpl implements AuthService {
     private String frontendUrl;
 
     public AuthResponse register(RegisterRequest request) {
-        logger.info("Registering user with email: {}", request.getEmail());
-        if (userRepository.existsByEmail(request.getEmail())) {
-            logger.warn("Attempt to register with already registered email: {}", request.getEmail());
-            return new AuthResponse(false, "Email already registered", null, null, null);
+        logger.info("Registering user with email: {}", request.email());
+        if (userRepository.existsByEmail(request.email())) {
+            logger.warn("Attempt to register with already registered email: {}", request.email());
+            throw new EmailAlreadyExistException("Email already exists: " + request.email());
         }
         // Create new user
-        User user = new User().builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .dob(request.getDob())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .emailVerified(false)  // Set to false initially
+        User user = User.builder()
+                .name(request.name())
+                .email(request.email())
+                .phone(request.phone())
+                .dob(request.dob())
+                .password(passwordEncoder.encode(request.password()))
                 .build();
 
-        if (request.getGender() != null) {
-            user.setGender(User.Gender.valueOf(request.getGender().toUpperCase()));
+        if (request.gender() != null) {
+            user.setGender(User.Gender.valueOf(request.gender().toUpperCase()));
         }
 
         Role userRole = roleRepository.findByName("USER")
@@ -98,16 +103,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Create user info
-        UserInfoDTO userInfo = new UserInfoDTO(
-                savedUser.getUserId().toString(),
-                savedUser.getName(),
-                savedUser.getEmail(),
-                savedUser.getPhone(),
-                savedUser.getDob() != null ? savedUser.getDob().toString() : null,
-                savedUser.getGender() != null ? savedUser.getGender().toString() : null,
-                savedUser.getProfileImg() != null ? savedUser.getProfileImg() : "",
-                savedUser.getRole().getName()
-        );
+        UserInfoDTO userInfo = UserMapper.toUserInfoDTO(savedUser);
+
         logger.info("UserInfoDTO created for userId: {}", userInfo);
 
         return new AuthResponse(true, "User registered successfully. Please check your email to verify your account.", token, refreshToken, userInfo);
@@ -118,12 +115,12 @@ public class AuthServiceImpl implements AuthService {
         logger.info("Verifying email with token: {}", token);
         try {
             EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByToken(token)
-                    .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+                    .orElseThrow(() -> new UnauthorizedAccessException("Invalid verification token"));
 
             if (verificationToken.isExpired()) {
                 logger.warn("Verification token expired: {}", token);
                 emailVerificationTokenRepository.delete(verificationToken);
-                return new AuthResponse(false, "Verification token has expired", null, null, null);
+                throw new UnauthorizedAccessException("Verification token has expired");
             }
 
             User user = verificationToken.getUser();
@@ -159,9 +156,11 @@ public class AuthServiceImpl implements AuthService {
             logger.info("UserInfoDTO created for userId: {}", user.getUserId());
 
             return new AuthResponse(true, "Email verified successfully", authToken, refreshToken, userInfo);
+        } catch (UnauthorizedAccessException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Exception in verifyEmail for token: {}", token, e);
-            return new AuthResponse(false, "Email verification failed: " + e.getMessage(), null, null, null);
+            throw new UnauthorizedAccessException("Email verification failed: " + e.getMessage());
         }
     }
 
@@ -170,10 +169,10 @@ public class AuthServiceImpl implements AuthService {
         logger.info("Resending verification email to: {}", email);
         try {
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new EmailNotFoundException("User not found"));
 
             if (user.getEmailVerified()) {
-                return new AuthResponse(false, "Email is already verified", null, null, null);
+                throw new EmailAlreadyExistException("Email is already verified");
             }
 
             String token = UUID.randomUUID().toString();
@@ -189,18 +188,21 @@ public class AuthServiceImpl implements AuthService {
             emailServiceClient.sendVerificationEmail(user.getEmail(), user.getName(), verificationLink);
 
             return new AuthResponse(true, "Verification email sent successfully", null, null, null);
+        } catch (EmailNotFoundException | EmailAlreadyExistException e) {
+            throw e;
         } catch (Exception e) {
-            return new AuthResponse(false, "Failed to send verification email: " + e.getMessage(), null, null, null);
+            throw new RuntimeException("Failed to send verification email: " + e.getMessage());
         }
     }
 
+    @Override
     public AuthResponse login(LoginRequest request) {
-        logger.info("Login attempt for email: {}", request.getEmail());
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        logger.info("Login attempt for email: {}", request.email());
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new EmailNotFoundException("Email not found: " + request.email()));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Invalid credentials");
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new UnauthorizedAccessException("Invalid credentials");
         }
         // Generate tokens
         String role = user.getRole().getName();
@@ -213,27 +215,27 @@ public class AuthServiceImpl implements AuthService {
         );
         String refreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
 
-        // Create user info
-        UserInfoDTO userInfo = new UserInfoDTO(
-                user.getUserId().toString(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getDob() != null ? user.getDob().toString() : null,
-                user.getGender() != null ? user.getGender().toString() : null,
-                user.getProfileImg() != null ? user.getProfileImg() : "",
-                role
-        );
+        UserInfoDTO userInfo = UserInfoDTO.builder()
+                .userId(user.getUserId().toString())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .dob(user.getDob() != null ? user.getDob().toString() : null)
+                .gender(user.getGender() != null ? user.getGender().toString() : null)
+                .profileImg(user.getProfileImg() != null ? user.getProfileImg() : "")
+                .role(role)
+                .build();
         logger.info("UserInfoDTO created for userId: {}", user.getUserId());
 
         return new AuthResponse(true, "Login successful", token, refreshToken, userInfo);
     }
 
-    public TokenValidationResponse validateToken(String token) {
+    @Override
+    public TokenValidationResponse validateToken(String token) throws UnauthorizedAccessException {
         logger.info("Validating token");
         try {
             if (!jwtUtil.validateToken(token)) {
-                return new TokenValidationResponse(false, null, null, null, null, "Invalid token");
+                throw new UnauthorizedAccessException("Invalid token");
             }
 
             String userId = jwtUtil.getUserIdFromToken(token);
@@ -242,21 +244,24 @@ public class AuthServiceImpl implements AuthService {
             String role = jwtUtil.getRoleFromToken(token);
             logger.info("Token created for userId: {}", userId);
             return new TokenValidationResponse(true, userId, name, email, role, "Token is valid");
+        } catch (UnauthorizedAccessException e) {
+            throw e;
         } catch (Exception e) {
-            return new TokenValidationResponse(false, null, null, null, null, "Token validation failed");
+            throw new UnauthorizedAccessException("Token validation failed");
         }
     }
 
-    public AuthResponse refreshToken(String refreshToken) {
+    @Override
+    public AuthResponse refreshToken(String refreshToken) throws UnauthorizedAccessException {
         logger.info("Refreshing token");
         try {
             if (!jwtUtil.validateRefreshToken(refreshToken)) {
-                return new AuthResponse(false, "Invalid refresh token", null, null, null);
+                throw new UnauthorizedAccessException("Invalid refresh token");
             }
 
             String userId = jwtUtil.getUserIdFromRefreshToken(refreshToken);
             User user = userRepository.findById(Long.parseLong(userId))
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
 
             // Generate new tokens
             String role = user.getRole().getName();
@@ -282,8 +287,10 @@ public class AuthServiceImpl implements AuthService {
             );
 
             return new AuthResponse(true, "Token refreshed successfully", newToken, newRefreshToken, userInfo);
+        } catch (UnauthorizedAccessException | UserNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            return new AuthResponse(false, "Token refresh failed", null, null, null);
+            throw new UnauthorizedAccessException("Token refresh failed");
         }
     }
 
@@ -299,19 +306,28 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserInfoDTO updateUserInfo(UserUpdateInfoRequest request) {
-        logger.info("Updating user info for userId: {}", request.getUserId());
-        User user = userRepository.findById(Long.parseLong(request.getUserId()))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UserInfoDTO updateUserInfo(UserUpdateInfoRequest request) throws UserNotFoundException, UnauthorizedAccessException {
+        if (!jwtUtil.validateToken(request.token())) {
+            logger.warn("Invalid token for updateUserInfo");
+            throw new UnauthorizedAccessException("Invalid token");
+        }
 
-        if (request.getName() != null) user.setName(request.getName());
-        if (request.getPhone() != null) user.setPhone(request.getPhone());
-        if (request.getDob() != null) user.setDob(LocalDate.parse(request.getDob()));
-        if (request.getProfileImg() != null) user.setProfileImg(request.getProfileImg());
+        logger.info("Updating user info for userId: {}", request.userId());
+        User user = userRepository.findById(Long.parseLong(request.userId()))
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + request.userId()));
+
+        if (request.name() != null) user.setName(request.name());
+        if (request.phone() != null) user.setPhone(request.phone());
+        if (request.dob() != null) user.setDob(LocalDate.parse(request.dob()));
+        if (request.profileImg() != null) user.setProfileImg(request.profileImg());
 
         User updatedUser = userRepository.save(user);
         logger.info("User info updated for userId: {}", updatedUser.getUserId());
         logger.info("Updated user info: {}", updatedUser);
+        return getUserInfoDTO(updatedUser);
+    }
+
+    private UserInfoDTO getUserInfoDTO(User updatedUser) {
         return new UserInfoDTO(
                 updatedUser.getUserId().toString(),
                 updatedUser.getName(),
@@ -322,6 +338,24 @@ public class AuthServiceImpl implements AuthService {
                 updatedUser.getProfileImg() != null ? updatedUser.getProfileImg() : "",
                 updatedUser.getRole().getName()
         );
+    }
+
+    @Override
+    public UserInfoDTO deleteRequest(String token) throws UserNotFoundException, UnauthorizedAccessException {
+        logger.info("Delete request initiated for token: {}", token);
+        if (token == null || token.isEmpty()) {
+            logger.warn("Invalid token for deleteRequest");
+            throw new UnauthorizedAccessException("Invalid token");
+        }
+        String userId = jwtUtil.getUserIdFromToken(token);
+        User user = userRepository.findById(Long.parseLong(userId))
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        user.setRequestDelete(true);
+        User updatedUser = userRepository.save(user);
+        // Store user info before deletion for return
+        UserInfoDTO userInfo = UserMapper.toUserInfoDTO(updatedUser);
+        logger.info("User info stored for deletion: {}", userInfo);
+        return userInfo;
     }
 
     @Override
@@ -363,29 +397,20 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserInfoDTO changePassword(UserUpdateInfoRequest request) {
-        logger.info("Changing password for userId: {}", request.getUserId());
-        User user = userRepository.findById(Long.parseLong(request.getUserId()))
+        logger.info("Changing password for userId: {}", request.userId());
+        User user = userRepository.findById(Long.parseLong(request.userId()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Verify old password
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
             throw new BadCredentialsException("Invalid old password");
         }
 
         // Update password
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.password()));
         User updatedUser = userRepository.save(user);
 
-        return new UserInfoDTO(
-                updatedUser.getUserId().toString(),
-                updatedUser.getName(),
-                updatedUser.getEmail(),
-                updatedUser.getPhone(),
-                updatedUser.getDob() != null ? updatedUser.getDob().toString() : null,
-                updatedUser.getGender() != null ? updatedUser.getGender().toString() : null,
-                updatedUser.getProfileImg() != null ? updatedUser.getProfileImg() : "",
-                updatedUser.getRole().getName()
-        );
+        return getUserInfoDTO(updatedUser);
     }
 
     @Override
@@ -412,9 +437,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse resetPassword(UserUpdateInfoRequest request) {
-        logger.info("Resetting password for userId: {}", request.getUserId());
+        logger.info("Resetting password for userId: {}", request.userId());
         try {
-            PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.getToken())
+            PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.token())
                     .orElseThrow(() -> new RuntimeException("Invalid token"));
 
             if (resetToken.isExpired()) {
@@ -423,7 +448,7 @@ public class AuthServiceImpl implements AuthService {
             }
 
             User user = resetToken.getUser();
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setPassword(passwordEncoder.encode(request.password()));
             userRepository.save(user);
 
             // Delete the used token
@@ -462,16 +487,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findById(Long.parseLong(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return new UserInfoDTO(
-                user.getUserId().toString(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getDob() != null ? user.getDob().toString() : null,
-                user.getGender() != null ? user.getGender().toString() : null,
-                user.getProfileImg() != null ? user.getProfileImg() : "",
-                user.getRole().getName()
-        );
+        return getUserInfoDTO(user);
     }
 
     @Override
@@ -496,9 +512,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserInfoDTO updateRoleToUser(String role,UserUpdateInfoRequest request) {
-        logger.info("Updating role to {} for userId: {}", role, request.getUserId());
-        User user = userRepository.findById(Long.parseLong(request.getUserId()))
+    public UserInfoDTO updateRoleToUser(String role, UserUpdateInfoRequest request) {
+        logger.info("Updating role to {} for userId: {}", role, request.userId());
+        User user = userRepository.findById(Long.parseLong(request.userId()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Role newRole = roleRepository.findByName(role.toUpperCase())
@@ -507,16 +523,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(newRole);
         User updatedUser = userRepository.save(user);
 
-        return new UserInfoDTO(
-                updatedUser.getUserId().toString(),
-                updatedUser.getName(),
-                updatedUser.getEmail(),
-                updatedUser.getPhone(),
-                updatedUser.getDob() != null ? updatedUser.getDob().toString() : null,
-                updatedUser.getGender() != null ? updatedUser.getGender().toString() : null,
-                updatedUser.getProfileImg() != null ? updatedUser.getProfileImg() : "",
-                updatedUser.getRole().getName()
-        );
+        return getUserInfoDTO(updatedUser);
     }
 
     @Override
@@ -526,25 +533,115 @@ public class AuthServiceImpl implements AuthService {
                 .orElse(null);
 
         if (user == null) {
-            return null;
+            logger.warn("Email not found: {}", email);
+            throw new EmailNotFoundException("Email not found: " + email);
         }
 
-        return new UserInfoDTO(
-                user.getUserId().toString(),
-                user.getName(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getDob() != null ? user.getDob().toString() : null,
-                user.getGender() != null ? user.getGender().toString() : null,
-                user.getProfileImg() != null ? user.getProfileImg() : "",
-                user.getRole().getName()
-        );
+        logger.info("Email found: {}", email);
+        return getUserInfoDTO(user);
     }
 
     @Override
-    public List<Role> getAllRoles() {
-        logger.info("Fetching all roles");
-        return roleRepository.findAll();
+    public List<Role> getAllRoles(String token) {
+        logger.info("Fetching all roles with token validation");
+        if (token == null || !jwtUtil.validateToken(token)) {
+            logger.warn("Invalid or missing token for getAllRoles");
+            throw new UnauthorizedAccessException("Invalid or missing token");
+        }
+        String userRole = jwtUtil.getRoleFromToken(token);
+        if (!"ADMIN".equalsIgnoreCase(userRole) && !"SUBADMIN".equalsIgnoreCase(userRole)) {
+            logger.warn("Unauthorized access by user role: {}", userRole);
+            throw new UnauthorizedAccessException("Only ADMIN or SUBADMIN can access roles");
+        }
+        logger.info("User role {} is authorized to fetch roles", userRole);
+        // Fetch all roles from the repository
+        List<Role> roles = roleRepository.findAll();
+        if (roles.isEmpty()) {
+            logger.warn("No roles found in the system");
+            throw new RuntimeException("No roles found in the system");
+
+        }
+        logger.info("Fetched {} roles from the repository", roles.size());
+        return roles;
     }
 
+    @Override
+    public Role createRole(String token, Role role) throws UnauthorizedAccessException {
+        String userRole = jwtUtil.getRoleFromToken(token);
+        if (!"ADMIN".equalsIgnoreCase(userRole) && !"SUBADMIN".equalsIgnoreCase(userRole)) {
+            throw new UnauthorizedAccessException("Only ADMIN or SUBADMIN can create roles");
+        }
+        logger.info("Creating new role: {} by {}", role.getName(), userRole);
+        if (roleRepository.findByName(role.getName()).isPresent()) {
+            throw new EmailAlreadyExistException("Role already exists: " + role.getName());
+        }
+        return roleRepository.save(role);
+    }
+
+    @Override
+    public Role updateRole(String token, Long roleId, Role updatedRole) throws UnauthorizedAccessException, UserNotFoundException {
+        String userRole = jwtUtil.getRoleFromToken(token);
+        if (!"ADMIN".equalsIgnoreCase(userRole) && !"SUBADMIN".equalsIgnoreCase(userRole)) {
+            throw new UnauthorizedAccessException("Only ADMIN or SUBADMIN can update roles");
+        }
+        logger.info("Updating role with id: {} by {}", roleId, userRole);
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new UserNotFoundException("Role not found with id: " + roleId));
+        role.setName(updatedRole.getName());
+        return roleRepository.save(role);
+    }
+
+    @Override
+    public AuthResponse registerSubAdmin(RegisterRequest request, String token) throws UnauthorizedAccessException {
+        String userRole = jwtUtil.getRoleFromToken(token);
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            throw new UnauthorizedAccessException("Only ADMIN can register a SUBADMIN");
+        }
+        logger.info("Registering subadmin with email: {} by {}", request.email(), userRole);
+        if (userRepository.existsByEmail(request.email())) {
+            throw new EmailAlreadyExistException("Email already exists: " + request.email());
+        }
+        Role subAdminRole = roleRepository.findByName("SUBADMIN")
+                .orElseThrow(() -> new RuntimeException("SUBADMIN role not found"));
+        User user = new User().builder()
+                .name(request.name())
+                .email(request.email())
+                .phone(request.phone())
+                .dob(request.dob())
+                .password(passwordEncoder.encode(request.password()))
+                .emailVerified(true)
+                .role(subAdminRole)
+                .build();
+        User savedUser = userRepository.save(user);
+        logger.info("Subadmin saved with ID: {}", savedUser.getUserId());
+        UserInfoDTO userInfo = new UserInfoDTO(
+                savedUser.getUserId().toString(),
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getPhone(),
+                savedUser.getDob() != null ? savedUser.getDob().toString() : null,
+                savedUser.getGender() != null ? savedUser.getGender().toString() : null,
+                savedUser.getProfileImg() != null ? savedUser.getProfileImg() : "",
+                savedUser.getRole().getName()
+        );
+        return new AuthResponse(true, "Subadmin registered successfully", null, null, userInfo);
+    }
+
+    @Override
+    public void deleteRole(String token, Long roleId) throws UnauthorizedAccessException, UserNotFoundException {
+        // Validate token and check if user is admin
+        if (token == null || !jwtUtil.validateToken(token)) {
+            throw new UnauthorizedAccessException("Invalid or missing token");
+        }
+        String userId = jwtUtil.getUserIdFromToken(token);
+        User user = userRepository.findById(Long.parseLong(userId))
+                .orElseThrow(() -> new UserNotFoundException("User not found for token"));
+        if (!user.getRole().getName().equalsIgnoreCase("ADMIN")) {
+            throw new UnauthorizedAccessException("Only admin can delete roles");
+        }
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new UserNotFoundException("Role not found with id: " + roleId));
+        roleRepository.delete(role);
+        logger.info("Role deleted with id: {}", roleId);
+    }
 }

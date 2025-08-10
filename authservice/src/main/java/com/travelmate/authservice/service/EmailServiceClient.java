@@ -1,17 +1,18 @@
 package com.travelmate.authservice.service;
 
 import com.travelmate.authservice.dto.EmailRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class EmailServiceClient {
-
     private final KafkaTemplate<String, EmailRequest> kafkaTemplate;
     private static final String TOPIC_VERIFICATION = "email_verification";
     private static final String TOPIC_PASSWORD_RESET = "email_password_reset";
+
+    public EmailServiceClient(KafkaTemplate<String, EmailRequest> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     public void sendVerificationEmail(String email, String name, String verificationLink) {
         EmailRequest request = new EmailRequest(

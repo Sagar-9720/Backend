@@ -273,4 +273,25 @@ public class TripServiceImpl implements TripService {
         tripRequestRepository.delete(request);
         return createdTrip;
     }
+
+    @Override
+    public List<TripModel> getAllTripsRequested() throws Exception {
+        List<TripRequest> requests = tripRequestRepository.findAll();
+        List<TripModel> models = new ArrayList<>();
+        for (TripRequest req : requests) {
+            TripModel model = TripModel.builder()
+                    .id(req.getId() != null ? Long.valueOf(req.getId()) : null)
+                    .title(req.getTitle())
+                    .description(req.getDescription())
+                    .startDate(req.getStartDate())
+                    .endDate(req.getEndDate())
+                    .price(req.getPrice())
+                    .mainDestinationId(req.getMainDestinationId())
+                    .createdBy(req.getRequestedBy())
+                    .itineraries(req.getItineraries() != null ? req.getItineraries().stream().map(RequestedItineraryMapper::toItinerary).toList() : null)
+                    .build();
+            models.add(model);
+        }
+        return models;
+    }
 }

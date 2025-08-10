@@ -10,6 +10,7 @@ services:
       - backend_travel-mate-network
     environment:
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
+      - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=DEBUG
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
       interval: 30s
@@ -94,9 +95,28 @@ services:
       retries: 3
 
   # Microservices
+  config-server:
+    build: ./config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - backend_travel-mate-network
+    volumes:
+      - ./config-repo:/config-repo
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8888/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   auth-service:
     build: ./authservice
     depends_on:
+      config-server:
+        condition: service_healthy
       postgres-auth:
         condition: service_healthy
       eureka-server:
@@ -104,20 +124,16 @@ services:
       kafka:
         condition: service_started
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/travelmate_auth
-      SPRING_DATASOURCE_USERNAME: traveluser
-      SPRING_DATASOURCE_PASSWORD: postgres
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_APPLICATION_NAME: auth-service
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
-      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-admin@travelmate.com}
-      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-Travelmate123}
-      APP_JWT_SECRET: Q2hhbmdlVGhpcy1TZWNyZXRLZXktMTIzNDU2Nzg5MDEyMzQ1Ng==
-      APP_JWT_REFRESH_SECRET: Q2hhbmdlVGhpcy1TZWNyZXRLZXktMTIzNDU2Nzg5MDEyMzQ1Ng==
-      APP_JWT_EXPIRATION: 900000
-      APP_JWT_REFRESH_EXPIRATION: 604800000
-      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG: DEBUG
+      # Only add secrets or profile-specific variables if needed, e.g. for prod:
+      # DB_URL: ...
+      # DB_USER: ...
+      # DB_PASSWORD: ...
+      # MAIL_USERNAME: ...
+      # MAIL_PASSWORD: ...
+      # etc.
     networks:
       - backend_travel-mate-network
     healthcheck:
@@ -130,25 +146,23 @@ services:
   user-service:
     build: ./user-service
     depends_on:
+      config-server:
+        condition: service_healthy
       postgres-user:
         condition: service_healthy
       mongo:
         condition: service_healthy
     environment:
-      PG_HOST: postgres-user
-      PG_PORT: 5432
-      PG_USER: traveluser
-      PG_PASSWORD: postgres
-      PG_DATABASE: user_service_db
-      MONGO_HOST: mongo
-      MONGO_PORT: 27017
-      MONGO_URI: mongodb://mongo:27017/user_service
-      NODE_ENV: production
-      PORT: 5000
-      EUREKA_INSTANCE_HOSTNAME: user-service
-      EUREKA_SERVER_HOST: eureka-server
-      EUREKA_SERVER_PORT: 8761
-      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411
+      NODE_ENV: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      DEBUG: express:*
+      # Only add secrets or profile-specific variables if needed, e.g. for prod:
+      # DB_URL: ...
+      # DB_USER: ...
+      # DB_PASSWORD: ...
+      # MAIL_USERNAME: ...
+      # MAIL_PASSWORD: ...
+      # etc.
     networks:
       - backend_travel-mate-network
     deploy:
@@ -163,19 +177,23 @@ services:
   trip-service:
     build: ./tripservice
     depends_on:
+      config-server:
+        condition: service_healthy
       postgres-trip:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-trip:5432/trip_service_db
-      SPRING_DATASOURCE_USERNAME: traveluser
-      SPRING_DATASOURCE_PASSWORD: postgres
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_APPLICATION_NAME: trip-service
-      APP_USER_SERVICE_BASE_URL: http://gateway:8080
-      SPRING_DATA_MONGODB_URI: mongodb://admin:password@mongo:27017/tripdb?authSource=admin
-      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG: DEBUG
+      # Only add secrets or profile-specific variables if needed, e.g. for prod:
+      # DB_URL: ...
+      # DB_USER: ...
+      # DB_PASSWORD: ...
+      # MAIL_USERNAME: ...
+      # MAIL_PASSWORD: ...
+      # etc.
     networks:
       - backend_travel-mate-network
     deploy:
@@ -190,6 +208,8 @@ services:
   gateway:
     build: ./gateway
     depends_on:
+      config-server:
+        condition: service_healthy
       eureka-server:
         condition: service_healthy
       auth-service:
@@ -199,9 +219,10 @@ services:
       trip-service:
         condition: service_healthy
     environment:
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_APPLICATION_NAME: gateway
-      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG: DEBUG
+      # Only add secrets or profile-specific variables if needed, e.g. for prod:
     networks:
       - backend_travel-mate-network
     deploy:
@@ -401,6 +422,8 @@ services:
       retries: 3
 
 volumes:
+  config-repo:
+    driver: local
   postgres_trip_data:
   postgres_auth_data:
   postgres_user_data:

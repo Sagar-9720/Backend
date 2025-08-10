@@ -58,6 +58,8 @@ public class  User implements UserDetails {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    private boolean requestDelete = false;
     
     public enum Gender {
         MALE, FEMALE, OTHER

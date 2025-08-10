@@ -24,4 +24,39 @@ public class RegionServiceImpl implements RegionService {
         logger.info("Fetching all regions");
         return regionRepository.findAll().stream().map(RegionMapper::toModel).toList();
     }
+
+    @Override
+    public RegionModel getRegionById(Long id) {
+        return regionRepository.findById(id)
+                .map(RegionMapper::toModel)
+                .orElse(null);
+    }
+
+    @Override
+    public RegionModel addRegion(RegionModel regionModel) {
+        var entity = RegionMapper.toEntity(regionModel);
+        var saved = regionRepository.save(entity);
+        return RegionMapper.toModel(saved);
+    }
+
+    @Override
+    public RegionModel updateRegion(Long id, RegionModel regionModel) {
+        var existing = regionRepository.findById(id).orElse(null);
+        if (existing == null) return null;
+        existing.setName(regionModel.getName());
+        // Update country if provided
+        if (regionModel.getCountryId() != null) {
+            var country = existing.getCountry();
+            if (country == null || !country.getId().equals(regionModel.getCountryId())) {
+                // ...fetch and set new country entity as needed...
+            }
+        }
+        var saved = regionRepository.save(existing);
+        return RegionMapper.toModel(saved);
+    }
+
+    @Override
+    public void deleteRegion(Long id) {
+        regionRepository.deleteById(id);
+    }
 }

@@ -1,19 +1,13 @@
 package com.travelmate.authservice.dto;
 
-import java.util.List;
+import lombok.Builder;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TokenValidationResponse {
-    private boolean valid;
-    private String userId;
-    private String username;
-    private String email;
-    private String role;
-    private String message;
-}
+@Builder
+public record TokenValidationResponse(
+    boolean valid,
+    String userId,
+    String username,
+    String email,
+    String role,
+    String message
+) {}

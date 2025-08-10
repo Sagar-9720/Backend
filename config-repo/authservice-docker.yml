@@ -1,0 +1,74 @@
+# This is for docker deployment of the authservice
+spring:
+  config:
+    activate:
+      on-profile: docker
+  application:
+    name: authservice
+  datasource:
+    url: jdbc:postgresql://postgres-auth:5432/travelmate_auth
+    username: traveluser
+    password: postgres
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    consumer:
+      group-id: authservice-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  zipkin:
+    base-url: http://zipkin:9411
+  redis:
+    host: redis-master
+    port: 6379
+    password: redispass
+  prometheus:
+    url: http://prometheus:9090
+  grafana:
+    url: http://grafana:3000
+# Frontend URL for email links
+app:
+  frontend:
+    url: http://localhost:3000
+  admin:
+    email: admin@travelmate.com
+    password: Travelmate123
+  jwt:
+    secret: Q2hhbmdlVGhpcy1TZWNyZXRLZXktMTIzNDU2Nzg5MDEyMzQ1Ng==
+    refresh-secret: Q2hhbmdlVGhpcy1TZWNyZXRLZXktMTIzNDU2Nzg5MDEyMzQ1Ng==
+    expiration: 900000
+    refresh-expiration: 604800000
+#Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+server:
+  port: 8083
+# Zipkin tracing configuration for Docker
+management:
+  tracing:
+    enabled: true
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
+swagger:
+  username: swagger
+  password: swagger
+
+
+

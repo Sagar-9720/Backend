@@ -22,10 +22,12 @@ public class WebSecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**"
-                        ).hasRole("ADMIN")
+                        ).permitAll()
                         .requestMatchers("/actuator/**", "/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults());
         return http.build();
     }
+
 }

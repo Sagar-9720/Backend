@@ -22,4 +22,6 @@ public interface TripService {
     List<TripModel> addTripsRequestedByUser(String token, TripModel tripModel) throws Exception;
 
     TripModel approveTripRequest(String token, String tripRequestId, TripRequest tripRequest) throws Exception;
+
+    List<TripModel> getAllTripsRequested() throws Exception;
 }

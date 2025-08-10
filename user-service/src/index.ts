@@ -1,70 +1,86 @@
 import express from 'express';
 import cors from 'cors';
-import { connectPostgres } from './config/postgres';
-import { connectMongo } from './config/mongo';
-import bodyParser from 'body-parser';
-import eurekaClient from './config/eureka';
 import promClient from 'prom-client';
+import loadConfig from './config/loadConfig';
 
-// Only import relevant routes
-import savedTripRoutes from './routes/saved_trip.routes';
-import commentRoutes from './routes/comment.routes';
-import likeRoutes from './routes/like.routes';
-
-// Only import relevant models for database sync
-import SavedTrip from './models/saved_trip.model';
-import Like from './models/like.model';
-
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Prometheus metrics setup
-promClient.collectDefaultMetrics();
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', promClient.register.contentType);
-  res.end(await promClient.register.metrics());
-});
-
-app.use(cors());
-app.use(express.json());
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
-    service: 'user-service',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Register only relevant routes
-app.use('/api/users/saved-trips', savedTripRoutes);
-app.use('/api/users/comments', commentRoutes);
-app.use('/api/users/like', likeRoutes);
-
-(async () => {
+const startServer = async () => {
   try {
+    // Step 1: Load configuration from Spring Cloud Config Server
+    const config = await loadConfig();
+
+    // Step 2: Merge config into process.env
+    Object.entries(config).forEach(([key, value]) => {
+      process.env[key] = String(value);
+    });
+
+    // Step 3: Dynamically import DB and other dependencies (now env is ready)
+    const { connectPostgres } = await import('./config/postgres');
+    const { connectMongo } = await import('./config/mongo');
+    const eurekaClient = (await import('./config/eureka')).default;
+
+    // Routes and models
+    const savedTripRoutes = (await import('./routes/saved_trip.routes')).default;
+    const commentRoutes = (await import('./routes/comment.routes')).default;
+    const likeRoutes = (await import('./routes/like.routes')).default;
+    const SavedTrip = (await import('./models/saved_trip.model')).default;
+    const Like = (await import('./models/like.model')).default;
+
+    // Step 4: Initialize Express app
+    const app = express();
+    const PORT = process.env.PORT || 5000;
+
+    // Prometheus metrics setup
+    promClient.collectDefaultMetrics();
+    app.get('/metrics', async (req, res) => {
+      res.set('Content-Type', promClient.register.contentType);
+      res.end(await promClient.register.metrics());
+    });
+
+    app.use(cors());
+    app.use(express.json());
+
+    // Health check endpoint
+    app.get('/health', (req, res) => {
+      res.status(200).json({
+        status: 'healthy',
+        service: 'user-service',
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    // Register routes
+    app.use('/api/users/saved-trips', savedTripRoutes);
+    app.use('/api/users/comments', commentRoutes);
+    app.use('/api/users/like', likeRoutes);
+
+    // Step 5: Connect to databases
     await connectPostgres();
     await connectMongo();
 
-    // Only sync models relevant to comments, likes, and saved trips
+    // Step 6: Sync models
     await SavedTrip.sync();
     await Like.sync();
 
+    // Step 7: Start server
     app.listen(PORT, () => {
-      console.log(`User Service is running on port ${PORT}`);
-      console.log(`Health check available at http://localhost:${PORT}/health`);
-      // Start Eureka client registration
+      console.log(`🚀 User Service is running on port ${PORT}`);
+      console.log(`✅ Health check available at http://localhost:${PORT}/health`);
+
+      // Start Eureka registration
       eurekaClient.start((error: any) => {
         if (error) {
-          console.error('Eureka registration failed:', error);
+          console.error('❌ Eureka registration failed:', error);
         } else {
-          console.log('User Service registered with Eureka');
+          console.log('✅ User Service registered with Eureka');
         }
       });
     });
-  } catch (error) {
-    console.error('Failed to start server:', error);
+
+  } catch (err) {
+    console.error('❌ Failed to start User Service:', err);
     process.exit(1);
   }
-})();
+};
+
+// Start application
+startServer();

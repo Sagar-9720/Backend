@@ -113,4 +113,14 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), "/api/trips/auto-delete"));
         }
     }
+
+    @GetMapping("/requests/all")
+    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getAllTripsRequested() {
+        try {
+            List<TripModel> requests = tripService.getAllTripsRequested();
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "All trip requests fetched", requests, "/api/trips/requests/all"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), "/api/trips/requests/all"));
+        }
+    }
 }

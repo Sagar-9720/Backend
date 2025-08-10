@@ -3,18 +3,53 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-
-  - job_name: 'spring-actuator'
+  # Spring Boot microservices (Auth, Trip, Email, Gateway, Eureka)
+  - job_name: 'spring-boot-services'
     metrics_path: '/actuator/prometheus'
-    scrape_interval: 5s
+    scrape_interval: 10s
     static_configs:
-      - targets: ['auth-service:8083', 'trip-service:8082', 'gateway:8080']
+      - targets:
+          - 'auth-service:8083'
+          - 'trip-service:8082'
+          - 'email-service:8085'
+          - 'gateway:8080'
+          - 'eureka-server:8761'
 
-
-  - job_name: 'user-service'
-    metrics_path: '/metrics'
+  # User-service (Node.js)
+  - job_name: 'node-service'
+    scrape_interval: 10s
     static_configs:
-      - targets: ['user-service:5000']
+      - targets:
+          - 'user-service:5000'
+
+  # Kafka
+  - job_name: 'kafka'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - 'kafka-exporter:9308'  # Need kafka-exporter container
+
+  # Zookeeper
+  - job_name: 'zookeeper'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - 'zookeeper-exporter:9141'
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets:
+          - 'redis-exporter:9121'
+
+  # Postgres
+  - job_name: 'postgres'
+    static_configs:
+      - targets:
+          - 'postgres-exporter:9187'
+
+  # MongoDB
+  - job_name: 'mongodb'
+    static_configs:
+      - targets:
+          - 'mongodb-exporter:9216'

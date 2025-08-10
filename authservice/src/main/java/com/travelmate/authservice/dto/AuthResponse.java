@@ -1,19 +1,12 @@
 package com.travelmate.authservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AuthResponse {
-
-    private boolean success;
-    private String message;
-    private String token;
-    private String refreshToken;
-
-    private UserInfoDTO userInfo;
-
-}
+@Builder
+public record AuthResponse(
+    boolean success,
+    String message,
+    String token,
+    String refreshToken,
+    UserInfoDTO userInfo
+) {}

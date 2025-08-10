@@ -1,0 +1,66 @@
+{
+  "__inputs": [],
+  "__requires": [
+    {"type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0.0"}
+  ],
+  "id": null,
+  "title": "Travel-Mate Microservices Overview",
+  "tags": ["spring-boot", "nodejs", "microservices", "infrastructure"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Redis Exporter Health",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "up{job=\"redis\"}", "legendFormat": "Redis Exporter"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "gridPos": {"x": 0, "y": 28, "w": 4, "h": 4}
+    },
+    {
+      "type": "stat",
+      "title": "Postgres Exporter Health",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "up{job=\"postgres\"}", "legendFormat": "Postgres Exporter"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "gridPos": {"x": 4, "y": 28, "w": 4, "h": 4}
+    },
+    {
+      "type": "stat",
+      "title": "Kafka Exporter Health",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "up{job=\"kafka\"}", "legendFormat": "Kafka Exporter"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "gridPos": {"x": 8, "y": 28, "w": 4, "h": 4}
+    },
+    {
+      "type": "stat",
+      "title": "MongoDB Exporter Health",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "up{job=\"mongodb\"}", "legendFormat": "MongoDB Exporter"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "gridPos": {"x": 12, "y": 28, "w": 4, "h": 4}
+    },
+    {
+      "type": "stat",
+      "title": "Zookeeper Exporter Health",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "up{job=\"zookeeper\"}", "legendFormat": "Zookeeper Exporter"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "none"}},
+      "gridPos": {"x": 16, "y": 28, "w": 4, "h": 4}
+    }
+  ]
+}
+

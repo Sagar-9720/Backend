@@ -11,6 +11,44 @@ This repository contains the backend services for the Travel-Mate application, a
 - **Database**: Each service manages its own data (database setup not included here).
 - **Docker**: All services are containerized for easy deployment.
 
+## Centralized Configuration Management
+
+All microservices now use a centralized configuration approach via Spring Cloud Config Server. Configuration files for each service are stored in the `config-repo` directory. Each service supports three profiles:
+
+- `local`: For local development (e.g., localhost endpoints)
+- `docker`: For Docker Compose deployments (e.g., service discovery via container names)
+- `prod`: For production deployments (e.g., environment variables, production settings)
+
+Each service has the following configuration files in its `src/main/resources` directory:
+
+- `application-local.yml`
+- `application-docker.yml`
+- `application-prod.yml`
+
+## Switching Profiles
+
+You can control which profile is active for each service by setting the `SPRING_PROFILES_ACTIVE` environment variable. In Docker Compose, this is set in the `docker-compose.yml` file for each service. Example:
+
+```yaml
+services:
+  auth-service:
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+  ...
+```
+
+Change the value to `local`, `docker`, or `prod` as needed.
+
+## Config Server
+
+- The `config-server` service serves configuration from the `config-repo` directory.
+- All Spring Boot services are configured to fetch their configuration from the config server.
+
+## Adding/Updating Configuration
+
+- To update configuration for any service, edit the corresponding file in `config-repo`.
+- For service-specific overrides, update the appropriate `application-<profile>.yml` in the service's `src/main/resources`.
+
 ## Services Implemented
 
 - **authservice**: Handles user authentication, registration, and token validation.
@@ -52,6 +90,18 @@ This repository contains the backend services for the Travel-Mate application, a
 3. **Access Services**:
    - Eureka dashboard: `http://localhost:8761`
    - Gateway: `http://localhost:8080`
+
+## Running with Docker Compose
+
+1. Build all images:
+   ```sh
+   ./build-images.sh
+   ```
+2. Start the stack:
+   ```sh
+   docker-compose up --build
+   ```
+3. To change the active profile, edit the `SPRING_PROFILES_ACTIVE` variable in `docker-compose.yml` and restart the stack.
 
 ## Next Steps / TODO
 

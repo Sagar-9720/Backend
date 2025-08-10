@@ -1,19 +1,15 @@
 package com.travelmate.authservice.dto;
 
-import lombok.*;
+import lombok.Builder;
 
-@Data
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class EmailRequest {
-    private String to;
-    private String subject;
-    private String link;
-    private String name;
-    private EmailType type;
-
+@Builder
+public record EmailRequest(
+        String to,
+        String subject,
+        String link,
+        String name,
+        EmailType type
+) {
     public enum EmailType {
         VERIFICATION,
         PASSWORD_RESET

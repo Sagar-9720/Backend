@@ -20,6 +20,21 @@ spring:
           max-wait: -1ms
   application:
     name: tripservice
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+server:
+  port: 8082
 
 management:
   endpoints:
@@ -35,8 +50,10 @@ management:
       sla:
         cache: 50ms,100ms,200ms
   tracing:
-    zipkin:
-      base-url: http://zipkin:9411
+    enabled: true
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
 
 eureka:
   client:
@@ -45,4 +62,9 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
   instance:
-      prefer-ip-address: true
+    prefer-ip-address: true
+
+app:
+  admin:
+    email: admin@travelmate.com
+    password: Travelmate123
