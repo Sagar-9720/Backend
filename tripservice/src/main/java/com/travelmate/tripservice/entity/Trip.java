@@ -22,6 +22,7 @@ public class Trip {
     private Long id;
 
     @NotBlank(message = "Title should not be empty.")
+    @Column(unique = true)
     private String title;
 
     @NotNull

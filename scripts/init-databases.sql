@@ -1,16 +1,6 @@
-DO
-$$
-    BEGIN
-        IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'travelmate_auth') THEN
-            CREATE DATABASE travelmate_auth;
-        END IF;
+-- All database creation logic has been moved to their respective scripts:
+--   - init-auth-database.sql
+--   - init-trip-database.sql
+--   - init-user-database.sql
+-- This file is now intentionally left blank and can be deleted if not needed.
 
-        IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'trip_service_db') THEN
-            CREATE DATABASE trip_service_db;
-        END IF;
-
-        IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'user_service_db') THEN
-            CREATE DATABASE user_service_db;
-        END IF;
-    END
-$$;

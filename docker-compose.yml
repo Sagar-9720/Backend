@@ -26,9 +26,11 @@ services:
       - "5433:5432"
     volumes:
       - postgres_trip_data:/var/lib/postgresql/data
-      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+      - ./scripts/init-trip-database.sql:/docker-entrypoint-initdb.d/init-trip-database.sql
     networks:
       - backend_travel-mate-network
+    depends_on:
+      - postgres-auth
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U traveluser -d trip_service_db"]
       interval: 30s
@@ -45,7 +47,7 @@ services:
       - "5434:5432"
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data
-      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+      - ./scripts/init-auth-database.sql:/docker-entrypoint-initdb.d/init-auth-database.sql
     networks:
       - backend_travel-mate-network
     healthcheck:
@@ -64,9 +66,11 @@ services:
       - "5435:5432"
     volumes:
       - postgres_user_data:/var/lib/postgresql/data
-      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+      - ./scripts/init-user-database.sql:/docker-entrypoint-initdb.d/init-user-database.sql
     networks:
       - backend_travel-mate-network
+    depends_on:
+      - postgres-trip
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U traveluser -d user_service_db"]
       interval: 30s
@@ -83,8 +87,14 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+      - ./scripts/init-mongodb-user-service.js:/docker-entrypoint-initdb.d/01-init-mongodb-user-service.js
+      - ./scripts/init-mongodb-tripservice.js:/docker-entrypoint-initdb.d/02-init-mongodb-tripservice.js
     networks:
       - backend_travel-mate-network
+    depends_on:
+      - postgres-auth
+      - postgres-trip
+      - postgres-user
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 30s
@@ -438,3 +448,6 @@ volumes:
 networks:
   backend_travel-mate-network:
     driver: bridge
+
+# Note: Service-specific SQL (tables/data) should be run by each service on startup, not mounted here.
+# MongoDB scripts should be run after all Postgres data is ready.
