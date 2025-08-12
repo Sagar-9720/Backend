@@ -5,7 +5,6 @@ import loadConfig from './config/loadConfig';
 import {startConfigBusListener} from './services/configBusListener';
 import axios from 'axios';
 import NodeCache from 'node-cache';
-import './types/express';
 
 const startServer = async () => {
     try {

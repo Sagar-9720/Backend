@@ -17,6 +17,7 @@ public class Region {
     private Long id;
 
     @NotBlank(message = "Region name should not be blank")
+    @Column(unique = true)
     private String name;
 
     @ManyToOne(optional = false,cascade = {CascadeType.PERSIST,CascadeType.MERGE})

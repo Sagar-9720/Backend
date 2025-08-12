@@ -27,6 +27,9 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Autowired
     private AuthServiceClient authServiceClient;
 
+    @Autowired
+    private TagServiceImpl tagService;
+
     private static final Logger logger = LoggerFactory.getLogger(TravelJournalServiceImpl.class);
 
     @Override
@@ -34,6 +37,15 @@ public class TravelJournalServiceImpl implements TravelJournalService {
         if (token == null || token.isEmpty()) throw new AccessDeniedException("unauthorized access");
         if (!authServiceClient.validateToken(token).isValid()) {
             throw new AccessDeniedException("unauthorized access");
+        }
+
+        // Persist new tags if not already present
+        if (journalModel.tags() != null) {
+            for (String tag : journalModel.tags()) {
+                if (tag != null && !tag.isBlank() && tagService.getTagByName(tag).isEmpty()) {
+                    tagService.saveTag(new com.travelmate.tripservice.model.TagModel(null, tag, 1L));
+                }
+            }
         }
 
         TravelJournal saved = travelJournalRepository.save(TravelJournalMapper.toEntity(journalModel));
@@ -48,6 +60,14 @@ public class TravelJournalServiceImpl implements TravelJournalService {
         }
         if (!authServiceClient.validateToken(token).isValid()) {
             throw new UnauthorizedAccessException("unauthorized access");
+        }
+        // Persist new tags if not already present
+        if (journalModel.tags() != null) {
+            for (String tag : journalModel.tags()) {
+                if (tag != null && !tag.isBlank() && tagService.getTagByName(tag).isEmpty()) {
+                    tagService.saveTag(new com.travelmate.tripservice.model.TagModel(null, tag, 1L));
+                }
+            }
         }
         return travelJournalRepository.findById(journalModel.id()).map(existing -> {
             TravelJournal updated = TravelJournalMapper.toEntity(journalModel);

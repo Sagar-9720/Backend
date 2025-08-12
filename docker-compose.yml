@@ -72,14 +72,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
-      - ./scripts/init-mongodb-user-service.js:/docker-entrypoint-initdb.d/01-init-mongodb-user-service.js
-      - ./scripts/init-mongodb-tripservice.js:/docker-entrypoint-initdb.d/02-init-mongodb-tripservice.js
     networks:
       - backend_travel-mate-network
-    depends_on:
-      - postgres-auth
-      - postgres-trip
-      - postgres-user
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 30s
@@ -170,7 +164,7 @@ services:
     networks:
       - backend_travel-mate-network
     deploy:
-      replicas: 2
+      replicas: 1
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 30s
@@ -196,7 +190,7 @@ services:
     networks:
       - backend_travel-mate-network
     deploy:
-      replicas: 2
+      replicas: 1
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health" ]
       interval: 30s
@@ -225,7 +219,7 @@ services:
     networks:
       - backend_travel-mate-network
     deploy:
-      replicas: 2
+      replicas: 1
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
       interval: 30s
@@ -259,7 +253,7 @@ services:
     container_name: redis-master
     ports:
       - 6379:6379
-    command: redis-server --requirepass redispass --appendonly yes
+    command: redis-server --requirepass redispass --appendonly yes --loglevel warning
     networks:
       - backend_travel-mate-network
 
@@ -269,7 +263,7 @@ services:
     depends_on:
       - redis-master
     command: >
-      sh -c "redis-server --replicaof redis-master 6379 --masterauth redispass --requirepass redispass"
+      sh -c "redis-server --replicaof redis-master 6379 --masterauth redispass --requirepass redispass --loglevel warning"
     networks:
       - backend_travel-mate-network
 
@@ -279,7 +273,7 @@ services:
     depends_on:
       - redis-master
     command: >
-      sh -c "redis-server --replicaof redis-master 6379 --masterauth redispass --requirepass redispass"
+      sh -c "redis-server --replicaof redis-master 6379 --masterauth redispass --requirepass redispass --loglevel warning"
     networks:
       - backend_travel-mate-network
 
@@ -292,7 +286,7 @@ services:
       - 26379:26379
     volumes:
       - ./config:/etc/redis
-    command: redis-sentinel /etc/redis/sentinel.conf
+    command: redis-sentinel /etc/redis/sentinel.conf --loglevel warning
     networks:
       - backend_travel-mate-network
 
@@ -305,7 +299,7 @@ services:
       - 26380:26379
     volumes:
       - ./config:/etc/redis
-    command: redis-sentinel /etc/redis/sentinel.conf
+    command: redis-sentinel /etc/redis/sentinel.conf --loglevel warning
     networks:
       - backend_travel-mate-network
 
@@ -318,7 +312,7 @@ services:
       - 26381:26379
     volumes:
       - ./config:/etc/redis
-    command: redis-sentinel /etc/redis/sentinel.conf
+    command: redis-sentinel /etc/redis/sentinel.conf --loglevel warning
     networks:
       - backend_travel-mate-network
 
@@ -355,6 +349,7 @@ services:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=WARN
     ports:
       - "3000:3000"
     networks:
@@ -375,6 +370,7 @@ services:
       - "2181:2181"
     environment:
       ALLOW_ANONYMOUS_LOGIN: "yes"
+      ZOO_LOG_LEVEL: WARN
     networks:
       - backend_travel-mate-network
 
@@ -387,6 +383,7 @@ services:
       KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
       KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LOG_LEVEL: WARN
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -430,144 +427,82 @@ services:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - xpack.security.enabled=false
+      - logger.level=WARN
     ports:
       - "9200:9200"
     networks:
       - backend_travel-mate-network
+    deploy:
+      resources:
+        limits:
+          memory: 1g
 
   # --- Manual Data Initialization Steps (run manually) ---
-  init-trip-database:
-    image: postgres:15-alpine
-    volumes:
-      - ./scripts/init-trip-database.sql:/docker-entrypoint-initdb.d/init-trip-database.sql
-    environment:
-      POSTGRES_DB: trip_service_db
-      POSTGRES_USER: traveluser
-      POSTGRES_PASSWORD: postgres
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "postgres" ]
-    depends_on:
-      - postgres-trip
-    networks:
-      - backend_travel-mate-network
-
-  init-auth-database:
-    image: postgres:15-alpine
-    volumes:
-      - ./scripts/init-auth-database.sql:/docker-entrypoint-initdb.d/init-auth-database.sql
-    environment:
-      POSTGRES_DB: travelmate_auth
-      POSTGRES_USER: traveluser
-      POSTGRES_PASSWORD: postgres
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "postgres" ]
-    depends_on:
-      - postgres-auth
-    networks:
-      - backend_travel-mate-network
-
-  init-user-database:
-    image: postgres:15-alpine
-    volumes:
-      - ./scripts/init-user-database.sql:/docker-entrypoint-initdb.d/init-user-database.sql
-    environment:
-      POSTGRES_DB: user_service_db
-      POSTGRES_USER: traveluser
-      POSTGRES_PASSWORD: postgres
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "postgres" ]
-    depends_on:
-      - postgres-user
-    networks:
-      - backend_travel-mate-network
 
   init-authservice-users:
     image: postgres:15-alpine
     volumes:
-      - ./scripts/init-authservice-users.sql:/docker-entrypoint-initdb.d/init-authservice-users.sql
+      - ./scripts/init-authservice-users.sql:/tmp/init-authservice-users.sql
     environment:
-      POSTGRES_DB: travelmate_auth
-      POSTGRES_USER: traveluser
-      POSTGRES_PASSWORD: postgres
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "postgres" ]
+      PGPASSWORD: postgres
+    entrypoint: [ "sh", "-c", "psql -h postgres-auth -U traveluser -d travelmate_auth -f /tmp/init-authservice-users.sql" ]
     depends_on:
       - postgres-auth
-    networks:
-      - backend_travel-mate-network
-
-  init-databases:
-    image: postgres:15-alpine
-    volumes:
-      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: traveluser
-      POSTGRES_PASSWORD: postgres
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "postgres" ]
-    depends_on:
-      - postgres-trip
-      - postgres-auth
-      - postgres-user
+      - auth-service
     networks:
       - backend_travel-mate-network
 
   init-tripservice-data:
     image: postgres:15-alpine
     volumes:
-      - ./scripts/init-tripservice-data.sql:/docker-entrypoint-initdb.d/init-tripservice-data.sql
+      - ./scripts/init-tripservice-data.sql:/tmp/init-tripservice-data.sql
+    entrypoint: [ "sh", "-c", "psql -h postgres-trip -U traveluser -d trip_service_db -f /tmp/init-tripservice-data.sql" ]
     environment:
-      POSTGRES_DB: trip_service_db
-      POSTGRES_USER: traveluser
-      POSTGRES_PASSWORD: postgres
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "postgres" ]
+      PGPASSWORD: postgres
     depends_on:
       - postgres-trip
+      - trip-service
     networks:
       - backend_travel-mate-network
 
   init-user-postgres-demo:
     image: postgres:15-alpine
     volumes:
-      - ./scripts/init-user-postgres-demo.sql:/docker-entrypoint-initdb.d/init-user-postgres-demo.sql
+      - ./scripts/init-user-postgres-demo.sql:/tmp/init-user-postgres-demo.sql
+    entrypoint: [ "sh", "-c", "psql -h postgres-user -U traveluser -d user_service_db -f /tmp/init-user-postgres-demo.sql" ]
     environment:
-      POSTGRES_DB: user_service_db
-      POSTGRES_USER: traveluser
-      POSTGRES_PASSWORD: postgres
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "postgres" ]
+      PGPASSWORD: postgres
     depends_on:
       - postgres-user
+      - auth-service
+      - init-authservice-users
+      - init-tripservice-data
     networks:
       - backend_travel-mate-network
 
   init-mongodb-user-service:
     image: mongo:6
     volumes:
-      - ./scripts/init-mongodb-user-service.js:/docker-entrypoint-initdb.d/init-mongodb-user-service.js
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "mongod" ]
+      - ./scripts/init-mongodb-user-service.js:/tmp/init-mongodb-user-service.js
+    entrypoint: [ "sh", "-c", "mongosh --host mongo -u admin -p password /tmp/init-mongodb-user-service.js" ]
     depends_on:
       - mongo
+      - postgres-auth
+      - postgres-user
+      - init-tripservice-data
+      - init-authservice-users
     networks:
       - backend_travel-mate-network
 
   init-mongodb-tripservice:
     image: mongo:6
     volumes:
-      - ./scripts/init-mongodb-tripservice.js:/docker-entrypoint-initdb.d/init-mongodb-tripservice.js
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-    entrypoint: [ "docker-entrypoint.sh" ]
-    command: [ "mongod" ]
+      - ./scripts/init-mongodb-tripservice.js:/tmp/init-mongodb-tripservice.js
+    entrypoint: [ "sh", "-c", "mongosh --host mongo -u admin -p password /tmp/init-mongodb-tripservice.js" ]
     depends_on:
       - mongo
+      - postgres-trip
+      - trip-service
     networks:
       - backend_travel-mate-network
 

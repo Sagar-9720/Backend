@@ -18,6 +18,7 @@ public class Destination {
     private Long id;
 
     @NotBlank(message = "Name should not be blank")
+    @Column(unique = true)
     private String name;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
