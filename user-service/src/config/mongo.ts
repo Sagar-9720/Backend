@@ -21,7 +21,7 @@ mongoose.connection.on('disconnected', () => {
 export async function connectMongo(): Promise<void> {
   try {
     await mongoose.connect(MONGO_URI!, {
-      dbName: 'travelmate_users',
+      dbName: 'user_service',
     });
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err);

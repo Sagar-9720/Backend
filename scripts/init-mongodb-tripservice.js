@@ -1,7 +1,7 @@
 // MongoDB initialization script for trip-service demo travel journals
 // Run with: mongo < scripts/init-mongodb-tripservice.js
 
-db = db.getSiblingDB('trip_service_db');
+db = db.getSiblingDB('tripdb');
 db.travel_journals.insertMany([
   {
     userId: "1",

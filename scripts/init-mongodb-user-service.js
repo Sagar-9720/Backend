@@ -2,7 +2,7 @@
 // Run with: mongo < scripts/init-mongodb-user-service.js
 
 // 1. Comments collection
-db = db.getSiblingDB('user_service_db');
+db = db.getSiblingDB('user_service');
 db.comments.insertMany([
   {
     user_id: 1, // Admin User
@@ -35,24 +35,6 @@ db.comments.insertMany([
 ]);
 
 // 2. Trip Journals collection
-db.journals.insertMany([
-  {
-    user_id: 1, // Admin User
-    trip_id: 1, // Manali Summer Escape
-    title: 'Day 1 in Manali',
-    content: 'Arrived in Manali, explored Mall Road and local food.',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    user_id: 4, // Regular User
-    trip_id: 2, // Manali Winter Wonderland
-    title: 'Snowfall Memories',
-    content: 'First time seeing snow, built a snowman!',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-]);
+// db.journals.insertMany([...]) // Removed: user-service should not have journals collection
 
 // Add more demo data as needed.
-

@@ -484,7 +484,7 @@ services:
     image: mongo:6
     volumes:
       - ./scripts/init-mongodb-user-service.js:/tmp/init-mongodb-user-service.js
-    entrypoint: [ "sh", "-c", "mongosh --host mongo -u admin -p password /tmp/init-mongodb-user-service.js" ]
+    entrypoint: [ "sh", "-c", "mongosh --host mongo -u admin -p password --authenticationDatabase admin /tmp/init-mongodb-user-service.js" ]
     depends_on:
       - mongo
       - postgres-auth
@@ -498,7 +498,7 @@ services:
     image: mongo:6
     volumes:
       - ./scripts/init-mongodb-tripservice.js:/tmp/init-mongodb-tripservice.js
-    entrypoint: [ "sh", "-c", "mongosh --host mongo -u admin -p password /tmp/init-mongodb-tripservice.js" ]
+    entrypoint: [ "sh", "-c", "mongosh --host mongo -u admin -p password --authenticationDatabase admin /tmp/init-mongodb-tripservice.js" ]
     depends_on:
       - mongo
       - postgres-trip
