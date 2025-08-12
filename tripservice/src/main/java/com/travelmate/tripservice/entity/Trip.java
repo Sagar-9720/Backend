@@ -38,8 +38,8 @@ public class Trip {
     @NotBlank
     private BigDecimal price;
 
-    @ManyToOne(cascade= {CascadeType.PERSIST,CascadeType.MERGE})
-    @JoinColumn(name = "main_destination_id",nullable = false)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "main_destination_id", nullable = false)
     private Destination mainDestination; // Optional main destination
 
     @Column(name = "created_by")
@@ -48,7 +48,7 @@ public class Trip {
 
     @Column(name = "is_active")
     @Builder.Default
-    private Boolean isActive=true;
+    private Boolean isActive = true;
 
     @Column(name = "created_at")
     @NotNull

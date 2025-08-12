@@ -46,4 +46,10 @@ public class TagController {
         tagService.deleteTag(id);
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Tag deleted", null, "/tags/" + id));
     }
+
+    @GetMapping("/suggest")
+    public ResponseEntity<CustomResponseEntity<List<String>>> suggestTags(@RequestParam("q") String query) {
+        List<String> suggestions = tagService.suggestTags(query);
+        return ResponseEntity.ok(CustomResponseEntity.success(200, "Tag suggestions fetched", suggestions, "/tags/suggest?q=" + query));
+    }
 }

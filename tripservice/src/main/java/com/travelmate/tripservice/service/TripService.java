@@ -32,4 +32,7 @@ public interface TripService {
     TripModel approveTripRequest(String token, String tripRequestId, TripRequest tripRequest) throws UnauthorizedAccessException;
 
     List<TripModel> getAllTripsRequested(String token) throws UnauthorizedAccessException;
+
+    List<String> suggestTrips(String query);
+    void indexTrip(TripModel tripModel);
 }

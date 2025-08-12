@@ -24,4 +24,6 @@ public interface DestinationService {
 
     List<DestinationModel> searchDestinationByName(String token, String name) throws DestinationNotFoundException, UnauthorizedAccessException;
 
+    List<String> suggestDestinations(String query);
+    void indexDestination(DestinationModel destinationModel);
 }

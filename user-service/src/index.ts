@@ -4,6 +4,8 @@ import promClient from 'prom-client';
 import loadConfig from './config/loadConfig';
 import {startConfigBusListener} from './services/configBusListener';
 import axios from 'axios';
+import NodeCache from 'node-cache';
+import './types/express';
 
 const startServer = async () => {
     try {
@@ -55,6 +57,20 @@ const startServer = async () => {
         app.use('/api/users/comments', commentRoutes);
         app.use('/api/users/like', likeRoutes);
 
+        // Token validation cache (2 min TTL)
+        const tokenCache = new NodeCache({ stdTTL: 120, checkperiod: 150 });
+
+        // Token validation response type
+        interface TokenValidationData {
+          valid: boolean;
+          userId: string;
+          username: string;
+          email: string;
+          role: string;
+          message?: string;
+          [key: string]: any;
+        }
+
         // --- Bearer Token Validation Middleware ---
         app.use(async (req, res, next) => {
             if (req.path === '/health' || req.path === '/metrics') return next();
@@ -62,23 +78,26 @@ const startServer = async () => {
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
                 return res.status(401).json({message: 'Missing or invalid Authorization header'});
             }
+            // Check cache first
+            const cached = tokenCache.get(authHeader) as TokenValidationData | undefined;
+            if (cached && cached.valid) {
+                (req as any).user = cached;
+                return next();
+            }
             try {
                 const response = await axios.post(
                     process.env.AUTH_SERVICE_URL || 'http://localhost/auth/api/auth/validate',
                     {},
                     {headers: {Authorization: authHeader}}
                 );
-                const data = response.data;
+                const data = response.data as TokenValidationData;
                 if (!data?.valid) {
                     return res.status(401).json({message: data?.message || 'Invalid token'});
                 }
-                var user = {
-                    userId: data.userId,
-                    username: data.username,
-                    email: data.email,
-                    role: data.role
-                };
-                next(user);
+                // Cache the result
+                tokenCache.set(authHeader, data);
+                (req as any).user = data;
+                next();
             } catch (err) {
                 return res.status(401).json({message: 'Token validation failed'});
             }

@@ -11,8 +11,15 @@ import com.travelmate.tripservice.repository.CountryRepository;
 import com.travelmate.tripservice.repository.DestinationRepository;
 import com.travelmate.tripservice.repository.RegionRepository;
 import com.travelmate.tripservice.service.DestinationService;
+import com.travelmate.tripservice.service.TokenValidationService;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.IndexRequest;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,10 +43,22 @@ public class DestinationServiceImpl implements DestinationService {
     @Autowired
     private AuthServiceClient authServiceClient;
 
+    @Autowired
+    private ElasticsearchClient elasticsearchClient;
+
+    @Autowired
+    private TokenValidationService tokenValidationService;
+
+    @Value("${elasticsearch.index.destinations:destinations}")
+    private String destinationIndex;
+
     private static final Logger logger = LoggerFactory.getLogger(DestinationServiceImpl.class);
 
     @Override
     public DestinationModel createDestination(String token, DestinationModel destinationModel) throws DestinationExistException, UnauthorizedAccessException {
+        if (!tokenValidationService.isTokenValid(token)) {
+            throw new UnauthorizedAccessException("Unauthorized access to create destination");
+        }
         String role = authServiceClient.validateToken(token).getRole();
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User role is not authorized to create destination");
@@ -59,12 +78,13 @@ public class DestinationServiceImpl implements DestinationService {
             entity.getRegion().setCountry(countryRepository.findById(country.getId()).get());
         }
         Destination saved = destinationRepository.save(entity);
+        indexDestination(DestinationMapper.toModel(saved));
         return DestinationMapper.toModel(saved);
     }
 
     @Override
     public DestinationModel getDestinationById(String token, Long id) throws DestinationNotFoundException, UnauthorizedAccessException {
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Unauthorized access to destination");
         }
         logger.info("Fetching destination by id: {}", id);
@@ -73,7 +93,7 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Override
     public List<DestinationModel> getAllDestinations(String token) throws UnauthorizedAccessException {
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Unauthorized access to destinations");
         }
         logger.info("Fetching all destinations");
@@ -82,6 +102,9 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Override
     public DestinationModel updateDestination(String token, DestinationModel model) throws DestinationNotFoundException, UnauthorizedAccessException {
+        if (!tokenValidationService.isTokenValid(token)) {
+            throw new UnauthorizedAccessException("Unauthorized access to update destination");
+        }
         String role = authServiceClient.validateToken(token).getRole();
         if (role != null && !"user".equalsIgnoreCase(role)) {
             logger.info("Updating destination id: {}", model.id());
@@ -95,6 +118,7 @@ public class DestinationServiceImpl implements DestinationService {
             existing.setImageUrl(model.imageUrl());
             existing.setRegion(regionRepository.findById(existing.getRegion().getId()).get());
             Destination saved = destinationRepository.save(existing);
+            indexDestination(DestinationMapper.toModel(saved));
             return DestinationMapper.toModel(saved);
         } else {
             throw new UnauthorizedAccessException("Not authorized to update destination");
@@ -103,7 +127,7 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Override
     public List<DestinationModel> getDestinationsByRegionId(String token, Long regionId) throws RegionNotFoundException, UnauthorizedAccessException {
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Unauthorized access to destinations by region");
         }
         logger.info("Fetching destinations by region id: {}", regionId);
@@ -117,7 +141,7 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Override
     public List<DestinationModel> getDestinationsByCountryId(String token, Long countryId) throws CountryNotFoundException, UnauthorizedAccessException {
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Unauthorized access to destinations by country");
         }
         logger.info("Fetching destinations by country id: {}", countryId);
@@ -131,7 +155,7 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Override
     public List<DestinationModel> searchDestinationByName(String token, String name) throws DestinationNotFoundException, UnauthorizedAccessException {
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Unauthorized access to search destinations");
         }
         logger.info("Searching destinations by name: {}", name);
@@ -145,6 +169,9 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Override
     public DestinationModel deleteDestination(String token, DestinationModel model) throws DestinationNotFoundException, UnauthorizedAccessException {
+        if (!tokenValidationService.isTokenValid(token)) {
+            throw new UnauthorizedAccessException("Unauthorized access to delete destination");
+        }
         String role = authServiceClient.validateToken(token).getRole();
         if ("admin".equalsIgnoreCase(role) || "subadmin".equalsIgnoreCase(role)) {
             DestinationModel deleted = destinationRepository.findById(model.id()).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(model.id()));
@@ -153,6 +180,46 @@ public class DestinationServiceImpl implements DestinationService {
             return deleted;
         } else {
             throw new UnauthorizedAccessException("Not authorized to delete destination");
+        }
+    }
+
+    @Override
+    public void indexDestination(DestinationModel destinationModel) {
+        try {
+            IndexRequest<DestinationModel> request = IndexRequest.of(i -> i
+                .index(destinationIndex)
+                .id(destinationModel.id() != null ? destinationModel.id().toString() : destinationModel.name())
+                .document(destinationModel)
+            );
+            elasticsearchClient.index(request);
+        } catch (Exception e) {
+            logger.error("Failed to index destination in Elasticsearch: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public List<String> suggestDestinations(String query) {
+        try {
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                .index(destinationIndex)
+                .query(q -> q
+                    .fuzzy(f -> f
+                        .field("name")
+                        .value(query)
+                        .fuzziness("AUTO")
+                    )
+                )
+                .size(10)
+            );
+            SearchResponse<DestinationModel> response = elasticsearchClient.search(searchRequest, DestinationModel.class);
+            return response.hits().hits().stream()
+                .map(Hit::source)
+                .filter(java.util.Objects::nonNull)
+                .map(DestinationModel::name)
+                .toList();
+        } catch (Exception e) {
+            logger.error("Failed to suggest destinations from Elasticsearch: {}", e.getMessage());
+            return List.of();
         }
     }
 

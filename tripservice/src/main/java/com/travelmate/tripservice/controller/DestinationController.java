@@ -102,4 +102,10 @@ public class DestinationController {
             return ResponseEntity.status(404).body(CustomResponseEntity.error(404, e.getMessage(), "/api/destinations/search?name=" + name));
         }
     }
+
+    @GetMapping("/suggest")
+    public ResponseEntity<CustomResponseEntity<List<String>>> suggestDestinations(@RequestParam("q") String query) {
+        List<String> suggestions = destinationServiceImpl.suggestDestinations(query);
+        return ResponseEntity.ok(CustomResponseEntity.success(200, "Destination suggestions fetched", suggestions, "/api/trip/destinations/suggest?q=" + query));
+    }
 }

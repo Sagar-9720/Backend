@@ -1,5 +1,10 @@
 package com.travelmate.tripservice.serviceimpl;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.IndexRequest;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.travelmate.tripservice.client.AuthServiceClient;
 import com.travelmate.tripservice.client.TokenValidationResponse;
 import com.travelmate.tripservice.entity.Destination;
@@ -16,11 +21,13 @@ import com.travelmate.tripservice.repository.DestinationRepository;
 import com.travelmate.tripservice.repository.ItineraryRepository;
 import com.travelmate.tripservice.repository.TripRepository;
 import com.travelmate.tripservice.repository.TripRequestRepository;
+import com.travelmate.tripservice.service.TokenValidationService;
 import com.travelmate.tripservice.service.TripService;
 import org.antlr.v4.runtime.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
@@ -47,24 +54,35 @@ public class TripServiceImpl implements TripService {
     @Autowired
     private TripRequestRepository tripRequestRepository;
 
+    @Autowired
+    private ElasticsearchClient elasticsearchClient;
+
+    @Autowired
+    private TokenValidationService tokenValidationService;
+
+    @Value("${elasticsearch.index.trips:trips}")
+    private String tripIndex;
+
     private static final Logger logger = LoggerFactory.getLogger(TripServiceImpl.class);
 
     private String isAdmin(String token) throws UnauthorizedAccessException {
-        try {
-            TokenValidationResponse response = authServiceClient.validateToken(token);
-            if ("ADMIN".equalsIgnoreCase(response.getRole()) || "SUBADMIN".equalsIgnoreCase(response.getRole())) {
-                return response.getUsername();
-            }
-            throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
-        } catch (Exception e) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Invalid token or unauthorized access");
         }
+        TokenValidationResponse response = validateToken(token);
+        if ("ADMIN".equalsIgnoreCase(response.getRole()) || "SUBADMIN".equalsIgnoreCase(response.getRole())) {
+            return response.getUsername();
+        }
+        throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
     }
 
     public TokenValidationResponse validateToken(String token) {
         try {
-            TokenValidationResponse response = authServiceClient.validateToken(token);
-            return response;
+            // Use cache-backed validation
+            if (!tokenValidationService.isTokenValid(token)) {
+                return null;
+            }
+            return authServiceClient.validateToken(token);
         } catch (Exception e) {
             return null;
         }
@@ -104,13 +122,14 @@ public class TripServiceImpl implements TripService {
         trip.setCreatedBy(userName);
         trip.setIsActive(true);
         Trip savedTrip = tripRepository.save(trip);
+        indexTrip(TripMapper.toModel(savedTrip)); // Index the trip in Elasticsearch
         return TripMapper.toModel(savedTrip);
     }
 
     @Override
     @Cacheable(value = "trips", key = "#id")
     public TripModel getTripById(String token, Long id) throws TripNotFoundException, UnauthorizedAccessException {
-        if (!validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Invalid token or unauthorized access");
         }
         logger.info("Fetching trip by id: {}", id);
@@ -120,7 +139,7 @@ public class TripServiceImpl implements TripService {
     @Override
     @Cacheable(value = "tripsAll")
     public List<TripModel> getAllTrips(String token) throws UnauthorizedAccessException {
-        if (!validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Invalid token or unauthorized access");
         }
         logger.info("Fetching all trips");
@@ -161,6 +180,7 @@ public class TripServiceImpl implements TripService {
             existingTrip.setItineraries(itineraries);
         }
         Trip savedTrip = tripRepository.save(existingTrip);
+        indexTrip(TripMapper.toModel(savedTrip)); // Re-index the updated trip in Elasticsearch
         return TripMapper.toModel(savedTrip);
     }
 
@@ -177,7 +197,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public List<TripModel> getTripRequestByUserId(String token, String userId) throws UnauthorizedAccessException {
-        if (!validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Invalid token or unauthorized access");
         }
         logger.info("Fetching trip requests by user id: {}", userId);
@@ -194,7 +214,7 @@ public class TripServiceImpl implements TripService {
     @Override
     @Cacheable(value = "tripsByDestination", key = "#destinationName")
     public List<TripModel> getTripsByDestinationName(String token, String destinationName) throws DestinationNotFoundException, UnauthorizedAccessException {
-        if (!validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Invalid token or unauthorized access");
         }
         logger.info("Fetching trips by destination name: {}", destinationName);
@@ -207,7 +227,7 @@ public class TripServiceImpl implements TripService {
     @Override
     @Cacheable(value = "tripsByPrice", key = "#startPrice.toString().concat('-').concat(#endPrice.toString())")
     public List<TripModel> tripsBtwPriceRanges(String token, BigDecimal startPrice, BigDecimal endPrice) throws UnauthorizedAccessException {
-        if (!validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Invalid token or unauthorized access");
         }
         logger.info("Fetching trips between price range: {} - {}", startPrice, endPrice);
@@ -305,5 +325,45 @@ public class TripServiceImpl implements TripService {
             models.add(model);
         }
         return models;
+    }
+
+    @Override
+    public void indexTrip(TripModel tripModel) {
+        try {
+            IndexRequest<TripModel> request = IndexRequest.of(i -> i
+                .index(tripIndex)
+                .id(tripModel.id() != null ? tripModel.id().toString() : tripModel.title())
+                .document(tripModel)
+            );
+            elasticsearchClient.index(request);
+        } catch (Exception e) {
+            logger.error("Failed to index trip in Elasticsearch: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public List<String> suggestTrips(String query) {
+        try {
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                .index(tripIndex)
+                .query(q -> q
+                    .fuzzy(f -> f
+                        .field("title")
+                        .value(query)
+                        .fuzziness("AUTO")
+                    )
+                )
+                .size(10)
+            );
+            SearchResponse<TripModel> response = elasticsearchClient.search(searchRequest, TripModel.class);
+            return response.hits().hits().stream()
+                .map(Hit::source)
+                .filter(java.util.Objects::nonNull)
+                .map(TripModel::title)
+                .toList();
+        } catch (Exception e) {
+            logger.error("Failed to suggest trips from Elasticsearch: {}", e.getMessage());
+            return List.of();
+        }
     }
 }

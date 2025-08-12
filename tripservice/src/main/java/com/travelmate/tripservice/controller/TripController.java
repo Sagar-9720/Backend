@@ -172,4 +172,10 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), "/api/trips/requests/all"));
         }
     }
+
+    @GetMapping("/suggest")
+    public ResponseEntity<CustomResponseEntity<List<String>>> suggestTrips(@RequestParam("q") String query) {
+        List<String> suggestions = tripService.suggestTrips(query);
+        return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip suggestions fetched", suggestions, "/api/trip/trips/suggest?q=" + query));
+    }
 }

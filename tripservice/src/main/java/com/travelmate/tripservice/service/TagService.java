@@ -11,4 +11,6 @@ public interface TagService {
     Optional<TagModel> getTagByName(String name);
     List<TagModel> getAllTags();
     void deleteTag(Long id);
+    List<String> suggestTags(String query);
+    void indexTag(TagModel tagModel);
 }
