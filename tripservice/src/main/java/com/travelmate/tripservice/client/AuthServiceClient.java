@@ -12,7 +12,4 @@ public interface AuthServiceClient {
     @CircuitBreaker(name = "authService", fallbackMethod = "validateTokenFallback")
     TokenValidationResponse validateToken(@RequestHeader("Authorization") String token);
 
-    default TokenValidationResponse validateTokenFallback(String token, Exception e) {
-        return null;
-    }
 }
