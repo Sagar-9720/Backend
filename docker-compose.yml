@@ -1,19 +1,4 @@
 services:
-  # Service Discovery
-  eureka-server:
-    build: ./eureka-server
-    ports:
-      - "8761:8761"
-    networks:
-      - backend_travel-mate-network
-    environment:
-      - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=WARN
-    healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   # Databases
   postgres-trip:
@@ -101,7 +86,25 @@ services:
       timeout: 5s
       retries: 3
 
+
+  # Service Discovery
+  eureka-server:
+    build: ./eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - backend_travel-mate-network
+    environment:
+      - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=WARN
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # Microservices
+
   config-server:
     build: ./config-server
     depends_on:
@@ -137,11 +140,6 @@ services:
       - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=WARN
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
       # DB_URL: ...
-      # DB_USER: ...
-      # DB_PASSWORD: ...
-      # MAIL_USERNAME: ...
-      # MAIL_PASSWORD: ...
-      # etc.
     networks:
       - backend_travel-mate-network
     ports:
@@ -168,11 +166,6 @@ services:
       DEBUG: express:router
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
       # DB_URL: ...
-      # DB_USER: ...
-      # DB_PASSWORD: ...
-      # MAIL_USERNAME: ...
-      # MAIL_PASSWORD: ...
-      # etc.
       CONFIG_SERVER_PROFILE: docker
     networks:
       - backend_travel-mate-network
@@ -200,11 +193,6 @@ services:
       - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=WARN
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
       # DB_URL: ...
-      # DB_USER: ...
-      # DB_PASSWORD: ...
-      # MAIL_USERNAME: ...
-      # MAIL_PASSWORD: ...
-      # etc.
     networks:
       - backend_travel-mate-network
     deploy:
@@ -444,6 +432,142 @@ services:
       - xpack.security.enabled=false
     ports:
       - "9200:9200"
+    networks:
+      - backend_travel-mate-network
+
+  # --- Manual Data Initialization Steps (run manually) ---
+  init-trip-database:
+    image: postgres:15-alpine
+    volumes:
+      - ./scripts/init-trip-database.sql:/docker-entrypoint-initdb.d/init-trip-database.sql
+    environment:
+      POSTGRES_DB: trip_service_db
+      POSTGRES_USER: traveluser
+      POSTGRES_PASSWORD: postgres
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "postgres" ]
+    depends_on:
+      - postgres-trip
+    networks:
+      - backend_travel-mate-network
+
+  init-auth-database:
+    image: postgres:15-alpine
+    volumes:
+      - ./scripts/init-auth-database.sql:/docker-entrypoint-initdb.d/init-auth-database.sql
+    environment:
+      POSTGRES_DB: travelmate_auth
+      POSTGRES_USER: traveluser
+      POSTGRES_PASSWORD: postgres
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "postgres" ]
+    depends_on:
+      - postgres-auth
+    networks:
+      - backend_travel-mate-network
+
+  init-user-database:
+    image: postgres:15-alpine
+    volumes:
+      - ./scripts/init-user-database.sql:/docker-entrypoint-initdb.d/init-user-database.sql
+    environment:
+      POSTGRES_DB: user_service_db
+      POSTGRES_USER: traveluser
+      POSTGRES_PASSWORD: postgres
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "postgres" ]
+    depends_on:
+      - postgres-user
+    networks:
+      - backend_travel-mate-network
+
+  init-authservice-users:
+    image: postgres:15-alpine
+    volumes:
+      - ./scripts/init-authservice-users.sql:/docker-entrypoint-initdb.d/init-authservice-users.sql
+    environment:
+      POSTGRES_DB: travelmate_auth
+      POSTGRES_USER: traveluser
+      POSTGRES_PASSWORD: postgres
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "postgres" ]
+    depends_on:
+      - postgres-auth
+    networks:
+      - backend_travel-mate-network
+
+  init-databases:
+    image: postgres:15-alpine
+    volumes:
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: traveluser
+      POSTGRES_PASSWORD: postgres
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "postgres" ]
+    depends_on:
+      - postgres-trip
+      - postgres-auth
+      - postgres-user
+    networks:
+      - backend_travel-mate-network
+
+  init-tripservice-data:
+    image: postgres:15-alpine
+    volumes:
+      - ./scripts/init-tripservice-data.sql:/docker-entrypoint-initdb.d/init-tripservice-data.sql
+    environment:
+      POSTGRES_DB: trip_service_db
+      POSTGRES_USER: traveluser
+      POSTGRES_PASSWORD: postgres
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "postgres" ]
+    depends_on:
+      - postgres-trip
+    networks:
+      - backend_travel-mate-network
+
+  init-user-postgres-demo:
+    image: postgres:15-alpine
+    volumes:
+      - ./scripts/init-user-postgres-demo.sql:/docker-entrypoint-initdb.d/init-user-postgres-demo.sql
+    environment:
+      POSTGRES_DB: user_service_db
+      POSTGRES_USER: traveluser
+      POSTGRES_PASSWORD: postgres
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "postgres" ]
+    depends_on:
+      - postgres-user
+    networks:
+      - backend_travel-mate-network
+
+  init-mongodb-user-service:
+    image: mongo:6
+    volumes:
+      - ./scripts/init-mongodb-user-service.js:/docker-entrypoint-initdb.d/init-mongodb-user-service.js
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "mongod" ]
+    depends_on:
+      - mongo
+    networks:
+      - backend_travel-mate-network
+
+  init-mongodb-tripservice:
+    image: mongo:6
+    volumes:
+      - ./scripts/init-mongodb-tripservice.js:/docker-entrypoint-initdb.d/init-mongodb-tripservice.js
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    entrypoint: [ "docker-entrypoint.sh" ]
+    command: [ "mongod" ]
+    depends_on:
+      - mongo
     networks:
       - backend_travel-mate-network
 

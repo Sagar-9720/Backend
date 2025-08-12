@@ -6,7 +6,7 @@ db = db.getSiblingDB('user_service_db');
 db.comments.insertMany([
   {
     user_id: 1, // Admin User
-    trip_id: 1, // Manali Summer Escape
+    trip_id: 2, // Manali Summer Escape
     comment: 'Amazing trip! Highly recommended.',
     createdAt: new Date(),
     updatedAt: new Date()
