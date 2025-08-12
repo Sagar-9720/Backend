@@ -2,88 +2,118 @@ import express from 'express';
 import cors from 'cors';
 import promClient from 'prom-client';
 import loadConfig from './config/loadConfig';
-import { startConfigBusListener } from './services/configBusListener';
+import {startConfigBusListener} from './services/configBusListener';
+import axios from 'axios';
 
 const startServer = async () => {
-  try {
-    // Step 1: Load configuration from Spring Cloud Config Server
-    const config = await loadConfig();
+    try {
+        // Step 1: Load configuration from Spring Cloud Config Server
+        const config = await loadConfig();
 
-    // Step 2: Merge config into process.env
-    Object.entries(config).forEach(([key, value]) => {
-      process.env[key] = String(value);
-    });
+        // Step 2: Merge config into process.env
+        Object.entries(config).forEach(([key, value]) => {
+            process.env[key] = String(value);
+        });
 
-    // Step 3: Dynamically import DB and other dependencies (now env is ready)
-    const { connectPostgres } = await import('./config/postgres');
-    const { connectMongo } = await import('./config/mongo');
-    const eurekaClient = (await import('./config/eureka')).default;
+        // Step 3: Dynamically import DB and other dependencies (now env is ready)
+        const {connectPostgres} = await import('./config/postgres');
+        const {connectMongo} = await import('./config/mongo');
+        const eurekaClient = (await import('./config/eureka')).default;
 
-    // Routes and models
-    const savedTripRoutes = (await import('./routes/saved_trip.routes')).default;
-    const commentRoutes = (await import('./routes/comment.routes')).default;
-    const likeRoutes = (await import('./routes/like.routes')).default;
-    const SavedTrip = (await import('./models/saved_trip.model')).default;
-    const Like = (await import('./models/like.model')).default;
+        // Routes and models
+        const savedTripRoutes = (await import('./routes/saved_trip.routes')).default;
+        const commentRoutes = (await import('./routes/comment.routes')).default;
+        const likeRoutes = (await import('./routes/like.routes')).default;
+        const SavedTrip = (await import('./models/saved_trip.model')).default;
+        const Like = (await import('./models/like.model')).default;
 
-    // Step 4: Initialize Express app
-    const app = express();
-    const PORT = process.env.PORT || 5000;
+        // Step 4: Initialize Express app
+        const app = express();
+        const PORT = process.env.PORT || 5000;
 
-    // Prometheus metrics setup
-    promClient.collectDefaultMetrics();
-    app.get('/metrics', async (req, res) => {
-      res.set('Content-Type', promClient.register.contentType);
-      res.end(await promClient.register.metrics());
-    });
+        // Prometheus metrics setup
+        promClient.collectDefaultMetrics();
+        app.get('/metrics', async (req, res) => {
+            res.set('Content-Type', promClient.register.contentType);
+            res.end(await promClient.register.metrics());
+        });
 
-    app.use(cors());
-    app.use(express.json());
+        app.use(cors());
+        app.use(express.json());
 
-    // Health check endpoint
-    app.get('/health', (req, res) => {
-      res.status(200).json({
-        status: 'healthy',
-        service: 'user-service',
-        timestamp: new Date().toISOString()
-      });
-    });
+        // Health check endpoint
+        app.get('/health', (req, res) => {
+            res.status(200).json({
+                status: 'healthy',
+                service: 'user-service',
+                timestamp: new Date().toISOString()
+            });
+        });
 
-    // Register routes
-    app.use('/api/users/saved-trips', savedTripRoutes);
-    app.use('/api/users/comments', commentRoutes);
-    app.use('/api/users/like', likeRoutes);
+        // Register routes
+        app.use('/api/users/saved-trips', savedTripRoutes);
+        app.use('/api/users/comments', commentRoutes);
+        app.use('/api/users/like', likeRoutes);
 
-    // Step 5: Connect to databases
-    await connectPostgres();
-    await connectMongo();
+        // --- Bearer Token Validation Middleware ---
+        app.use(async (req, res, next) => {
+            if (req.path === '/health' || req.path === '/metrics') return next();
+            const authHeader = req.headers['authorization'];
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return res.status(401).json({message: 'Missing or invalid Authorization header'});
+            }
+            try {
+                const response = await axios.post(
+                    process.env.AUTH_SERVICE_URL || 'http://localhost/auth/api/auth/validate',
+                    {},
+                    {headers: {Authorization: authHeader}}
+                );
+                const data = response.data;
+                if (!data?.valid) {
+                    return res.status(401).json({message: data?.message || 'Invalid token'});
+                }
+                var user = {
+                    userId: data.userId,
+                    username: data.username,
+                    email: data.email,
+                    role: data.role
+                };
+                next(user);
+            } catch (err) {
+                return res.status(401).json({message: 'Token validation failed'});
+            }
+        });
 
-    // Step 6: Sync models
-    await SavedTrip.sync();
-    await Like.sync();
+        // Step 5: Connect to databases
+        await connectPostgres();
+        await connectMongo();
 
-    // Step 7: Start server
-    app.listen(PORT, () => {
-      console.log(`🚀 User Service is running on port ${PORT}`);
-      console.log(`✅ Health check available at http://localhost:${PORT}/health`);
+        // Step 6: Sync models
+        await SavedTrip.sync();
+        await Like.sync();
 
-      // Start Eureka registration
-      eurekaClient.start((error: any) => {
-        if (error) {
-          console.error('❌ Eureka registration failed:', error);
-        } else {
-          console.log('✅ User Service registered with Eureka');
-        }
-      });
-    });
+        // Step 7: Start server
+        app.listen(PORT, () => {
+            console.log(`🚀 User Service is running on port ${PORT}`);
+            console.log(`✅ Health check available at http://localhost:${PORT}/health`);
 
-    // Start Kafka config bus listener (non-blocking)
-    startConfigBusListener().catch(err => console.error('[ConfigBus] Failed to start:', err));
+            // Start Eureka registration
+            eurekaClient.start((error: any) => {
+                if (error) {
+                    console.error('❌ Eureka registration failed:', error);
+                } else {
+                    console.log('✅ User Service registered with Eureka');
+                }
+            });
+        });
 
-  } catch (err) {
-    console.error('❌ Failed to start User Service:', err);
-    process.exit(1);
-  }
+        // Start Kafka config bus listener (non-blocking)
+        startConfigBusListener().catch(err => console.error('[ConfigBus] Failed to start:', err));
+
+    } catch (err) {
+        console.error('❌ Failed to start User Service:', err);
+        process.exit(1);
+    }
 };
 
 // Start application

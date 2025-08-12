@@ -27,15 +27,6 @@ public class FeignClientConfig {
 
     @Bean
     public Customizer<Resilience4JCircuitBreakerFactory> defaultCustomizer() {
-        return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
-                .circuitBreakerConfig(CircuitBreakerConfig.custom()
-                        .slidingWindowSize(10)
-                        .failureRateThreshold(50)
-                        .waitDurationInOpenState(Duration.ofSeconds(10))
-                        .build())
-                .timeLimiterConfig(TimeLimiterConfig.custom()
-                        .timeoutDuration(Duration.ofSeconds(3))
-                        .build())
-                .build());
+        return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id).circuitBreakerConfig(CircuitBreakerConfig.custom().slidingWindowSize(10).failureRateThreshold(50).waitDurationInOpenState(Duration.ofSeconds(10)).build()).timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(3)).build()).build());
     }
 }

@@ -186,6 +186,86 @@
               "header": [ { "key": "Content-Type", "value": "application/json" } ]
             }
           ]
+        },
+        {
+          "name": "Initiate Password Reset",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/initiate-password-reset", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "initiate-password-reset" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"...\",\n  \"status\": 200,\n  \"message\": \"Password reset email sent\",\n  \"data\": {\n    \"success\": true,\n    \"message\": \"Password reset email sent\"\n  },\n  \"path\": \"/api/auth/initiate-password-reset\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
+        },
+        {
+          "name": "Reset Password Request",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/reset-password-request", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "reset-password-request" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"...\",\n  \"status\": 200,\n  \"message\": \"Password reset email sent\",\n  \"data\": {\n    \"success\": true,\n    \"message\": \"Password reset email sent\"\n  },\n  \"path\": \"/api/auth/reset-password-request\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/reset-password", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "reset-password" ] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<reset_token>\",\n  \"password\": \"newPassword123\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"...\",\n  \"status\": 200,\n  \"message\": \"Password reset successful\",\n  \"data\": {\n    \"success\": true,\n    \"message\": \"Password reset successful\"\n  },\n  \"path\": \"/api/auth/reset-password\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": { "raw": "{{authservice_url}}/api/auth/logout", "host": [ "{{authservice_url}}" ], "path": [ "api", "auth", "logout" ] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"timestamp\": \"...\",\n  \"status\": 200,\n  \"message\": \"Successfully logged out\",\n  \"data\": {\n    \"message\": \"Successfully logged out\"\n  },\n  \"path\": \"/api/auth/logout\"\n}",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ]
+            }
+          ]
         }
       ]
     },

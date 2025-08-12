@@ -22,7 +22,7 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public TagModel saveTag(TagModel tagModel) {
-        logger.info("Saving tag: {}", tagModel.getName());
+        logger.info("Saving tag: {}", tagModel.name());
         Tag tag = TagMapper.toEntity(tagModel);
         Tag saved = tagRepository.save(tag);
         return TagMapper.toModel(saved);

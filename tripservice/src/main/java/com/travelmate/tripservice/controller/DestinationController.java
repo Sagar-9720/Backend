@@ -1,5 +1,7 @@
 package com.travelmate.tripservice.controller;
 
+import com.travelmate.tripservice.entity.Destination;
+import com.travelmate.tripservice.mapper.DestinationMapper;
 import com.travelmate.tripservice.model.DestinationModel;
 import com.travelmate.tripservice.response.CustomResponseEntity;
 import com.travelmate.tripservice.serviceimpl.DestinationServiceImpl;
@@ -20,32 +22,34 @@ public class DestinationController {
     private DestinationServiceImpl destinationServiceImpl;
 
     @PostMapping
-    public ResponseEntity<CustomResponseEntity<DestinationModel>> create(@RequestHeader("Authorization") String token, @Valid @RequestBody DestinationModel destinationModel) {
+    public ResponseEntity<CustomResponseEntity<DestinationModel>> create(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody DestinationModel destinationModel) {
         try {
-            DestinationModel saved = destinationServiceImpl.createDestination(destinationModel);
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            DestinationModel saved = destinationServiceImpl.createDestination(token, destinationModel);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Destination created", saved, "/api/destinations"));
         } catch (Exception e) {
             return ResponseEntity.status(400).body(CustomResponseEntity.error(400, e.getMessage(), "/api/destinations"));
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<DestinationModel>> update(@RequestHeader("Authorization") String token, @PathVariable Long id, @Valid @RequestBody DestinationModel destinationModel) {
+    @PutMapping
+    public ResponseEntity<CustomResponseEntity<DestinationModel>> update(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody DestinationModel destinationModel) {
         try {
-            destinationModel.setId(id);
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
             DestinationModel updated = destinationServiceImpl.updateDestination(token, destinationModel);
-            return ResponseEntity.ok(CustomResponseEntity.success(200, "Destination updated", updated, "/api/destinations/" + id));
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "Destination updated", updated, "/api/destinations/" + updated.id()));
         } catch (Exception e) {
-            return ResponseEntity.status(403).body(CustomResponseEntity.error(403, e.getMessage(), "/api/destinations/" + id));
+            return ResponseEntity.status(403).body(CustomResponseEntity.error(403, e.getMessage(), "/api/destinations/"));
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<Void>> delete(@RequestHeader("Authorization") String token, @PathVariable Long id) {
+    public ResponseEntity<CustomResponseEntity<Void>> delete(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
         try {
-            DestinationModel model = new DestinationModel();
-            model.setId(id);
-            destinationServiceImpl.deleteDestination(token, model);
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            Destination destination = new Destination();
+            destination.setId(id);
+            destinationServiceImpl.deleteDestination(token, DestinationMapper.toModel(destination));
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Destination deleted", null, "/api/destinations/" + id));
         } catch (Exception e) {
             return ResponseEntity.status(403).body(CustomResponseEntity.error(403, e.getMessage(), "/api/destinations/" + id));
@@ -53,21 +57,24 @@ public class DestinationController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<DestinationModel>> getById(@PathVariable Long id) {
-        DestinationModel destination = destinationServiceImpl.getDestinationById(id).orElse(null);
+    public ResponseEntity<CustomResponseEntity<DestinationModel>> getById(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        DestinationModel destination = destinationServiceImpl.getDestinationById(token, id);
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Destination fetched", destination, "/api/destinations/" + id));
     }
 
     @GetMapping
-    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> getAll() {
-        List<DestinationModel> destinations = destinationServiceImpl.getAllDestinations();
+    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> getAll(@RequestHeader("Authorization") String authHeader) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        List<DestinationModel> destinations = destinationServiceImpl.getAllDestinations(token);
         return ResponseEntity.ok(CustomResponseEntity.success(200, "All destinations fetched", destinations, "/api/destinations"));
     }
 
     @GetMapping("/region/{regionId}")
-    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> getByRegion(@PathVariable Long regionId) {
+    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> getByRegion(@RequestHeader("Authorization") String authHeader, @PathVariable Long regionId) {
         try {
-            List<DestinationModel> destinations = destinationServiceImpl.getDestinationsByRegionId(regionId);
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            List<DestinationModel> destinations = destinationServiceImpl.getDestinationsByRegionId(token, regionId);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Destinations by region fetched", destinations, "/api/destinations/region/" + regionId));
         } catch (Exception e) {
             return ResponseEntity.status(404).body(CustomResponseEntity.error(404, e.getMessage(), "/api/destinations/region/" + regionId));
@@ -75,9 +82,10 @@ public class DestinationController {
     }
 
     @GetMapping("/country/{countryId}")
-    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> getByCountry(@PathVariable Long countryId) {
+    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> getByCountry(@RequestHeader("Authorization") String authHeader, @PathVariable Long countryId) {
         try {
-            List<DestinationModel> destinations = destinationServiceImpl.getDestinationsByCountryId(countryId);
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            List<DestinationModel> destinations = destinationServiceImpl.getDestinationsByCountryId(token, countryId);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Destinations by country fetched", destinations, "/api/destinations/country/" + countryId));
         } catch (Exception e) {
             return ResponseEntity.status(404).body(CustomResponseEntity.error(404, e.getMessage(), "/api/destinations/country/" + countryId));
@@ -85,9 +93,10 @@ public class DestinationController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> searchByName(@RequestParam String name) {
+    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> searchByName(@RequestHeader("Authorization") String authHeader, @RequestParam String name) {
         try {
-            List<DestinationModel> destinations = destinationServiceImpl.searchDestinationByName(name);
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            List<DestinationModel> destinations = destinationServiceImpl.searchDestinationByName(token, name);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Destinations searched by name", destinations, "/api/destinations/search?name=" + name));
         } catch (Exception e) {
             return ResponseEntity.status(404).body(CustomResponseEntity.error(404, e.getMessage(), "/api/destinations/search?name=" + name));

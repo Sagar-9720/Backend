@@ -6,20 +6,19 @@ import com.travelmate.tripservice.model.TagModel;
 public class TagMapper {
     public static TagModel toModel(Tag entity) {
         if (entity == null) return null;
-        return TagModel.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .usageCount(entity.getUsageCount())
-                .build();
+        return new TagModel(
+                entity.getId(),
+                entity.getName(),
+                entity.getUsageCount()
+        );
     }
 
     public static Tag toEntity(TagModel model) {
         if (model == null) return null;
         return Tag.builder()
-                .id(model.getId())
-                .name(model.getName())
-                .usageCount(model.getUsageCount())
+                .id(model.id())
+                .name(model.name())
+                .usageCount(model.usageCount())
                 .build();
     }
 }
-

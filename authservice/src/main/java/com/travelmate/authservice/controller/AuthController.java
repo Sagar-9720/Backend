@@ -1,7 +1,6 @@
 package com.travelmate.authservice.controller;
 
 import com.travelmate.authservice.dto.*;
-import com.travelmate.authservice.entity.Role;
 import com.travelmate.authservice.response.CustomResponseEntity;
 import com.travelmate.authservice.service.AuthServiceImpl;
 import com.travelmate.authservice.exception.EmailAlreadyExistException;
@@ -35,17 +34,11 @@ public class AuthController {
     public ResponseEntity<CustomResponseEntity<AuthResponse>> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest servletRequest) {
         try {
             AuthResponse response = authServiceImpl.register(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CustomResponseEntity.success(HttpStatus.CREATED.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(CustomResponseEntity.success(HttpStatus.CREATED.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (EmailAlreadyExistException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Registration failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Registration failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
@@ -53,21 +46,13 @@ public class AuthController {
     public ResponseEntity<CustomResponseEntity<AuthResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
         try {
             AuthResponse response = authServiceImpl.login(request);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (EmailNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Login failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Login failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
@@ -79,23 +64,15 @@ public class AuthController {
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                        CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI())
-                );
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI()));
             }
             String token = authHeader.substring(7);
             TokenValidationResponse response = authServiceImpl.validateToken(token);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Token validation failed", servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Token validation failed", servletRequest.getRequestURI()));
         }
     }
 
@@ -107,95 +84,77 @@ public class AuthController {
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                        CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI())
-                );
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI()));
             }
             String refreshToken = authHeader.substring(7);
             AuthResponse response = authServiceImpl.refreshToken(refreshToken);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Token refresh failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Token refresh failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
     @GetMapping("/verify-email")
-    public ResponseEntity<CustomResponseEntity<AuthResponse>> verifyEmail(@RequestParam("token") String token, HttpServletRequest servletRequest) {
+    public ResponseEntity<CustomResponseEntity<AuthResponse>> verifyEmail(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
+            logger.info("Validating token from request: {}", servletRequest.getRequestURI());
+            logger.debug("Authorization header: {}", authHeader);
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
             AuthResponse response = authServiceImpl.verifyEmail(token);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Email verification failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Email verification failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
     @PostMapping("/resend-verification")
-    public ResponseEntity<CustomResponseEntity<AuthResponse>> resendVerification(@RequestBody EmailRequest request, HttpServletRequest servletRequest) {
+    public ResponseEntity<CustomResponseEntity<AuthResponse>> resendVerification(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
-            AuthResponse response = authServiceImpl.resendVerificationEmail(request.to());
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            logger.info("Resending verification email for request: {}", servletRequest.getRequestURI());
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
+            AuthResponse response = authServiceImpl.resendVerificationEmail(token);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (EmailNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (EmailAlreadyExistException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Resend verification failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Resend verification failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
-    @PostMapping("/initiate-password-reset")
-    public ResponseEntity<CustomResponseEntity<AuthResponse>> initiatePasswordReset(@RequestBody EmailRequest request, HttpServletRequest servletRequest) {
-        AuthResponse response = authServiceImpl.initiatePasswordReset(request.to());
+    @PostMapping("/reset-password-request")
+    public ResponseEntity<CustomResponseEntity<AuthResponse>> resetPasswordRequest(@RequestBody String email, HttpServletRequest servletRequest) {
+        AuthResponse response = authServiceImpl.resetPasswordRequest(email);
         if (response.success()) {
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), response.message(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), response.message(), servletRequest.getRequestURI()));
         }
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<CustomResponseEntity<AuthResponse>> resetPassword(@RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
-        AuthResponse response = authServiceImpl.resetPassword(request);
+    public ResponseEntity<CustomResponseEntity<AuthResponse>> resetPassword(@RequestBody ResetPasswordRequest request, HttpServletRequest servletRequest) {
+        AuthResponse response = authServiceImpl.resetPassword(request.token(), request.password());
         if (response.success()) {
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), response.message(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), response.message(), servletRequest.getRequestURI()));
         }
     }
 
@@ -203,210 +162,99 @@ public class AuthController {
     public ResponseEntity<CustomResponseEntity<LogoutResponse>> logout(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         LogoutResponse response = authServiceImpl.logout(token);
-        return ResponseEntity.ok(
-                CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI())
-        );
+        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
     }
 
     @PutMapping("/update-user")
-    public ResponseEntity<CustomResponseEntity<UserInfoDTO>> updateUser(@RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
-        UserInfoDTO userInfo = authServiceImpl.updateUserInfo(request);
-        return ResponseEntity.ok(
-                CustomResponseEntity.success(HttpStatus.OK.value(), "User updated successfully", userInfo, servletRequest.getRequestURI())
-        );
+    public ResponseEntity<CustomResponseEntity<UserInfoDTO>> updateUser(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+        }
+        try {
+            UserInfoDTO userInfo = authServiceImpl.updateUserInfo(token, request);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User updated successfully", userInfo, servletRequest.getRequestURI()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "User update failed: " + e.getMessage(), servletRequest.getRequestURI()));
+        }
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<CustomResponseEntity<UserInfoDTO>> changePassword(@RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
-        UserInfoDTO userInfo = authServiceImpl.changePassword(request);
-        return ResponseEntity.ok(
-                CustomResponseEntity.success(HttpStatus.OK.value(), "Password changed successfully", userInfo, servletRequest.getRequestURI())
-        );
+    public ResponseEntity<CustomResponseEntity<UserInfoDTO>> changePassword(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+        }
+        try {
+            UserInfoDTO userInfo = authServiceImpl.changePassword(token, request);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "Password changed successfully", userInfo, servletRequest.getRequestURI()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "User update failed: " + e.getMessage(), servletRequest.getRequestURI()));
+        }
+
     }
 
     @DeleteMapping("/delete-user/{userId}")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> deleteUser(@RequestHeader("Authorization") String authHeader, @PathVariable String userId, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         UserInfoDTO userInfo = authServiceImpl.deleteUser(token, userId);
-        return ResponseEntity.ok(
-                CustomResponseEntity.success(HttpStatus.OK.value(), "User deleted successfully", userInfo, servletRequest.getRequestURI())
-        );
+        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User deleted successfully", userInfo, servletRequest.getRequestURI()));
     }
 
     @GetMapping("/user-info")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> getUserInfo(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         UserInfoDTO userInfo = authServiceImpl.getUserInfo(token);
-        return ResponseEntity.ok(
-                CustomResponseEntity.success(HttpStatus.OK.value(), "User info fetched successfully", userInfo, servletRequest.getRequestURI())
-        );
+        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User info fetched successfully", userInfo, servletRequest.getRequestURI()));
     }
 
     @GetMapping("/all-users")
     public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllUsers(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         List<UserInfoDTO> users = authServiceImpl.getAllUsers(token);
-        return ResponseEntity.ok(
-                CustomResponseEntity.success(HttpStatus.OK.value(), "All users fetched successfully", users, servletRequest.getRequestURI())
-        );
+        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "All users fetched successfully", users, servletRequest.getRequestURI()));
     }
 
-    @PutMapping("/update-role/{role}")
-    public ResponseEntity<CustomResponseEntity<UserInfoDTO>> updateRoleToUser(@PathVariable String role, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
-        try {
-            UserInfoDTO userInfo = authServiceImpl.updateRoleToUser(role, request);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), "User role updated successfully", userInfo, servletRequest.getRequestURI())
-            );
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
-        } catch (UnauthorizedAccessException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Role update failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
-        }
-    }
 
     @GetMapping("/check-email/{email}")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> checkEmailExists(@PathVariable String email, HttpServletRequest servletRequest) {
         try {
             UserInfoDTO userInfo = authServiceImpl.checkEmailExists(email);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), "Email check complete", userInfo, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "Email check complete", userInfo, servletRequest.getRequestURI()));
         } catch (EmailNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Email check failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Email check failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
-    @GetMapping("/roles")
-    public ResponseEntity<CustomResponseEntity<List<Role>>> getAllRoles(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
-        try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            if (token == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                        CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI())
-                );
-            }
-            List<Role> roles = authServiceImpl.getAllRoles(token);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), "Roles fetched successfully", roles, servletRequest.getRequestURI())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Roles fetch failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
-        }
-    }
-
-    @PostMapping("/roles")
-    public ResponseEntity<CustomResponseEntity<Role>> createRole(@RequestHeader("Authorization") String authHeader, @RequestBody Role role, HttpServletRequest servletRequest) {
-        try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            Role createdRole = authServiceImpl.createRole(token, role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CustomResponseEntity.success(HttpStatus.CREATED.value(), "Role created successfully", createdRole, servletRequest.getRequestURI())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Role creation failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
-        }
-    }
-
-    @PutMapping("/roles/{roleId}")
-    public ResponseEntity<CustomResponseEntity<Role>> updateRole(@RequestHeader("Authorization") String authHeader, @PathVariable Long roleId, @RequestBody Role role, HttpServletRequest servletRequest) {
-        try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            Role updatedRole = authServiceImpl.updateRole(token, roleId, role);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), "Role updated successfully", updatedRole, servletRequest.getRequestURI())
-            );
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Role update failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
-        }
-    }
 
     @PostMapping("/register-subadmin")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> registerSubAdmin(@Valid @RequestBody RegisterRequest request, @RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             String token = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
             AuthResponse response = authServiceImpl.registerSubAdmin(request, token);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CustomResponseEntity.success(HttpStatus.CREATED.value(), response.message(), response, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(CustomResponseEntity.success(HttpStatus.CREATED.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "SubAdmin registration failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "SubAdmin registration failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
-    @DeleteMapping("/roles/{roleId}")
-    public ResponseEntity<CustomResponseEntity<String>> deleteRole(@RequestHeader("Authorization") String authHeader, @PathVariable Long roleId, HttpServletRequest servletRequest) {
-        try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            authServiceImpl.deleteRole(token, roleId);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), "Role deleted successfully", null, servletRequest.getRequestURI())
-            );
-        } catch (UnauthorizedAccessException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Role deletion failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
-        }
-    }
 
     @PutMapping("/delete-request")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> deleteRequest(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         try {
             UserInfoDTO userInfo = authServiceImpl.deleteRequest(token);
-            return ResponseEntity.ok(
-                    CustomResponseEntity.success(HttpStatus.OK.value(), "Delete request submitted successfully", userInfo, servletRequest.getRequestURI())
-            );
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "Delete request submitted successfully", userInfo, servletRequest.getRequestURI()));
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Delete request failed: " + e.getMessage(), servletRequest.getRequestURI())
-            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Delete request failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 }

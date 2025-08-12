@@ -1,26 +1,13 @@
 package com.travelmate.tripservice.model;
 
-import com.travelmate.tripservice.entity.Itinerary;
-import lombok.*;
+
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class TripModel {
-    private Long id;
-    private String title;
-    private String description;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private BigDecimal price;
-    private Long mainDestinationId;
-    private String createdBy;
-    private List<Itinerary> itineraries; // List of Itinerary IDs for mapping
+public record TripModel(Long id, String title, String description, LocalDateTime startDate, LocalDateTime endDate,
+                        BigDecimal price, Long mainDestinationId, String createdBy, List<ItineraryModel> itineraries) {
 }

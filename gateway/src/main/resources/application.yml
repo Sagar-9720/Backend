@@ -4,7 +4,26 @@ server:
 spring:
   application:
     name: gateway
+  config:
+    import: "configserver:"
   cloud:
+    config:
+      uri: http://config-server:8888
+      fail-fast: true
+    bus:
+      enabled: true
+      id: ${spring.application.name}
+    stream:
+        kafka:
+            binder:
+                brokers: kafka:9092
+                auto-create-topics: true
+        bindings:
+          springCloudBusInput:
+            destination: springCloudBus
+            group: ${spring.application.name}
+          springCloudBusOutput:
+            destination: springCloudBus
     gateway:
       discovery:
         locator:
@@ -25,40 +44,9 @@ spring:
           uri: lb://trip-service
           predicates:
             - Path=/api/trip/**
-    config:
-      uri: http://config-server:8888
-      fail-fast: true
-  config:
-    import: "configserver:"
+    kafka:
+        bootstrap-servers: kafka:9092
+
   profiles:
     active: docker
 
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka/}
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    prefer-ip-address: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: bus-refresh,refresh,health,info,gateway
-
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-
-resilience4j.circuitbreaker:
-  instances:
-    authCircuitBreaker:
-      slidingWindowSize: 10
-      permittedNumberOfCallsInHalfOpenState: 3
-      slidingWindowType: COUNT_BASED
-      minimumNumberOfCalls: 5
-      waitDurationInOpenState: 5s
-      failureRateThreshold: 50

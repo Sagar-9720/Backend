@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: eureka-server
+  zipkin:
+    base-url: http://zipkin:9411
 
 eureka:
   instance:
@@ -25,8 +27,17 @@ management:
   endpoint:
     health:
       show-details: always
+  tracing:
+    enabled: true
+  zipkin:
+      tracing:
+        endpoint: http://zipkin:9411/api/v2/spans
 
 logging:
   level:
-    com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
+    org.springframework.cloud.bus: WARN
+    org.springframework.cloud.stream: WARN

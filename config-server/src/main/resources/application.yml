@@ -14,8 +14,17 @@ spring:
           enabled: false
     bus:
       enabled: true
-  kafka:
-    bootstrap-servers: kafka:9092
+    stream:
+      kafka:
+        binder:
+          brokers: kafka:9092
+          auto-create-topics: true
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          group: ${spring.application.name}
+        springCloudBusOutput:
+          destination: springCloudBus
   application:
     name: config-server
     profiles:
@@ -24,4 +33,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: bus-refresh,refresh,health,info
+        include: busrefresh,refresh,health,info
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: WARN
+    org.springframework.data.mongodb.core.MongoDatabaseFactory: WARN
+    org.springframework.data.mongodb.core.MongoCollectionUtils: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
+    org.springframework.cloud.bus: WARN
+    org.springframework.cloud.stream: WARN

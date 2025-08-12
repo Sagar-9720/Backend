@@ -1,5 +1,7 @@
 package com.travelmate.tripservice.serviceimpl;
 
+import com.travelmate.tripservice.entity.Country;
+import com.travelmate.tripservice.exceptions.CountryNotFoundException;
 import com.travelmate.tripservice.repository.CountryRepository;
 import com.travelmate.tripservice.service.CountryService;
 import com.travelmate.tripservice.model.CountryModel;
@@ -26,30 +28,45 @@ public class CountryServiceImpl implements CountryService {
     }
 
     @Override
-    public CountryModel getCountryById(Long id) {
-        return countryRepository.findById(id)
-                .map(CountryMapper::toModel)
-                .orElse(null);
+    public CountryModel getCountryById(Long id) throws CountryNotFoundException {
+        return countryRepository.findById(id).map(CountryMapper::toModel).orElseThrow(() -> {
+            logger.error("Country with id {} not found", id);
+            return new CountryNotFoundException(id);
+        });
     }
 
     @Override
-    public CountryModel addCountry(CountryModel countryModel) {
-        var entity = CountryMapper.toEntity(countryModel);
-        var saved = countryRepository.save(entity);
+    public CountryModel addCountry(CountryModel countryModel) throws RuntimeException {
+        Country existing = countryRepository.findByName(countryModel.name());
+        if (existing != null) {
+            logger.warn("Country with name {} already exists", countryModel.name());
+            throw new RuntimeException("Country already exists");
+        }
+        Country country = CountryMapper.toEntity(countryModel);
+        Country saved = countryRepository.save(country);
+        logger.info("Country {} added successfully", countryModel.name());
         return CountryMapper.toModel(saved);
     }
 
     @Override
-    public CountryModel updateCountry(Long id, CountryModel countryModel) {
-        var existing = countryRepository.findById(id).orElse(null);
+    public CountryModel updateCountry(Long id, CountryModel countryModel) throws CountryNotFoundException {
+        var existing = countryRepository.findById(id).orElseThrow(() -> {
+            logger.error("Country with id {} not found for update", id);
+            return new CountryNotFoundException(id);
+        });
         if (existing == null) return null;
-        existing.setName(countryModel.getName());
+        existing.setName(countryModel.name());
         var saved = countryRepository.save(existing);
         return CountryMapper.toModel(saved);
     }
 
     @Override
-    public void deleteCountry(Long id) {
-        countryRepository.deleteById(id);
+    public CountryModel deleteCountry(Long id) throws CountryNotFoundException {
+        var existing = countryRepository.findById(id).orElseThrow(() -> {
+            logger.error("Country with id {} not found for deletion", id);
+            return new CountryNotFoundException(id);
+        });
+        countryRepository.delete(existing);
+        return CountryMapper.toModel(existing);
     }
 }

@@ -23,6 +23,7 @@ public class TripRequest implements Serializable {
     private BigDecimal price;
     private Long mainDestinationId;
     private String requestedBy;
+    @Builder.Default
     private Boolean approved = false;
     private List<RequestedItinerary> itineraries;
     private String createdBy;

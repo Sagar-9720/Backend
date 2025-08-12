@@ -19,7 +19,9 @@ public interface TravelJournalService {
 
     List<TravelJournalModel> getJournalsByTripId(String token, String tripId);
 
-    List<TravelJournalModel> getPublicJournals();
+    List<TravelJournalModel> getPublicJournals(String token);
 
-    List<TravelJournalModel> searchByTag(String tag);
+    List<TravelJournalModel> searchByTag(String tag,String token);
+
+    List<TravelJournalModel> getAllJournals(String token);
 }

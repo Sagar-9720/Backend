@@ -4,70 +4,35 @@ server:
 spring:
   application:
     name: emailservice
-
-  # Email Configuration
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:your-email@gmail.com}
-    password: ${MAIL_PASSWORD:your-app-specific-password}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
-  # Kafka Configuration
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      uri: http://config-server:8888
+      fail-fast: true
+    bus:
+      enabled: true
+      id: ${spring.application.name}
+    stream:
+      kafka:
+        binder:
+          brokers: kafka:9092
+          auto-create-topics: true
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          group: ${spring.application.name}
+        springCloudBusOutput:
+          destination: springCloudBus
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
-      group-id: emailservice-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-
-  # Thymeleaf Configuration
-  thymeleaf:
-    cache: false
-    mode: HTML
-    encoding: UTF-8
-    prefix: classpath:/templates/
-    suffix: .html
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://eureka-server:8761/eureka
-  instance:
-    prefer-ip-address: true
-
-email:
-  retry:
-    initial-interval: 1000
-    max-interval: 10000
-    max-attempts: 3
-  rate-limit:
-    tokens-per-minute: 60
-
-# Actuator Configuration
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.travelmate.emailservice.dto
+        spring.json.value.default.type: com.travelmate.emailservice.dto.EmailRequest
+        spring.json.use.type.headers: false
 management:
   endpoints:
     web:
       exposure:
-        include: bus-refresh,refresh,health,info
-  metrics:
-    tags:
-      application: ${spring.application.name}
-    enable:
-      all: true
-  endpoint:
-    health:
-      show-details: always
-    metrics:
-      enabled: true
-    prometheus:
-      enabled: true
+        include: busrefresh,refresh,health,info

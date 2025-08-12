@@ -4,9 +4,7 @@ import com.travelmate.tripservice.client.AuthServiceClient;
 import com.travelmate.tripservice.entity.Country;
 import com.travelmate.tripservice.entity.Destination;
 import com.travelmate.tripservice.entity.Region;
-import com.travelmate.tripservice.exceptions.DestinationExistException;
-import com.travelmate.tripservice.exceptions.DestinationNotFoundException;
-import com.travelmate.tripservice.exceptions.RegionNotFoundException;
+import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.mapper.DestinationMapper;
 import com.travelmate.tripservice.model.DestinationModel;
 import com.travelmate.tripservice.repository.CountryRepository;
@@ -41,8 +39,12 @@ public class DestinationServiceImpl implements DestinationService {
     private static final Logger logger = LoggerFactory.getLogger(DestinationServiceImpl.class);
 
     @Override
-    public DestinationModel createDestination(DestinationModel destinationModel) throws DestinationExistException {
-        logger.info("Creating destination: {}", destinationModel.getName());
+    public DestinationModel createDestination(String token, DestinationModel destinationModel) throws DestinationExistException, UnauthorizedAccessException {
+        String role = authServiceClient.validateToken(token).getRole();
+        if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
+            throw new UnauthorizedAccessException("User role is not authorized to create destination");
+        }
+        logger.info("Creating destination: {}", destinationModel.name());
         Destination entity = DestinationMapper.toEntity(destinationModel);
         List<Destination> existing = destinationRepository.findByNameContainingIgnoreCase(entity.getName());
         if (!existing.isEmpty()) {
@@ -61,33 +63,49 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
-    public Optional<DestinationModel> getDestinationById(Long id) {
+    public DestinationModel getDestinationById(String token, Long id) throws DestinationNotFoundException, UnauthorizedAccessException {
+        if (!authServiceClient.validateToken(token).isValid()) {
+            throw new UnauthorizedAccessException("Unauthorized access to destination");
+        }
         logger.info("Fetching destination by id: {}", id);
-        return destinationRepository.findById(id).map(DestinationMapper::toModel);
+        return destinationRepository.findById(id).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(id));
     }
 
     @Override
-    public List<DestinationModel> getAllDestinations() {
+    public List<DestinationModel> getAllDestinations(String token) throws UnauthorizedAccessException {
+        if (!authServiceClient.validateToken(token).isValid()) {
+            throw new UnauthorizedAccessException("Unauthorized access to destinations");
+        }
         logger.info("Fetching all destinations");
         return destinationRepository.findAll().stream().map(DestinationMapper::toModel).toList();
     }
 
     @Override
-    public DestinationModel updateDestination(String token, DestinationModel model) throws DestinationNotFoundException {
+    public DestinationModel updateDestination(String token, DestinationModel model) throws DestinationNotFoundException, UnauthorizedAccessException {
         String role = authServiceClient.validateToken(token).getRole();
         if (role != null && !"user".equalsIgnoreCase(role)) {
-            logger.info("Updating destination id: {}", model.getId());
-            Destination entity = DestinationMapper.toEntity(model);
-            entity.setId(model.getId());
-            Destination saved = destinationRepository.save(entity);
+            logger.info("Updating destination id: {}", model.id());
+            Optional<Destination> existingDestination = destinationRepository.findById(model.id());
+            if (existingDestination.isEmpty()) {
+                throw new DestinationNotFoundException(model.id());
+            }
+            Destination existing = existingDestination.get();
+            existing.setName(model.name());
+            existing.setDescription(model.description());
+            existing.setImageUrl(model.imageUrl());
+            existing.setRegion(regionRepository.findById(existing.getRegion().getId()).get());
+            Destination saved = destinationRepository.save(existing);
             return DestinationMapper.toModel(saved);
         } else {
-            throw new SecurityException("User role is not authorized to update destination");
+            throw new UnauthorizedAccessException("Not authorized to update destination");
         }
     }
 
     @Override
-    public List<DestinationModel> getDestinationsByRegionId(Long regionId) {
+    public List<DestinationModel> getDestinationsByRegionId(String token, Long regionId) throws RegionNotFoundException, UnauthorizedAccessException {
+        if (!authServiceClient.validateToken(token).isValid()) {
+            throw new UnauthorizedAccessException("Unauthorized access to destinations by region");
+        }
         logger.info("Fetching destinations by region id: {}", regionId);
         Optional<Region> region = regionRepository.findById(regionId);
         if (region.isPresent()) {
@@ -98,12 +116,24 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
-    public List<DestinationModel> getDestinationsByCountryId(Long countryId) {
-        return List.of();
+    public List<DestinationModel> getDestinationsByCountryId(String token, Long countryId) throws CountryNotFoundException, UnauthorizedAccessException {
+        if (!authServiceClient.validateToken(token).isValid()) {
+            throw new UnauthorizedAccessException("Unauthorized access to destinations by country");
+        }
+        logger.info("Fetching destinations by country id: {}", countryId);
+        Optional<Country> country = countryRepository.findById(countryId);
+        if (country.isPresent()) {
+            List<Destination> destinations = destinationRepository.findByRegion_Country(country.get());
+            return destinations.stream().map(DestinationMapper::toModel).toList();
+        }
+        throw new CountryNotFoundException(countryId);
     }
 
     @Override
-    public List<DestinationModel> searchDestinationByName(String name) {
+    public List<DestinationModel> searchDestinationByName(String token, String name) throws DestinationNotFoundException, UnauthorizedAccessException {
+        if (!authServiceClient.validateToken(token).isValid()) {
+            throw new UnauthorizedAccessException("Unauthorized access to search destinations");
+        }
         logger.info("Searching destinations by name: {}", name);
         List<Destination> destinations = destinationRepository.findByNameContainingIgnoreCase(name);
         if (destinations.isEmpty()) {
@@ -114,17 +144,16 @@ public class DestinationServiceImpl implements DestinationService {
 
 
     @Override
-    public DestinationModel deleteDestination(String token, DestinationModel model) {
+    public DestinationModel deleteDestination(String token, DestinationModel model) throws DestinationNotFoundException, UnauthorizedAccessException {
         String role = authServiceClient.validateToken(token).getRole();
-        if (role != null && !"user".equalsIgnoreCase(role)) {
-            DestinationModel deleted = destinationRepository.findById(model.getId()).map(DestinationMapper::toModel).orElse(null);
-            destinationRepository.deleteById(model.getId());
-            logger.info("Deleting destination id: {}", model.getId());
+        if ("admin".equalsIgnoreCase(role) || "subadmin".equalsIgnoreCase(role)) {
+            DestinationModel deleted = destinationRepository.findById(model.id()).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(model.id()));
+            destinationRepository.deleteById(model.id());
+            logger.info("Deleting destination id: {}", model.id());
             return deleted;
         } else {
-            throw new SecurityException("User role is not authorized to delete destination");
+            throw new UnauthorizedAccessException("Not authorized to delete destination");
         }
     }
-
 
 }

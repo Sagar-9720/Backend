@@ -1,7 +1,10 @@
 package com.travelmate.tripservice.serviceimpl;
 
+import com.travelmate.tripservice.entity.Region;
+import com.travelmate.tripservice.exceptions.RegionNotFoundException;
 import com.travelmate.tripservice.model.RegionModel;
 import com.travelmate.tripservice.mapper.RegionMapper;
+import com.travelmate.tripservice.repository.CountryRepository;
 import com.travelmate.tripservice.repository.RegionRepository;
 import com.travelmate.tripservice.service.RegionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,9 @@ public class RegionServiceImpl implements RegionService {
     @Autowired
     private RegionRepository regionRepository;
 
+    @Autowired
+    private CountryRepository countryRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(RegionServiceImpl.class);
 
     @Override
@@ -26,37 +32,49 @@ public class RegionServiceImpl implements RegionService {
     }
 
     @Override
-    public RegionModel getRegionById(Long id) {
-        return regionRepository.findById(id)
-                .map(RegionMapper::toModel)
-                .orElse(null);
+    public RegionModel getRegionById(Long id) throws RegionNotFoundException {
+        return regionRepository.findById(id).map(RegionMapper::toModel).orElseThrow(() -> new RegionNotFoundException(id));
     }
 
     @Override
-    public RegionModel addRegion(RegionModel regionModel) {
-        var entity = RegionMapper.toEntity(regionModel);
-        var saved = regionRepository.save(entity);
+    public RegionModel addRegion(RegionModel regionModel) throws RuntimeException {
+        logger.info("Adding new region: {}", regionModel.name());
+        // Check if region with the same name already exists
+        List<Region> existingRegions = regionRepository.findByNameContainingIgnoreCase(regionModel.name());
+        if (!existingRegions.isEmpty()) {
+            logger.warn("Region with name '{}' already exists", regionModel.name());
+            throw new RuntimeException("Region with name '" + regionModel.name() + "' already exists");
+        }
+        Region region = new Region();
+        if (regionModel.country().id() != null) {
+            region.setCountry(countryRepository.findById(regionModel.country().id()).orElse(null));
+        }
+        Region saved = regionRepository.save(RegionMapper.toEntity(regionModel));
         return RegionMapper.toModel(saved);
     }
 
     @Override
-    public RegionModel updateRegion(Long id, RegionModel regionModel) {
-        var existing = regionRepository.findById(id).orElse(null);
+    public RegionModel updateRegion(Long id, RegionModel regionModel) throws RegionNotFoundException {
+        Region existing = regionRepository.findById(id).orElseThrow(() -> new RegionNotFoundException(id));
         if (existing == null) return null;
-        existing.setName(regionModel.getName());
-        // Update country if provided
-        if (regionModel.getCountryId() != null) {
+        existing.setName(regionModel.name());
+
+        if (regionModel.country().id() != null) {
             var country = existing.getCountry();
-            if (country == null || !country.getId().equals(regionModel.getCountryId())) {
-                // ...fetch and set new country entity as needed...
+            if (country == null || !country.getId().equals(regionModel.country().id())) {
+                existing.setCountry(countryRepository.findById(regionModel.country().id()).orElse(null));
             }
         }
-        var saved = regionRepository.save(existing);
+        Region saved = regionRepository.save(existing);
         return RegionMapper.toModel(saved);
     }
 
     @Override
-    public void deleteRegion(Long id) {
+    public RegionModel deleteRegion(Long id) throws RegionNotFoundException {
+        logger.info("Deleting region with id: {}", id);
+        Region existing = regionRepository.findById(id).orElseThrow(() -> new RegionNotFoundException(id));
+
         regionRepository.deleteById(id);
+        return RegionMapper.toModel(existing);
     }
 }

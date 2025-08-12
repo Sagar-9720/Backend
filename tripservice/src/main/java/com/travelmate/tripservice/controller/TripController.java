@@ -3,7 +3,8 @@ package com.travelmate.tripservice.controller;
 import com.travelmate.tripservice.entity.TripRequest;
 import com.travelmate.tripservice.model.TripModel;
 import com.travelmate.tripservice.response.CustomResponseEntity;
-import com.travelmate.tripservice.service.TripService;
+import com.travelmate.tripservice.serviceimpl.TripServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,46 +16,66 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trip/trips")
 public class TripController {
+
     @Autowired
-    private TripService tripService;
+    private TripServiceImpl tripService;
 
     @GetMapping
-    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getAllTrips() {
-        List<TripModel> trips = tripService.getAllTrips();
+    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getAllTrips(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+        }
+        String token = authHeader.substring(7);
+        List<TripModel> trips = tripService.getAllTrips(token);
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Trips fetched", trips, "/api/trips"));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<TripModel>> getTripById(@PathVariable Long id) throws Exception {
-        return tripService.getTripById(id)
-                .map(trip -> ResponseEntity.ok(CustomResponseEntity.success(200, "Trip fetched", trip, "/api/trips/" + id)))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(404, "Trip not found", "/api/trips/" + id)));
+    public ResponseEntity<CustomResponseEntity<TripModel>> getTripById(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, HttpServletRequest servletRequest) throws Exception {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", "/api/trips/" + id));
+        }
+        String token = authHeader.substring(7);
+        TripModel trip = tripService.getTripById(token, id);
+        return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip fetched", trip, servletRequest.getRequestURI() + id));
+
     }
 
     @PostMapping
-    public ResponseEntity<CustomResponseEntity<TripModel>> createTrip(@RequestHeader("Authorization") String token, @RequestBody TripModel tripModel) {
+    public ResponseEntity<CustomResponseEntity<TripModel>> createTrip(@RequestHeader("Authorization") String authHeader, @RequestBody TripModel tripModel, HttpServletRequest servletRequest) throws Exception {
         try {
-            TripModel created = tripService.createTrip(token, tripModel);
-            return ResponseEntity.status(HttpStatus.CREATED).body(CustomResponseEntity.success(201, "Trip created", created, "/api/trips"));
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", "/api/trips"));
+            }
+            String token = authHeader.substring(7);
+            TripModel trip = tripService.createTrip(token, tripModel);
+            return ResponseEntity.status(HttpStatus.CREATED).body(CustomResponseEntity.success(201, "Trip created", trip, servletRequest.getRequestURI()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/trips"));
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<TripModel>> updateTrip(@RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody TripModel tripModel) {
+    @PutMapping
+    public ResponseEntity<CustomResponseEntity<TripModel>> updateTrip(@RequestHeader("Authorization") String authHeader, @RequestBody TripModel tripModel, HttpServletRequest servletRequest) {
         try {
-            tripModel.setId(id);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
             TripModel updated = tripService.updateTrip(token, tripModel);
-            return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip updated", updated, "/api/trips/" + id));
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip updated", updated, "/api/trips/" + tripModel.id()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/trips/" + id));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/trips/" + tripModel.id()));
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<Void>> deleteTrip(@RequestHeader("Authorization") String token, @PathVariable Long id) {
+    public ResponseEntity<CustomResponseEntity<Void>> deleteTrip(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, HttpServletRequest servletRequest) {
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
             tripService.deleteTrip(token, id);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip deleted", null, "/api/trips/" + id));
         } catch (Exception e) {
@@ -63,8 +84,12 @@ public class TripController {
     }
 
     @PostMapping("/request")
-    public ResponseEntity<CustomResponseEntity<List<TripModel>>> addTripRequest(@RequestHeader("Authorization") String token, @RequestBody TripModel tripModel) {
+    public ResponseEntity<CustomResponseEntity<List<TripModel>>> addTripRequest(@RequestHeader("Authorization") String authHeader, @RequestBody TripModel tripModel, HttpServletRequest servletRequest) {
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
             List<TripModel> result = tripService.addTripsRequestedByUser(token, tripModel);
             return ResponseEntity.status(HttpStatus.CREATED).body(CustomResponseEntity.success(201, "Trip request submitted", result, "/api/trips/request"));
         } catch (Exception e) {
@@ -73,8 +98,12 @@ public class TripController {
     }
 
     @PostMapping("/approve/{requestId}")
-    public ResponseEntity<CustomResponseEntity<TripModel>> approveTripRequest(@RequestHeader("Authorization") String token, @PathVariable String requestId, @RequestBody TripRequest tripRequest) {
+    public ResponseEntity<CustomResponseEntity<TripModel>> approveTripRequest(@RequestHeader("Authorization") String authHeader, @PathVariable String requestId, @RequestBody TripRequest tripRequest, HttpServletRequest servletRequest) {
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
             TripModel approved = tripService.approveTripRequest(token, requestId, tripRequest);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip request approved", approved, "/api/trips/approve/" + requestId));
         } catch (Exception e) {
@@ -83,21 +112,33 @@ public class TripController {
     }
 
     @GetMapping("/by-destination")
-    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getTripsByDestinationName(@RequestParam String destinationName) {
-        List<TripModel> trips = tripService.getTripsByDestinationName(destinationName);
+    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getTripsByDestinationName(@RequestHeader("Authorization") String authHeader, @RequestParam String destinationName, HttpServletRequest servletRequest) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+        }
+        String token = authHeader.substring(7);
+        List<TripModel> trips = tripService.getTripsByDestinationName(token, destinationName);
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Trips by destination fetched", trips, "/api/trips/by-destination?destinationName=" + destinationName));
     }
 
     @GetMapping("/by-price-range")
-    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getTripsByPriceRange(@RequestParam BigDecimal startPrice, @RequestParam BigDecimal endPrice) {
-        List<TripModel> trips = tripService.tripsBtwPriceRanges(startPrice, endPrice);
+    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getTripsByPriceRange(@RequestHeader("Authorization") String authHeader, @RequestParam BigDecimal startPrice, @RequestParam BigDecimal endPrice, HttpServletRequest servletRequest) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+        }
+        String token = authHeader.substring(7);
+        List<TripModel> trips = tripService.tripsBtwPriceRanges(token, startPrice, endPrice);
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Trips by price range fetched", trips, "/api/trips/by-price-range?startPrice=" + startPrice + "&endPrice=" + endPrice));
     }
 
     @GetMapping("/requests/user/{userId}")
-    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getTripRequestsByUser(@PathVariable String userId) {
+    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getTripRequestsByUser(@RequestHeader("Authorization") String authHeader, @PathVariable String userId, HttpServletRequest servletRequest) {
         try {
-            List<TripModel> requests = tripService.getTripRequestByUserId(userId);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
+            List<TripModel> requests = tripService.getTripRequestByUserId(token, userId);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip requests for user fetched", requests, "/api/trips/requests/user/" + userId));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), "/api/trips/requests/user/" + userId));
@@ -105,9 +146,13 @@ public class TripController {
     }
 
     @PostMapping("/auto-delete")
-    public ResponseEntity<CustomResponseEntity<Void>> autoDeleteTripByDate() {
+    public ResponseEntity<CustomResponseEntity<Void>> autoDeleteTripByDate(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
-            tripService.autoDeleteTripByDate();
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
+            tripService.autoDeleteTripByDate(token);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Trips auto-deleted by date", null, "/api/trips/auto-delete"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), "/api/trips/auto-delete"));
@@ -115,9 +160,13 @@ public class TripController {
     }
 
     @GetMapping("/requests/all")
-    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getAllTripsRequested() {
+    public ResponseEntity<CustomResponseEntity<List<TripModel>>> getAllTripsRequested(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
-            List<TripModel> requests = tripService.getAllTripsRequested();
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized Access", servletRequest.getRequestURI()));
+            }
+            String token = authHeader.substring(7);
+            List<TripModel> requests = tripService.getAllTripsRequested(token);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "All trip requests fetched", requests, "/api/trips/requests/all"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), "/api/trips/requests/all"));

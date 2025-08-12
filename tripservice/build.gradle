@@ -52,6 +52,8 @@ dependencies {
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
 	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
+	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.apache.kafka:kafka-clients'
 	compileOnly libraries.lombok
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly libraries.postgresql

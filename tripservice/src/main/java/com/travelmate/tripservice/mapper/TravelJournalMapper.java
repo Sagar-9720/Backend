@@ -3,42 +3,40 @@ package com.travelmate.tripservice.mapper;
 import com.travelmate.tripservice.entity.TravelJournal;
 import com.travelmate.tripservice.model.TravelJournalModel;
 
-import java.util.stream.Collectors;
-
 public class TravelJournalMapper {
     public static TravelJournalModel toModel(TravelJournal entity) {
         if (entity == null) return null;
-        return TravelJournalModel.builder()
-                .id(entity.getId())
-                .userId(entity.getUserId())
-                .tripId(entity.getTripId())
-                .title(entity.getTitle())
-                .note(entity.getNote())
-                .entryDate(entity.getEntryDate())
-                .location(entity.getLocation())
-                .images(entity.getImages())
-                .tags(entity.getTags())
-                .isPublic(entity.getIsPublic())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
+        return new TravelJournalModel(
+                entity.getId(),
+                entity.getUserId(),
+                entity.getTripId(),
+                entity.getTitle(),
+                entity.getNote(),
+                entity.getEntryDate(),
+                entity.getLocation(),
+                entity.getTags(),
+                entity.getIsPublic(),
+                entity.getImages(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
+        );
     }
 
     public static TravelJournal toEntity(TravelJournalModel model) {
         if (model == null) return null;
         return TravelJournal.builder()
-                .id(model.getId())
-                .userId(model.getUserId())
-                .tripId(model.getTripId())
-                .title(model.getTitle())
-                .note(model.getNote())
-                .entryDate(model.getEntryDate())
-                .tags(model.getTags())
-                .location(model.getLocation())
-                .images(model.getImages())
-                .isPublic(model.getIsPublic())
-                .createdAt(model.getCreatedAt())
-                .updatedAt(model.getUpdatedAt())
+                .id(model.id())
+                .userId(model.userId())
+                .tripId(model.tripId())
+                .title(model.title())
+                .note(model.note())
+                .entryDate(model.entryDate())
+                .tags(model.tags())
+                .location(model.location())
+                .images(model.images())
+                .isPublic(model.isPublic())
+                .createdAt(model.createdAt())
+                .updatedAt(model.updatedAt())
                 .build();
     }
 }

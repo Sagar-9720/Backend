@@ -60,16 +60,7 @@ public class DataInitializer implements CommandLineRunner {
         }
         if (!userRepository.existsByEmail(adminEmail)) {
             Role adminRole = roleRepository.findByName("ADMIN").orElseThrow(() -> new RuntimeException("ADMIN role not found"));
-            User admin = User.builder()
-                    .name("Admin")
-                    .email(adminEmail)
-                    .password(passwordEncoder.encode(adminPassword))
-                    .emailVerified(true)
-                    .profileImg(null)
-                    .gender(null)
-                    .dob(null)
-                    .phone(null)
-                    .build();
+            User admin = User.builder().name("Admin").email(adminEmail).password(passwordEncoder.encode(adminPassword)).emailVerified(true).profileImg(null).gender(null).dob(null).phone(null).build();
             admin.setRole(adminRole);
             userRepository.save(admin);
             log.info("Created default admin user: {}", adminEmail);

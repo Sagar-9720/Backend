@@ -8,15 +8,15 @@ import org.springframework.data.redis.connection.MessageListener;
 
 public class CacheMessageListener implements MessageListener {
     private static final Logger logger = LoggerFactory.getLogger(CacheMessageListener.class);
-    
+
     private final CacheSyncManager cacheSyncManager;
     private final ObjectMapper objectMapper;
-    
+
     public CacheMessageListener(CacheSyncManager cacheSyncManager, ObjectMapper objectMapper) {
         this.cacheSyncManager = cacheSyncManager;
         this.objectMapper = objectMapper;
     }
-    
+
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {

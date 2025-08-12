@@ -31,11 +31,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    @Retryable(
-        value = {MessagingException.class},
-        maxAttempts = 3,
-        backoff = @Backoff(delay = 1000, multiplier = 2)
-    )
+    @Retryable(value = {MessagingException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000, multiplier = 2))
     public void sendEmail(EmailRequest request) throws MessagingException {
         // Check rate limit
         if (!rateLimitBucket.tryConsume(1)) {
@@ -72,11 +68,7 @@ public class EmailService {
 
     private String generateEmailContent(EmailRequest request) {
         Context context = new Context();
-        context.setVariables(Map.of(
-            "name", request.getName(),
-            "verificationLink", request.getLink(),
-            "resetLink", request.getLink()
-        ));
+        context.setVariables(Map.of("name", request.getName(), "verificationLink", request.getLink(), "resetLink", request.getLink()));
 
         String templateName = switch (request.getType()) {
             case VERIFICATION -> "verification";

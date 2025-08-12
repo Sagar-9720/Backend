@@ -112,8 +112,6 @@ public class JwtUtil {
 
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            // Log the exception if needed
-            e.printStackTrace();
             return false;
         }
     }

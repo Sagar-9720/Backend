@@ -32,7 +32,7 @@ public class CountryController {
     }
 
     @PostMapping
-    public ResponseEntity<CustomResponseEntity<CountryModel>> addCountry(@RequestBody CountryModel countryModel) {
+    public ResponseEntity<CustomResponseEntity<CountryModel>> addCountry(@RequestBody CountryModel countryModel) throws Exception {
         CountryModel created = countryService.addCountry(countryModel);
         return ResponseEntity.status(201).body(CustomResponseEntity.success(201, "Country created", created, "/countries"));
     }

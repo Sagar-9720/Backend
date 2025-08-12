@@ -55,12 +55,12 @@ public class ItineraryController {
         try {
             ItineraryModel updated = itineraryService.updateItinerary(token, itineraryModel);
             if (updated != null) {
-                return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary updated", updated, "/itineraries/" + itineraryModel.getId()));
+                return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary updated", updated, "/itineraries/" + itineraryModel.id()));
             } else {
-                return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "Itinerary not found", "/itineraries/" + itineraryModel.getId()));
+                return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "Itinerary not found", "/itineraries/" + itineraryModel.id()));
             }
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to update itinerary: " + e.getMessage(), "/itineraries/" + itineraryModel.getId()));
+            return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to update itinerary: " + e.getMessage(), "/itineraries/" + itineraryModel.id()));
         }
     }
 

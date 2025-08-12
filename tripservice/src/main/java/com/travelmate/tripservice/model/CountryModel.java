@@ -1,15 +1,6 @@
 package com.travelmate.tripservice.model;
 
-import lombok.*;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Getter
-@Setter
-public class CountryModel {
-    private Long id;
-    private String name;
-}
-
+public record CountryModel(
+    Long id,
+    String name
+) {}

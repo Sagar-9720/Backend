@@ -7,7 +7,6 @@ public record UserUpdateInfoRequest(
     String phone,
     String dob,
     String profileImg,
-    String token,
     String oldPassword,
     String password
 ) {}

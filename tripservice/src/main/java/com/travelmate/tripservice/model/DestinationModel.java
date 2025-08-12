@@ -1,18 +1,9 @@
 package com.travelmate.tripservice.model;
 
-import lombok.*;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Getter
-@Setter
-public class DestinationModel {
-    private Long id;
-    private String name;
-    private Long regionId;
-    private String description;
-    private String imageUrl;
-}
-
+public record DestinationModel(
+    Long id,
+    String name,
+    RegionModel region,
+    String description,
+    String imageUrl
+) {}

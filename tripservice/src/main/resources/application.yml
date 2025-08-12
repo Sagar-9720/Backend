@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: tripservice
   config:
     import: "configserver:"
   cloud:
@@ -7,76 +9,20 @@ spring:
       fail-fast: true
     bus:
       enabled: true
-  kafka:
-    bootstrap-servers: kafka:9092
+      id: ${spring.application.name}
+    stream:
+      kafka:
+        binder:
+          brokers: kafka:9092
+          auto-create-topics: true
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          group: ${spring.application.name}
+        springCloudBusOutput:
+          destination: springCloudBus
   profiles:
     active: docker
-  cache:
-    type: redis
-    redis:
-      time-to-live: 300000
-      enable-statistics: true
-  data:
-    redis:
-      timeout: 2000
-      database: 0
-      sentinel:
-        master: mymaster
-        nodes: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
-      password: redispass
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 2
-          max-wait: -1ms
-  application:
-    name: tripservice
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 server:
   port: 8082
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: bus-refresh,refresh,health,info
-  metrics:
-    cache:
-      enabled: true
-    distribution:
-      percentiles-histogram:
-        cache: true
-      sla:
-        cache: 50ms,100ms,200ms
-  tracing:
-    enabled: true
-  zipkin:
-    tracing:
-      endpoint: http://zipkin:9411/api/v2/spans
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://eureka-server:8761/eureka/}
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    prefer-ip-address: true
-
-app:
-  admin:
-    email: admin@travelmate.com
-    password: Travelmate123
