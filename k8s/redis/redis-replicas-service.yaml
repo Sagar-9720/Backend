@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-replica-1
+  namespace: travelmate
+spec:
+  selector:
+    app: redis-replica-1
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-replica-2
+  namespace: travelmate
+spec:
+  selector:
+    app: redis-replica-2
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: ClusterIP
+

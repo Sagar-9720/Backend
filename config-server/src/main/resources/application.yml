@@ -7,7 +7,7 @@ spring:
         git:
           uri: https://github.com/Sagar-9720/Travelmate-configs.git
           username: Sagar-9720
-          password: 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
+          password: ${GIT_TOKEN}
           default-label: main
           clone-on-start: true
         native:

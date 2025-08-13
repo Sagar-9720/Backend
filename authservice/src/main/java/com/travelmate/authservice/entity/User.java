@@ -20,62 +20,63 @@ import org.springframework.security.core.userdetails.UserDetails;
 @AllArgsConstructor
 @Getter
 @Setter
-public class  User implements UserDetails {
-    
+public class User implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
-    
+
     @Column(nullable = false)
     private String name;
-    
+
     @Column(nullable = false, unique = true)
     private String email;
-    
+
     private String phone;
-    
+
     @Column(nullable = false)
     private String password;
-    
+
     private LocalDate dob;
-    
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
-    
+
     @Column(name = "profile_img")
     private String profileImg;
-    
+
     @Column(name = "email_verified")
     private Boolean emailVerified = false;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @Builder.Default
     private boolean requestDelete = false;
-    
+
     public enum Gender {
         MALE, FEMALE, OTHER
     }
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
-    
+
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-    
+
     // UserDetails implementat
 
     @Override
@@ -87,22 +88,22 @@ public class  User implements UserDetails {
     public String getUsername() {
         return email;
     }
-    
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
-    
+
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
-    
+
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
-    
+
     @Override
     public boolean isEnabled() {
         return emailVerified != null ? emailVerified : true;

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-sentinel-1
+  namespace: travelmate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-sentinel-1
+  template:
+    metadata:
+      labels:
+        app: redis-sentinel-1
+    spec:
+      containers:
+        - name: redis-sentinel-1
+          image: redis:7
+          ports:
+            - containerPort: 26379
+          command: ["redis-sentinel", "/etc/redis/sentinel.conf", "--loglevel", "warning"]
+          volumeMounts:
+            - name: redis-sentinel-config
+              mountPath: /etc/redis
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PASSWORD
+      volumes:
+        - name: redis-sentinel-config
+          configMap:
+            name: redis-sentinel-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-sentinel-2
+  namespace: travelmate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-sentinel-2
+  template:
+    metadata:
+      labels:
+        app: redis-sentinel-2
+    spec:
+      containers:
+        - name: redis-sentinel-2
+          image: redis:7
+          ports:
+            - containerPort: 26379
+          command: ["redis-sentinel", "/etc/redis/sentinel.conf", "--loglevel", "warning"]
+          volumeMounts:
+            - name: redis-sentinel-config
+              mountPath: /etc/redis
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PASSWORD
+      volumes:
+        - name: redis-sentinel-config
+          configMap:
+            name: redis-sentinel-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-sentinel-3
+  namespace: travelmate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-sentinel-3
+  template:
+    metadata:
+      labels:
+        app: redis-sentinel-3
+    spec:
+      containers:
+        - name: redis-sentinel-3
+          image: redis:7
+          ports:
+            - containerPort: 26379
+          command: ["redis-sentinel", "/etc/redis/sentinel.conf", "--loglevel", "warning"]
+          volumeMounts:
+            - name: redis-sentinel-config
+              mountPath: /etc/redis
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PASSWORD
+      volumes:
+        - name: redis-sentinel-config
+          configMap:
+            name: redis-sentinel-config
+

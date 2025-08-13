@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trip-service-config
+  namespace: travelmate
+data:
+  SPRING_PROFILES_ACTIVE: "docker"
+  SPRING_CLOUD_CONFIG_URI: "http://config-server:8888"
+  SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG: "WARN"
+

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-master
+  namespace: travelmate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-master
+  template:
+    metadata:
+      labels:
+        app: redis-master
+    spec:
+      containers:
+        - name: redis-master
+          image: redis:7
+          ports:
+            - containerPort: 6379
+          command: ["redis-server"]
+          args: ["--requirepass", "$(REDIS_PASSWORD)", "--appendonly", "yes", "--loglevel", "warning"]
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PASSWORD
+          volumeMounts:
+            - name: redis-master-storage
+              mountPath: /data
+      volumes:
+        - name: redis-master-storage
+          persistentVolumeClaim:
+            claimName: redis-master-pvc
+
