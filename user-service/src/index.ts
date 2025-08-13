@@ -40,7 +40,41 @@ const startServer = async () => {
             res.end(await promClient.register.metrics());
         });
 
-        app.use(cors());
+        // Parse allowed origins into array
+        const allowedOrigins = process.env.FRONTEND_URLS
+            ? process.env.FRONTEND_URLS.split(',').map(o => o.trim())
+            : [];
+
+        // Configure CORS
+        app.use(cors({
+            origin: (origin, callback) => {
+                // Allow requests with no origin (like curl or Postman)
+                if (!origin) return callback(null, true);
+
+                if (allowedOrigins.includes(origin)) {
+                    return callback(null, true);
+                } else {
+                    return callback(new Error('CORS policy: Origin not allowed'), false);
+                }
+            },
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true
+        }));
+
+        // Preflight handling
+        app.options('*', cors({
+            origin: (origin, callback) => {
+                if (!origin || allowedOrigins.includes(origin)) {
+                    return callback(null, true);
+                }
+                return callback(new Error('CORS policy: Origin not allowed'), false);
+            },
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true
+        }));
+
         app.use(express.json());
 
         // Health check endpoint
