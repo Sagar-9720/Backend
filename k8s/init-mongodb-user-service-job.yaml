@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-mongodb-user-service
+  namespace: travelmate
+spec:
+  template:
+    spec:
+      containers:
+      - name: init-mongodb-user-service
+        image: mongo:6
+        command: ["sh", "-c"]
+        args:
+          - |
+            mongosh --host mongo -u admin -p password --authenticationDatabase admin /scripts/init-mongodb-user-service.js
+        volumeMounts:
+          - name: init-scripts
+            mountPath: /scripts
+      restartPolicy: OnFailure
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: init-mongodb-user-service-js
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-mongodb-user-service-js
+  namespace: travelmate
+data:
+  init-mongodb-user-service.js: |
+    // MongoDB initialization script for user-service demo data
+    // Run with: mongo < scripts/init-mongodb-user-service.js
+    // 1. Comments collection
+    db = db.getSiblingDB('user_service');
+    db.comments.insertMany([
+      {
+        user_id: 1, // Admin User
+        trip_id: 2, // Manali Summer Escape
+        comment: 'Amazing trip! Highly recommended.',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        user_id: 2, // Subadmin One
+        destination_id: 1, // Manali
+        comment: 'Beautiful destination, loved the scenery.',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        user_id: 3, // Subadmin Two
+        itinerary_id: 1, // Manali Adventure Day 1
+        comment: 'Mall Road was fun!',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        user_id: 4, // Regular User
+        trip_id: 2, // Manali Winter Wonderland
+        comment: 'Snow experience was magical.',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ]);
+    // Add more demo data as needed.

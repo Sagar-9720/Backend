@@ -1,0 +1,95 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-mongodb-tripservice
+  namespace: travelmate
+spec:
+  template:
+    spec:
+      containers:
+      - name: init-mongodb-tripservice
+        image: mongo:6
+        command: ["sh", "-c"]
+        args:
+          - |
+            mongosh --host mongo -u admin -p password --authenticationDatabase admin /scripts/init-mongodb-tripservice.js
+        volumeMounts:
+          - name: init-scripts
+            mountPath: /scripts
+      restartPolicy: OnFailure
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: init-mongodb-tripservice-js
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-mongodb-tripservice-js
+  namespace: travelmate
+data:
+  init-mongodb-tripservice.js: |
+    // MongoDB initialization script for trip-service demo travel journals
+    // Run with: mongo < scripts/init-mongodb-tripservice.js
+    db = db.getSiblingDB('tripdb');
+    db.travel_journals.insertMany([
+      {
+        userId: "1",
+        tripId: "1",
+        title: "Manali Arrival",
+        note: "Arrived in Manali, checked into hotel, and explored Mall Road.",
+        entryDate: new Date("2025-08-01T10:00:00Z"),
+        location: {
+          lat: 32.2432,
+          lng: 77.1892,
+          placeName: "Manali, Himachal Pradesh, India"
+        },
+        tags: ["Adventure", "Nature", "Summer"],
+        isPublic: true,
+        images: [
+          { url: "https://example.com/manali1.jpg", caption: "Mall Road" },
+          { url: "https://example.com/manali2.jpg", caption: "Hotel View" }
+        ],
+        createdAt: new Date("2025-08-01T09:00:00Z"),
+        updatedAt: new Date("2025-08-01T10:00:00Z")
+      },
+      {
+        userId: "2",
+        tripId: "2",
+        title: "Snow Day",
+        note: "Enjoyed the snow and visited Solang Valley.",
+        entryDate: new Date("2025-08-02T11:00:00Z"),
+        location: {
+          lat: 32.3182,
+          lng: 77.1587,
+          placeName: "Solang Valley, Himachal Pradesh, India"
+        },
+        tags: ["Adventure", "Winter", "Family"],
+        isPublic: false,
+        images: [
+          { url: "https://example.com/solang1.jpg", caption: "Snow Fun" }
+        ],
+        createdAt: new Date("2025-08-02T10:00:00Z"),
+        updatedAt: new Date("2025-08-02T11:00:00Z")
+      },
+      {
+        userId: "3",
+        tripId: "3",
+        title: "Leh Adventure Begins",
+        note: "Acclimatizing in Leh and preparing for Pangong Lake.",
+        entryDate: new Date("2025-08-03T12:00:00Z"),
+        location: {
+          lat: 34.1526,
+          lng: 77.5773,
+          placeName: "Leh, Ladakh, India"
+        },
+        tags: ["Adventure", "Mountains", "Leh-Ladakh"],
+        isPublic: true,
+        images: [
+          { url: "https://example.com/leh1.jpg", caption: "Leh Market" },
+          { url: "https://example.com/leh2.jpg", caption: "Pangong Lake" }
+        ],
+        createdAt: new Date("2025-08-03T11:00:00Z"),
+        updatedAt: new Date("2025-08-03T12:00:00Z")
+      }
+    ]);

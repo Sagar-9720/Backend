@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-trip-pvc
+  namespace: travelmate
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-trip
+  namespace: travelmate
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres-trip
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-trip
+  namespace: travelmate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-trip
+  template:
+    metadata:
+      labels:
+        app: postgres-trip
+    spec:
+      containers:
+        - name: postgres-trip
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: trip_service_db
+            - name: POSTGRES_USER
+              value: traveluser
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-trip-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-trip-database
+              mountPath: /docker-entrypoint-initdb.d/init-trip-database.sql
+              subPath: init-trip-database.sql
+            - name: scripts
+              mountPath: /docker-entrypoint-initdb.d/scripts
+      volumes:
+        - name: postgres-trip-data
+          persistentVolumeClaim:
+            claimName: postgres-trip-pvc
+        - name: init-trip-database
+          configMap:
+            name: init-trip-database
+        - name: scripts
+          hostPath:
+            path: /Users/sagargupta/Desktop/Travel-Mate/Backend/scripts
+            type: Directory
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-trip-database
+  namespace: travelmate
+  labels:
+    app: postgres-trip
+data:
+  init-trip-database.sql: |
+    DO
+    $$
+        BEGIN
+            IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'trip_service_db') THEN
+                CREATE DATABASE trip_service_db;
+            END IF;
+        END
+    $$

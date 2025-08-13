@@ -1,4 +1,5 @@
 package com.travelmate.tripservice.response;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomResponseEntity<T> {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
     private int status;
     private String message;
