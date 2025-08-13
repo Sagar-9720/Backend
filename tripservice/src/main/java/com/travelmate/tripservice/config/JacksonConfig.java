@@ -10,9 +10,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 public class JacksonConfig {
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
-        return builder -> builder
-                .modulesToInstall(new JavaTimeModule())
+        return builder -> builder.modules(new JavaTimeModule()) // not modulesToInstall()
                 .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 }
+
 

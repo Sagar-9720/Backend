@@ -1,4 +1,4 @@
-import { Model, DataTypes, Optional } from 'sequelize';
+import {Model, DataTypes, Optional} from 'sequelize';
 import sequelize from '../config/postgres';
 
 interface LikeAttributes {

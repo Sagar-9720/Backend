@@ -110,6 +110,7 @@ services:
       - backend_travel-mate-network
     environment:
       - SPRING_PROFILES_ACTIVE=git
+      - GIT_TOKEN=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
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8888/actuator/health" ]
       interval: 30s

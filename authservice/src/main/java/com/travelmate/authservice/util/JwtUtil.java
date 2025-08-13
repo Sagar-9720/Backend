@@ -19,7 +19,7 @@ public class JwtUtil {
     @Value("${app.jwt.refresh-secret}")
     private String refreshSecret;
 
-    @Value("${app.jwt.expiration:900000}") // 15 minutes
+    @Value("${app.jwt.expiration:3600000}") // 1 hour
     private long jwtExpiration;
 
     @Value("${app.jwt.refresh-expiration:604800000}") // 7 days

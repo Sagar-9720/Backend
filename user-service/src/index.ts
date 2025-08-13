@@ -5,6 +5,7 @@ import loadConfig from './config/loadConfig';
 import {startConfigBusListener} from './services/configBusListener';
 import axios from 'axios';
 import NodeCache from 'node-cache';
+import axiosRetry from 'axios-retry';
 
 const startServer = async () => {
     try {
@@ -19,7 +20,7 @@ const startServer = async () => {
         // Step 3: Dynamically import DB and other dependencies (now env is ready)
         const {connectPostgres} = await import('./config/postgres');
         const {connectMongo} = await import('./config/mongo');
-        const eurekaClient = (await import('./config/eureka')).default;
+        const {startEurekaClient, getAuthServiceUrl} = await import('./config/eureka');
 
         // Routes and models
         const savedTripRoutes = (await import('./routes/saved_trip.routes')).default;
@@ -57,17 +58,18 @@ const startServer = async () => {
         app.use('/api/users/like', likeRoutes);
 
         // Token validation cache (2 min TTL)
-        const tokenCache = new NodeCache({ stdTTL: 120, checkperiod: 150 });
+        const tokenCache = new NodeCache({stdTTL: 120, checkperiod: 150});
 
         // Token validation response type
         interface TokenValidationData {
-          valid: boolean;
-          userId: string;
-          username: string;
-          email: string;
-          role: string;
-          message?: string;
-          [key: string]: any;
+            valid: boolean;
+            userId: string;
+            username: string;
+            email: string;
+            role: string;
+            message?: string;
+
+            [key: string]: any;
         }
 
         // --- Bearer Token Validation Middleware ---
@@ -84,12 +86,20 @@ const startServer = async () => {
                 return next();
             }
             try {
+                // Discover auth-service from Eureka
+                const authServiceUrl = getAuthServiceUrl();
+                if (!authServiceUrl) {
+                    return res.status(503).json({message: 'Auth service unavailable'});
+                }
+                console.log('Validating token with:', authServiceUrl);
+                console.log('Authorization header:', authHeader);
                 const response = await axios.post(
-                    process.env.AUTH_SERVICE_URL || 'http://localhost/auth/api/auth/validate',
+                    authServiceUrl,
                     {},
                     {headers: {Authorization: authHeader}}
                 );
-                const data = response.data as TokenValidationData;
+                console.log('Validation response:', response.data);
+                const data = response.data.data as TokenValidationData;
                 if (!data?.valid) {
                     return res.status(401).json({message: data?.message || 'Invalid token'});
                 }
@@ -98,9 +108,13 @@ const startServer = async () => {
                 (req as any).user = data;
                 next();
             } catch (err) {
-                return res.status(401).json({message: 'Token validation failed'});
+                // Fallback logic: return a custom response if all retries fail
+                return res.status(401).json({message: 'Token validation failed (with retry/fallback)'});
             }
         });
+
+        // Add axios-retry for Feign-like retry logic
+        axiosRetry(axios, {retries: 3, retryDelay: axiosRetry.exponentialDelay});
 
         // Step 5: Connect to databases
         await connectPostgres();
@@ -111,18 +125,10 @@ const startServer = async () => {
         await Like.sync();
 
         // Step 7: Start server
+        await startEurekaClient();
         app.listen(PORT, () => {
             console.log(`🚀 User Service is running on port ${PORT}`);
             console.log(`✅ Health check available at http://localhost:${PORT}/health`);
-
-            // Start Eureka registration
-            eurekaClient.start((error: any) => {
-                if (error) {
-                    console.error('❌ Eureka registration failed:', error);
-                } else {
-                    console.log('✅ User Service registered with Eureka');
-                }
-            });
         });
 
         // Start Kafka config bus listener (non-blocking)

@@ -1,4 +1,4 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import {Schema, model, Document, Types} from 'mongoose';
 
 export interface CommentAttributes {
     user_id: number;
@@ -32,11 +32,11 @@ export class Comment implements CommentAttributes {
 
 const CommentSchema = new Schema<Document & CommentAttributes>(
     {
-        user_id: { type: Schema.Types.Number, ref: 'User', required: true },
-        trip_id: { type: Schema.Types.Number, ref: 'Trip', required: false },
-        itenary_id: { type: Schema.Types.Number, ref: 'Itenary', required: false },
-        destination_id: { type: Schema.Types.Number, ref: 'Destination', required: false },
-        comment: { type: String, required: true },
+        user_id: {type: Schema.Types.Number, required: true},
+        trip_id: {type: Schema.Types.Number, required: false},
+        itenary_id: {type: Schema.Types.Number, required: false},
+        destination_id: {type: Schema.Types.Number, required: false},
+        comment: {type: String, required: true},
     },
     {
         timestamps: true,

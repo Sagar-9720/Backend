@@ -82,7 +82,7 @@ public class TripServiceImpl implements TripService {
             if (!tokenValidationService.isTokenValid(token)) {
                 return null;
             }
-            return authServiceClient.validateToken(token);
+            return authServiceClient.validateTokenExtracted(token);
         } catch (Exception e) {
             return null;
         }
@@ -122,7 +122,7 @@ public class TripServiceImpl implements TripService {
         trip.setCreatedBy(userName);
         trip.setIsActive(true);
         Trip savedTrip = tripRepository.save(trip);
-        indexTrip(TripMapper.toModel(savedTrip)); // Index the trip in Elasticsearch
+        indexTrip(TripMapper.toModel(savedTrip));
         return TripMapper.toModel(savedTrip);
     }
 
@@ -149,7 +149,10 @@ public class TripServiceImpl implements TripService {
     @Override
     @CacheEvict(value = {"trips", "tripsAll"}, allEntries = true)
     public TripModel updateTrip(String token, TripModel updatedTripModel) throws TripNotFoundException, UnauthorizedAccessException {
-        String userName = isAdmin(token);
+        String role = tokenValidationService.getRole(token);
+        if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
+            throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
+        }
         Long id = updatedTripModel.id();
         logger.info("Updating trip id: {}", id);
         Trip existingTrip = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException(id));
@@ -187,7 +190,10 @@ public class TripServiceImpl implements TripService {
     @Override
     @CacheEvict(value = {"trips", "tripsAll"}, allEntries = true)
     public TripModel deleteTrip(String token, Long id) throws TripNotFoundException, UnauthorizedAccessException {
-        String userName = isAdmin(token);
+        String role = tokenValidationService.getRole(token);
+        if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
+            throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
+        }
         logger.info("Disabling trip id: {}", id);
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException(id));
         trip.setIsActive(false);
@@ -236,7 +242,10 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void autoDeleteTripByDate(String token) throws UnauthorizedAccessException {
-        String userName = isAdmin(token);
+        String role = tokenValidationService.getRole(token);
+        if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
+            throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
+        }
         List<Trip> trips = tripRepository.findAll();
         for (Trip trip : trips) {
             if (trip.getEndDate() != null && trip.getEndDate().toLocalDate().isBefore(java.time.LocalDate.now()) && Boolean.TRUE.equals(trip.getIsActive())) {
@@ -263,38 +272,21 @@ public class TripServiceImpl implements TripService {
         }
         TripRequest request = TripRequest.builder().title(tripModel.title()).description(tripModel.description()).startDate(tripModel.startDate()).endDate(tripModel.endDate()).price(tripModel.price()).mainDestinationId(tripModel.mainDestinationId()).requestedBy(userName).approved(false).itineraries(requestedItineraries).build();
         TripRequest savedRequest = tripRequestRepository.save(request);
-        TripModel model = TripModel.builder()
-                .id(savedRequest.getId() != null ? Long.valueOf(savedRequest.getId()) : null)
-                .title(savedRequest.getTitle())
-                .description(savedRequest.getDescription())
-                .startDate(savedRequest.getStartDate())
-                .endDate(savedRequest.getEndDate())
-                .price(savedRequest.getPrice())
-                .mainDestinationId(savedRequest.getMainDestinationId())
-                .itineraries(tripModel.itineraries())
-                .build();
+        TripModel model = TripModel.builder().id(savedRequest.getId() != null ? Long.valueOf(savedRequest.getId()) : null).title(savedRequest.getTitle()).description(savedRequest.getDescription()).startDate(savedRequest.getStartDate()).endDate(savedRequest.getEndDate()).price(savedRequest.getPrice()).mainDestinationId(savedRequest.getMainDestinationId()).itineraries(tripModel.itineraries()).build();
         return List.of(model);
     }
 
     public TripModel approveTripRequest(String token, String tripRequestId, TripRequest tripRequest) throws UnauthorizedAccessException {
-        String userName = isAdmin(token);
+        String role = tokenValidationService.getRole(token);
+        if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
+            throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
+        }
         TripRequest request = tripRequestRepository.findById(tripRequestId).orElseThrow(() -> new RuntimeException("TripRequest not found"));
         if (Boolean.TRUE.equals(request.getApproved())) {
             throw new RuntimeException("TripRequest already approved");
         }
         // Map the provided TripRequest (tripRequest param) to TripModel
-        TripModel tripModel = TripModel.builder()
-                .title(tripRequest.getTitle())
-                .description(tripRequest.getDescription())
-                .startDate(tripRequest.getStartDate())
-                .endDate(tripRequest.getEndDate())
-                .price(tripRequest.getPrice())
-                .mainDestinationId(tripRequest.getMainDestinationId())
-                .createdBy(tripRequest.getRequestedBy())
-                .itineraries(tripRequest.getItineraries().stream()
-                        .map(itinerary -> ItineraryMapper.toModel(RequestedItineraryMapper.toItinerary(itinerary)))
-                        .toList())
-                .build();
+        TripModel tripModel = TripModel.builder().title(tripRequest.getTitle()).description(tripRequest.getDescription()).startDate(tripRequest.getStartDate()).endDate(tripRequest.getEndDate()).price(tripRequest.getPrice()).mainDestinationId(tripRequest.getMainDestinationId()).createdBy(tripRequest.getRequestedBy()).itineraries(tripRequest.getItineraries().stream().map(itinerary -> ItineraryMapper.toModel(RequestedItineraryMapper.toItinerary(itinerary))).toList()).build();
         TripModel createdTrip = createTrip(token, tripModel);
         request.setApproved(true);
         logger.info("Deleting approved TripRequest: id={}, title={}, requestedBy={}", request.getId(), request.getTitle(), request.getRequestedBy());
@@ -304,23 +296,14 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public List<TripModel> getAllTripsRequested(String token) throws UnauthorizedAccessException {
-        String userName = isAdmin(token);
+        String role = tokenValidationService.getRole(token);
+        if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
+            throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
+        }
         List<TripRequest> requests = tripRequestRepository.findAll();
         List<TripModel> models = new ArrayList<>();
         for (TripRequest req : requests) {
-            TripModel model = TripModel.builder()
-                    .id(req.getId() != null ? Long.valueOf(req.getId()) : null)
-                    .title(req.getTitle())
-                    .description(req.getDescription())
-                    .startDate(req.getStartDate())
-                    .endDate(req.getEndDate())
-                    .price(req.getPrice())
-                    .mainDestinationId(req.getMainDestinationId())
-                    .createdBy(req.getRequestedBy())
-                    .itineraries(req.getItineraries().stream()
-                            .map(itinerary -> ItineraryMapper.toModel(RequestedItineraryMapper.toItinerary(itinerary)))
-                            .toList())
-                    .build();
+            TripModel model = TripModel.builder().id(req.getId() != null ? Long.valueOf(req.getId()) : null).title(req.getTitle()).description(req.getDescription()).startDate(req.getStartDate()).endDate(req.getEndDate()).price(req.getPrice()).mainDestinationId(req.getMainDestinationId()).createdBy(req.getRequestedBy()).itineraries(req.getItineraries().stream().map(itinerary -> ItineraryMapper.toModel(RequestedItineraryMapper.toItinerary(itinerary))).toList()).build();
 
             models.add(model);
         }
@@ -330,11 +313,7 @@ public class TripServiceImpl implements TripService {
     @Override
     public void indexTrip(TripModel tripModel) {
         try {
-            IndexRequest<TripModel> request = IndexRequest.of(i -> i
-                .index(tripIndex)
-                .id(tripModel.id() != null ? tripModel.id().toString() : tripModel.title())
-                .document(tripModel)
-            );
+            IndexRequest<TripModel> request = IndexRequest.of(i -> i.index(tripIndex).id(tripModel.id() != null ? tripModel.id().toString() : tripModel.title()).document(tripModel));
             elasticsearchClient.index(request);
         } catch (Exception e) {
             logger.error("Failed to index trip in Elasticsearch: {}", e.getMessage());
@@ -344,23 +323,9 @@ public class TripServiceImpl implements TripService {
     @Override
     public List<String> suggestTrips(String query) {
         try {
-            SearchRequest searchRequest = SearchRequest.of(s -> s
-                .index(tripIndex)
-                .query(q -> q
-                    .fuzzy(f -> f
-                        .field("title")
-                        .value(query)
-                        .fuzziness("AUTO")
-                    )
-                )
-                .size(10)
-            );
+            SearchRequest searchRequest = SearchRequest.of(s -> s.index(tripIndex).query(q -> q.fuzzy(f -> f.field("title").value(query).fuzziness("AUTO"))).size(10));
             SearchResponse<TripModel> response = elasticsearchClient.search(searchRequest, TripModel.class);
-            return response.hits().hits().stream()
-                .map(Hit::source)
-                .filter(java.util.Objects::nonNull)
-                .map(TripModel::title)
-                .toList();
+            return response.hits().hits().stream().map(Hit::source).filter(java.util.Objects::nonNull).map(TripModel::title).toList();
         } catch (Exception e) {
             logger.error("Failed to suggest trips from Elasticsearch: {}", e.getMessage());
             return List.of();

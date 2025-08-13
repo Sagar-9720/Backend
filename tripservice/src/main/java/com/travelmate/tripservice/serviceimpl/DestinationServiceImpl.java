@@ -1,6 +1,5 @@
 package com.travelmate.tripservice.serviceimpl;
 
-import com.travelmate.tripservice.client.AuthServiceClient;
 import com.travelmate.tripservice.entity.Country;
 import com.travelmate.tripservice.entity.Destination;
 import com.travelmate.tripservice.entity.Region;
@@ -40,8 +39,6 @@ public class DestinationServiceImpl implements DestinationService {
     @Autowired
     private RegionRepository regionRepository;
 
-    @Autowired
-    private AuthServiceClient authServiceClient;
 
     @Autowired
     private ElasticsearchClient elasticsearchClient;
@@ -59,7 +56,7 @@ public class DestinationServiceImpl implements DestinationService {
         if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Unauthorized access to create destination");
         }
-        String role = authServiceClient.validateToken(token).getRole();
+        String role = tokenValidationService.getRole(token);
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User role is not authorized to create destination");
         }
@@ -105,7 +102,7 @@ public class DestinationServiceImpl implements DestinationService {
         if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Unauthorized access to update destination");
         }
-        String role = authServiceClient.validateToken(token).getRole();
+        String role = tokenValidationService.getRole(token);
         if (role != null && !"user".equalsIgnoreCase(role)) {
             logger.info("Updating destination id: {}", model.id());
             Optional<Destination> existingDestination = destinationRepository.findById(model.id());
@@ -172,7 +169,7 @@ public class DestinationServiceImpl implements DestinationService {
         if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("Unauthorized access to delete destination");
         }
-        String role = authServiceClient.validateToken(token).getRole();
+        String role = tokenValidationService.getRole(token);
         if ("admin".equalsIgnoreCase(role) || "subadmin".equalsIgnoreCase(role)) {
             DestinationModel deleted = destinationRepository.findById(model.id()).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(model.id()));
             destinationRepository.deleteById(model.id());
@@ -187,9 +184,9 @@ public class DestinationServiceImpl implements DestinationService {
     public void indexDestination(DestinationModel destinationModel) {
         try {
             IndexRequest<DestinationModel> request = IndexRequest.of(i -> i
-                .index(destinationIndex)
-                .id(destinationModel.id() != null ? destinationModel.id().toString() : destinationModel.name())
-                .document(destinationModel)
+                    .index(destinationIndex)
+                    .id(destinationModel.id() != null ? destinationModel.id().toString() : destinationModel.name())
+                    .document(destinationModel)
             );
             elasticsearchClient.index(request);
         } catch (Exception e) {
@@ -201,22 +198,22 @@ public class DestinationServiceImpl implements DestinationService {
     public List<String> suggestDestinations(String query) {
         try {
             SearchRequest searchRequest = SearchRequest.of(s -> s
-                .index(destinationIndex)
-                .query(q -> q
-                    .fuzzy(f -> f
-                        .field("name")
-                        .value(query)
-                        .fuzziness("AUTO")
+                    .index(destinationIndex)
+                    .query(q -> q
+                            .fuzzy(f -> f
+                                    .field("name")
+                                    .value(query)
+                                    .fuzziness("AUTO")
+                            )
                     )
-                )
-                .size(10)
+                    .size(10)
             );
             SearchResponse<DestinationModel> response = elasticsearchClient.search(searchRequest, DestinationModel.class);
             return response.hits().hits().stream()
-                .map(Hit::source)
-                .filter(java.util.Objects::nonNull)
-                .map(DestinationModel::name)
-                .toList();
+                    .map(Hit::source)
+                    .filter(java.util.Objects::nonNull)
+                    .map(DestinationModel::name)
+                    .toList();
         } catch (Exception e) {
             logger.error("Failed to suggest destinations from Elasticsearch: {}", e.getMessage());
             return List.of();

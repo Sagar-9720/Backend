@@ -1,14 +1,13 @@
 package com.travelmate.tripservice.serviceimpl;
 
 import com.travelmate.tripservice.client.AuthServiceClient;
-import com.travelmate.tripservice.client.UserServiceClient;
 import com.travelmate.tripservice.entity.TravelJournal;
-import com.travelmate.tripservice.dto.TripInteractionDTO;
 import com.travelmate.tripservice.exceptions.TravelJournalNotFoundException;
 import com.travelmate.tripservice.exceptions.UnauthorizedAccessException;
 import com.travelmate.tripservice.model.TravelJournalModel;
 import com.travelmate.tripservice.mapper.TravelJournalMapper;
 import com.travelmate.tripservice.repository.TravelJournalRepository;
+import com.travelmate.tripservice.service.TokenValidationService;
 import com.travelmate.tripservice.service.TravelJournalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,12 +29,15 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Autowired
     private TagServiceImpl tagService;
 
+    @Autowired
+    private TokenValidationService tokenValidationService;
+
     private static final Logger logger = LoggerFactory.getLogger(TravelJournalServiceImpl.class);
 
     @Override
     public TravelJournalModel createJournal(String token, TravelJournalModel journalModel) {
         if (token == null || token.isEmpty()) throw new AccessDeniedException("unauthorized access");
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new AccessDeniedException("unauthorized access");
         }
 
@@ -58,7 +60,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
         if (token == null || token.isEmpty()) {
             throw new UnauthorizedAccessException("unauthorized access");
         }
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("unauthorized access");
         }
         // Persist new tags if not already present
@@ -81,7 +83,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Override
     public TravelJournalModel deleteJournal(String token, String id) {
         if (token == null || token.isEmpty()) throw new UnauthorizedAccessException("unauthorized access");
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("unauthorized access");
         }
         if (id == null || id.isEmpty()) throw new TravelJournalNotFoundException(id);
@@ -96,7 +98,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Override
     public TravelJournalModel getJournalById(String token, String id) {
         if (token == null || token.isEmpty()) throw new UnauthorizedAccessException("unauthorized access");
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("unauthorized access");
         }
         if (id == null || id.isEmpty()) throw new TravelJournalNotFoundException(id);
@@ -107,7 +109,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Override
     public List<TravelJournalModel> getJournalsByUserId(String token, String userId) {
         if (token == null || token.isEmpty()) throw new UnauthorizedAccessException("unauthorized access");
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("unauthorized access");
         }
         logger.info("Fetching journal by user id: {}", userId);
@@ -117,7 +119,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Override
     public List<TravelJournalModel> getJournalsByTripId(String token, String tripId) {
         if (token == null || token.isEmpty()) throw new UnauthorizedAccessException("unauthorized access");
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("unauthorized access");
         }
         return travelJournalRepository.findByTripId(tripId).stream().filter(tripJournal -> tripJournal.getIsPublic() == true).map(TravelJournalMapper::toModel).toList();
@@ -126,7 +128,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Override
     public List<TravelJournalModel> getPublicJournals(String token) {
         if (token == null || token.isEmpty()) throw new UnauthorizedAccessException("unauthorized access");
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("unauthorized access");
         }
         return travelJournalRepository.findByIsPublicTrue().stream().map(TravelJournalMapper::toModel).toList();
@@ -135,7 +137,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Override
     public List<TravelJournalModel> searchByTag(String token, String tag) {
         if (token == null || token.isEmpty()) throw new UnauthorizedAccessException("unauthorized access");
-        if (!authServiceClient.validateToken(token).isValid()) {
+        if (!tokenValidationService.isTokenValid(token)) {
             throw new UnauthorizedAccessException("unauthorized access");
 
         }
@@ -146,7 +148,7 @@ public class TravelJournalServiceImpl implements TravelJournalService {
     @Override
     public List<TravelJournalModel> getAllJournals(String token) {
         if (token == null || token.isEmpty()) throw new UnauthorizedAccessException("unauthorized access");
-        String role = authServiceClient.validateToken(token).getRole();
+        String role = tokenValidationService.getRole(token);
         if (role == null || (!role.equalsIgnoreCase("admin") && !role.equalsIgnoreCase("subadmin"))) {
             throw new UnauthorizedAccessException("unauthorized access");
         }

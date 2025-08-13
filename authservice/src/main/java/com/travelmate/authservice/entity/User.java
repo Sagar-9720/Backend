@@ -46,6 +46,8 @@ public class User implements UserDetails {
     @Column(name = "profile_img")
     private String profileImg;
 
+
+    @Builder.Default
     @Column(name = "email_verified")
     private Boolean emailVerified = false;
 

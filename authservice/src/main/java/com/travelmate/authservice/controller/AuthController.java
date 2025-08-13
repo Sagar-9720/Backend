@@ -56,7 +56,7 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/validate")
+    @PostMapping("/validate")
     public ResponseEntity<CustomResponseEntity<TokenValidationResponse>> validateToken(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             logger.info("Validating token from request: {}", servletRequest.getRequestURI());

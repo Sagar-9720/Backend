@@ -9,6 +9,7 @@ import com.travelmate.tripservice.mapper.ItineraryMapper;
 import com.travelmate.tripservice.repository.DestinationRepository;
 import com.travelmate.tripservice.repository.ItineraryRepository;
 import com.travelmate.tripservice.service.ItineraryService;
+import com.travelmate.tripservice.service.TokenValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +20,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.travelmate.tripservice.client.AuthServiceClient;
-import com.travelmate.tripservice.client.UserServiceClient;
-
 @Service
 public class ItineraryServiceImpl implements ItineraryService {
     @Autowired
@@ -31,16 +29,13 @@ public class ItineraryServiceImpl implements ItineraryService {
     private DestinationRepository destinationRepository;
 
     @Autowired
-    private AuthServiceClient authServiceClient;
-
-    @Autowired
-    private UserServiceClient userServiceClient;
+    private TokenValidationService tokenValidationService;
 
     private static final Logger logger = LoggerFactory.getLogger(ItineraryServiceImpl.class);
 
     @Override
     public ItineraryModel createItinerary(String token, ItineraryModel itineraryModel) throws UnauthorizedAccessException {
-        String role = authServiceClient.validateToken(token).getRole();
+        String role = tokenValidationService.getRole(token);
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User does not have permission to create itineraries");
         }
@@ -67,7 +62,7 @@ public class ItineraryServiceImpl implements ItineraryService {
 
     @Override
     public ItineraryModel updateItinerary(String token, ItineraryModel updatedItineraryModel) throws ItineraryNotFoundException, UnauthorizedAccessException {
-        String role = authServiceClient.validateToken(token).getRole();
+        String role = tokenValidationService.getRole(token);
         if (role != null && role.compareToIgnoreCase("user") == 0) {
             throw new UnauthorizedAccessException("User does not have permission to update itineraries");
         }
@@ -84,7 +79,7 @@ public class ItineraryServiceImpl implements ItineraryService {
 
     @Override
     public ItineraryModel deleteItinerary(String token, Long id) throws ItineraryNotFoundException, UnauthorizedAccessException {
-        String role = authServiceClient.validateToken(token).getRole();
+        String role = tokenValidationService.getRole(token);
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User does not have permission to delete itineraries");
         }

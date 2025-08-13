@@ -51,11 +51,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public void indexTag(TagModel tagModel) {
         try {
-            IndexRequest<TagModel> request = IndexRequest.of(i -> i
-                .index(tagIndex)
-                .id(tagModel.id() != null ? tagModel.id().toString() : tagModel.name())
-                .document(tagModel)
-            );
+            IndexRequest<TagModel> request = IndexRequest.of(i -> i.index(tagIndex).id(tagModel.id() != null ? tagModel.id().toString() : tagModel.name()).document(tagModel));
             elasticsearchClient.index(request);
         } catch (Exception e) {
             logger.error("Failed to index tag in Elasticsearch: {}", e.getMessage());
@@ -94,23 +90,9 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<String> suggestTags(String query) {
         try {
-            SearchRequest searchRequest = SearchRequest.of(s -> s
-                .index(tagIndex)
-                .query(q -> q
-                    .fuzzy(f -> f
-                        .field("name")
-                        .value(query)
-                        .fuzziness("AUTO")
-                    )
-                )
-                .size(10)
-            );
+            SearchRequest searchRequest = SearchRequest.of(s -> s.index(tagIndex).query(q -> q.fuzzy(f -> f.field("name").value(query).fuzziness("AUTO"))).size(10));
             SearchResponse<TagModel> response = elasticsearchClient.search(searchRequest, TagModel.class);
-            return response.hits().hits().stream()
-                .map(Hit::source)
-                .filter(java.util.Objects::nonNull)
-                .map(TagModel::name)
-                .toList();
+            return response.hits().hits().stream().map(Hit::source).filter(java.util.Objects::nonNull).map(TagModel::name).toList();
         } catch (Exception e) {
             logger.error("Failed to suggest tags from Elasticsearch: {}", e.getMessage());
             return List.of();

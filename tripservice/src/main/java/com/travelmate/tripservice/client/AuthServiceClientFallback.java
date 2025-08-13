@@ -5,8 +5,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthServiceClientFallback implements AuthServiceClient {
     @Override
-    public TokenValidationResponse validateToken(String token) {
-        return null; // or provide a default TokenValidationResponse if needed
+    public AuthServiceRawResponse validateToken(String token) {
+        AuthServiceRawResponse raw = new AuthServiceRawResponse();
+        raw.setData(TokenValidationResponse.builder().valid(false).message("Token validation failed: no data").build());
+        return raw;
+    }
+
+    public TokenValidationResponse validateTokenFallback(String token, Throwable t) {
+        // Custom fallback for Resilience4j circuit breaker
+        return TokenValidationResponse.builder().valid(false).userId(null).username(null).email(null).role(null).message("Token validation failed: fallback invoked.").build();
     }
 }
-

@@ -1,19 +1,13 @@
 // Routes for SavedTrip endpoints
-import { Router } from 'express';
+import {Router} from 'express';
 import {
-  createSavedTrip,
-  getSavedTrips,
-  getSavedTripById,
-  updateSavedTrip,
-  deleteSavedTrip
+    getSavedTrips,
+    toggleSavedTrip
 } from '../controllers/saved_trip.controller';
 
 const router = Router();
 
-router.post('/', createSavedTrip);
-router.get('/user/:user_id', getSavedTrips);
-router.get('/:id', getSavedTripById);
-router.put('/:id', updateSavedTrip);
-router.delete('/:id', deleteSavedTrip);
+router.put('/', toggleSavedTrip)
+router.get('/', getSavedTrips);
 
 export default router;
