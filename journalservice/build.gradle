@@ -1,0 +1,104 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.5'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.asciidoctor.jvm.convert' version '3.3.2'
+}
+
+apply from: "libraries.gradle"
+
+group = 'com.travelmate'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('snippetsDir', file("build/generated-snippets"))
+	set('springCloudVersion', "2023.0.0")
+}
+
+dependencies {
+	implementation libraries.springBoot
+	implementation libraries.springBootDataJpa
+	implementation libraries.springBootDataMongo
+	implementation libraries.springBootValidation
+	implementation libraries.springBootWeb
+	implementation libraries.springBootSecurity
+	implementation libraries.springCloudEureka
+	implementation libraries.springdocOpenapi
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.postgresql:postgresql:42.7.3'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
+	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.apache.kafka:kafka-clients'
+	implementation 'co.elastic.clients:elasticsearch-java:8.13.4'
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+	compileOnly libraries.lombok
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly libraries.postgresql
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	annotationProcessor libraries.lombok
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testRuntimeOnly libraries.junitPlatformLauncher
+	testImplementation libraries.jacoco
+	testImplementation libraries.hamcrest
+	testImplementation libraries.mockito
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+tasks.named('test') {
+	outputs.dir snippetsDir
+	useJUnitPlatform()
+}
+
+tasks.named('asciidoctor') {
+	inputs.dir snippetsDir
+	dependsOn test
+}
+
+// JaCoCo plugin for coverage
+apply plugin: 'jacoco'
+jacoco {
+	toolVersion = "0.8.11"
+}
+test {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		csv.required = false
+		html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+	}
+}

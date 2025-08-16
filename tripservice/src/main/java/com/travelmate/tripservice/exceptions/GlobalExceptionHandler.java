@@ -73,10 +73,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(404, ex.getMessage(), "/api/regions"));
     }
 
-    @ExceptionHandler(TravelJournalNotFoundException.class)
-    public ResponseEntity<CustomResponseEntity<?>> handleTravelJournalNotFound(TravelJournalNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(404, ex.getMessage(), "/api/traveljournals"));
-    }
 
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<CustomResponseEntity<?>> handleUnauthorizedAccess(UnauthorizedAccessException ex) {

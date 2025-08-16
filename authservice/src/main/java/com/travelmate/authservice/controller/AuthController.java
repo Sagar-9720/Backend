@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -254,6 +255,39 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Delete request failed: " + e.getMessage(), servletRequest.getRequestURI()));
+        }
+    }
+
+    @PutMapping("/update-role")
+    public ResponseEntity<CustomResponseEntity<UserInfoDTO>> updateRoleToUser(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
+        try {
+            logger.info("Assigning role initiated");
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+            }
+            UserInfoDTO userInfo = authServiceImpl.updateRoleToUser(token, request);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User role updated successfully", userInfo, servletRequest.getRequestURI()));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
+        } catch (UnauthorizedAccessException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Role update failed: " + e.getMessage(), servletRequest.getRequestURI()));
+        }
+    }
+
+    @GetMapping("/get-user-name")
+    public ResponseEntity<CustomResponseEntity<String>> getUsersName(@RequestHeader("Authorization") String authHeader, @RequestBody List<String> userIds, HttpServletRequest servletRequest) {
+        try {
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+            }
+            List<Map<String, String>> userName = authServiceImpl.getUserNameThroughId(token, userIds);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User name fetched successfully", userName.toString(), servletRequest.getRequestURI()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to fetch user name: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 }

@@ -1,0 +1,16 @@
+ext.libraries = [
+    springBoot: "org.springframework.boot:spring-boot-starter-actuator",
+    springBootDataJpa: "org.springframework.boot:spring-boot-starter-data-jpa",
+    springBootDataMongo: "org.springframework.boot:spring-boot-starter-data-mongodb",
+    springBootValidation: "org.springframework.boot:spring-boot-starter-validation",
+    springBootWeb: "org.springframework.boot:spring-boot-starter-web",
+    springBootSecurity: "org.springframework.boot:spring-boot-starter-security",
+    springCloudEureka: "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client",
+    springdocOpenapi: "org.springdoc:springdoc-openapi-starter-webmvc-ui:${project.findProperty('springdocOpenapiVersion') ?: '2.3.0'}",
+    lombok: "org.projectlombok:lombok:${project.findProperty('lombokVersion') ?: '1.18.30'}",
+    postgresql: "org.postgresql:postgresql:${project.findProperty('postgresqlVersion') ?: '42.7.3'}",
+    jacoco: "org.jacoco:org.jacoco.core:${project.findProperty('jacocoVersion') ?: '0.8.11'}",
+    hamcrest: "org.hamcrest:hamcrest:${project.findProperty('hamcrestVersion') ?: '2.2'}",
+    mockito: "org.mockito:mockito-core:${project.findProperty('mockitoVersion') ?: '5.12.0'}",
+    junitPlatformLauncher: "org.junit.platform:junit-platform-launcher:${project.findProperty('junitPlatformLauncherVersion') ?: '1.10.2'}"
+]

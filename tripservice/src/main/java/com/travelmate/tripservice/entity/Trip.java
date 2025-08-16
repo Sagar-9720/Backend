@@ -58,11 +58,6 @@ public class Trip {
     @NotNull
     private LocalDateTime updatedAt;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "trip_itinerary",
-            joinColumns = @JoinColumn(name = "trip_id"),
-            inverseJoinColumns = @JoinColumn(name = "itinerary_id")
-    )
-    private List<Itinerary> itineraries;
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL)
+    private List<TripItineraryDetail> tripItineraryDetails;
 }

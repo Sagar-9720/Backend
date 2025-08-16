@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: journalservice
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      uri: http://config-server:8888
+      fail-fast: true
+    bus:
+      enabled: true
+      id: ${spring.application.name}
+    stream:
+      kafka:
+        binder:
+          brokers: kafka:9092
+          auto-create-topics: true
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          group: ${spring.application.name}
+        springCloudBusOutput:
+          destination: springCloudBus
+  profiles:
+    active: docker
+
+server:
+  port: 8081

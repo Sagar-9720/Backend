@@ -3,7 +3,7 @@ export type CommentResponse = {
     id: string;
     user_id: string;
     trip_id?: string;
-    itenary_id?: string;
+    journal_id?: string;
     destination_id?: string;
     comment: string;
     createdAt: Date;
@@ -15,7 +15,7 @@ export type LikeResponse = {
     id: string;
     user_id: string;
     trip_id?: string;
-    itinerary_id?: string;
+    journal_id?: string;
     destination_id?: string;
     created_at: Date;
     updated_at: Date;
@@ -26,9 +26,20 @@ export type SavedTripResponse = {
     id: string;
     user_id: string;
     trip_id?: string;
-    itinerary_id?: string;
+    journal_id?: string;
     destination_id?: string;
     created_at: Date;
     updated_at: Date;
 };
+
+export type ViewResponse = {
+    id: string;
+    user_id: string;
+    trip_id?: string;
+    journal_id?: string;
+    destination_id?: string;
+    view_count?: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
 

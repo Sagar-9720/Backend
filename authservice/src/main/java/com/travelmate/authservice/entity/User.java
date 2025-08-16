@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Getter
 @Setter
 public class User implements UserDetails {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,8 +57,8 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
     private Role role;
 
     @Builder.Default
@@ -66,6 +66,10 @@ public class User implements UserDetails {
 
     public enum Gender {
         MALE, FEMALE, OTHER
+    }
+
+    public enum Role {
+        ADMIN, SUBADMIN, GUEST, USER
     }
 
     @PrePersist
@@ -79,11 +83,9 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
     }
 
-    // UserDetails implementat
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.getName()));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override

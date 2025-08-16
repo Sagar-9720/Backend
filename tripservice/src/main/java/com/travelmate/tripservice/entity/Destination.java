@@ -30,10 +30,7 @@ public class Destination {
 
     @Column(name = "image_url")
     @NotBlank(message = "Image URL must not be null")
-    @Pattern(
-            regexp = "^(https?://)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$",
-            message = "Invalid URL format"
-    )
+    @Pattern(regexp = "^(https?://)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$", message = "Invalid URL format")
     private String imageUrl;
 
 }

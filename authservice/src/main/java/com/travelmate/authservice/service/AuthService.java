@@ -1,12 +1,12 @@
 package com.travelmate.authservice.service;
 
 import com.travelmate.authservice.dto.*;
-import com.travelmate.authservice.entity.Role;
 import com.travelmate.authservice.exception.EmailNotFoundException;
 import com.travelmate.authservice.exception.UserNotFoundException;
 import com.travelmate.authservice.exception.UnauthorizedAccessException;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AuthService {
 
@@ -43,4 +43,8 @@ public interface AuthService {
     AuthResponse resetPasswordRequest(String email) throws EmailNotFoundException;
 
     AuthResponse resetPassword(String token, String newPassword) throws EmailNotFoundException;
+
+    UserInfoDTO updateRoleToUser(String token, UserUpdateInfoRequest request) throws UserNotFoundException, UnauthorizedAccessException;
+
+    List<Map<String, String>> getUserNameThroughId(String token, List<String> userIds);
 }

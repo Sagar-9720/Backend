@@ -14,7 +14,7 @@ public record UserMapper() {
                 .dob(user.getDob() != null ? user.getDob().toString() : null)
                 .gender(user.getGender() != null ? user.getGender().toString() : null)
                 .profileImg(user.getProfileImg() != null ? user.getProfileImg() : "")
-                .role(user.getRole() != null ? user.getRole().getName() : null)
+                .role(user.getRole() != null ? user.getRole().toString() : null)
                 .build();
 
     }

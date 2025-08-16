@@ -26,8 +26,10 @@ const startServer = async () => {
         const savedTripRoutes = (await import('./routes/saved_trip.routes')).default;
         const commentRoutes = (await import('./routes/comment.routes')).default;
         const likeRoutes = (await import('./routes/like.routes')).default;
+        const viewRoutes = (await import('./routes/view.routes')).default;
         const SavedTrip = (await import('./models/saved_trip.model')).default;
         const Like = (await import('./models/like.model')).default;
+        const View = (await import('./models/view.model')).default;
 
         // Step 4: Initialize Express app
         const app = express();
@@ -40,41 +42,41 @@ const startServer = async () => {
             res.end(await promClient.register.metrics());
         });
 
-        // Parse allowed origins into array
-        const allowedOrigins = process.env.FRONTEND_URLS
-            ? process.env.FRONTEND_URLS.split(',').map(o => o.trim())
-            : [];
-
-        // Configure CORS
-        app.use(cors({
-            origin: (origin, callback) => {
-                // Allow requests with no origin (like curl or Postman)
-                if (!origin) return callback(null, true);
-
-                if (allowedOrigins.includes(origin)) {
-                    return callback(null, true);
-                } else {
-                    return callback(new Error('CORS policy: Origin not allowed'), false);
-                }
-            },
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
-            credentials: true
-        }));
-
-        // Preflight handling
-        app.options('*', cors({
-            origin: (origin, callback) => {
-                if (!origin || allowedOrigins.includes(origin)) {
-                    return callback(null, true);
-                }
-                return callback(new Error('CORS policy: Origin not allowed'), false);
-            },
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
-            credentials: true
-        }));
-
+        // // Parse allowed origins into array
+        // const allowedOrigins = process.env.FRONTEND_URLS
+        //     ? process.env.FRONTEND_URLS.split(',').map(o => o.trim())
+        //     : [];
+        //
+        // // Configure CORS
+        // app.use(cors({
+        //     origin: (origin, callback) => {
+        //         // Allow requests with no origin (like curl or Postman)
+        //         if (!origin) return callback(null, true);
+        //
+        //         if (allowedOrigins.includes(origin)) {
+        //             return callback(null, true);
+        //         } else {
+        //             return callback(new Error('CORS policy: Origin not allowed'), false);
+        //         }
+        //     },
+        //     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        //     allowedHeaders: ['Content-Type', 'Authorization'],
+        //     credentials: true
+        // }));
+        //
+        // // Preflight handling
+        // app.options('*', cors({
+        //     origin: (origin, callback) => {
+        //         if (!origin || allowedOrigins.includes(origin)) {
+        //             return callback(null, true);
+        //         }
+        //         return callback(new Error('CORS policy: Origin not allowed'), false);
+        //     },
+        //     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        //     allowedHeaders: ['Content-Type', 'Authorization'],
+        //     credentials: true
+        // }));
+        app.use(cors());
         app.use(express.json());
 
         // Health check endpoint
@@ -90,6 +92,7 @@ const startServer = async () => {
         app.use('/api/users/saved-trips', savedTripRoutes);
         app.use('/api/users/comments', commentRoutes);
         app.use('/api/users/like', likeRoutes);
+        app.use('/api/users/view', viewRoutes);
 
         // Token validation cache (2 min TTL)
         const tokenCache = new NodeCache({stdTTL: 120, checkperiod: 150});
@@ -157,6 +160,7 @@ const startServer = async () => {
         // Step 6: Sync models
         await SavedTrip.sync();
         await Like.sync();
+        await View.sync();
 
         // Step 7: Start server
         await startEurekaClient();

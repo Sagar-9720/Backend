@@ -2,6 +2,7 @@ package com.travelmate.tripservice.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.travelmate.tripservice.client.TokenValidationResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
@@ -14,9 +15,8 @@ public class TokenValidationCache {
         return cache.getIfPresent(token);
     }
 
-    public void put(String token, String Role) {
-        cache.put(token, Role);
-
+    public void put(String token, TokenValidationResponse response) {
+        cache.put(token, response.toString());
     }
 
 }

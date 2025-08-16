@@ -62,6 +62,27 @@ services:
       timeout: 5s
       retries: 3
 
+  postgres-journal:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: journal_service_db
+      POSTGRES_USER: traveluser
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_journal_data:/var/lib/postgresql/data
+      - ./scripts/init-journal-database.sql:/docker-entrypoint-initdb.d/init-journal-database.sql
+    networks:
+      - backend_travel-mate-network
+    depends_on:
+      - postgres-trip
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U traveluser -d trip_service_db" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   mongo:
     image: mongo:6
     container_name: travelmate-mongo
@@ -175,6 +196,32 @@ services:
 
   trip-service:
     build: ./tripservice
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-trip:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=WARN
+      # Only add secrets or profile-specific variables if needed, e.g. for prod:
+      # DB_URL: ...
+    networks:
+      - backend_travel-mate-network
+    deploy:
+      replicas: 1
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  journal-service:
+    build: ./journalservice
     depends_on:
       config-server:
         condition: service_healthy
@@ -481,6 +528,21 @@ services:
     networks:
       - backend_travel-mate-network
 
+  init-journal-postgres-demo:
+    image: postgres:15-alpine
+    volumes:
+      - ./scripts/init-user-postgres-demo.sql:/tmp/init-journal-postgres-demo.sql
+    entrypoint: [ "sh", "-c", "psql -h postgres-user -U traveluser -d journal_service_db -f /tmp/init-journal-postgres-demo.sql" ]
+    environment:
+      PGPASSWORD: postgres
+    depends_on:
+      - postgres-user
+      - auth-service
+      - init-authservice-users
+      - init-tripservice-data
+    networks:
+      - backend_travel-mate-network
+
   init-mongodb-user-service:
     image: mongo:6
     volumes:
@@ -498,12 +560,13 @@ services:
   init-mongodb-tripservice:
     image: mongo:6
     volumes:
-      - ./scripts/init-mongodb-tripservice.js:/tmp/init-mongodb-tripservice.js
-    entrypoint: [ "sh", "-c", "mongosh --host mongo -u admin -p password --authenticationDatabase admin /tmp/init-mongodb-tripservice.js" ]
+      - ./scripts/init-mongodb-journal.js:/tmp/init-mongodb-journal.js
+    entrypoint: [ "sh", "-c", "mongosh --host mongo -u admin -p password --authenticationDatabase admin /tmp/init-mongodb-journal.js" ]
     depends_on:
       - mongo
       - postgres-trip
       - trip-service
+      - journal-service
     networks:
       - backend_travel-mate-network
 

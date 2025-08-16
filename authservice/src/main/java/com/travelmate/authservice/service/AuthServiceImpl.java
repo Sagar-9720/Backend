@@ -1,12 +1,10 @@
 package com.travelmate.authservice.service;
 
 import com.travelmate.authservice.dto.*;
-import com.travelmate.authservice.entity.Role;
 import com.travelmate.authservice.entity.User;
 import com.travelmate.authservice.entity.PasswordResetToken;
 import com.travelmate.authservice.entity.EmailVerificationToken;
 import com.travelmate.authservice.mapper.UserMapper;
-import com.travelmate.authservice.repository.RoleRepository;
 import com.travelmate.authservice.repository.UserRepository;
 import com.travelmate.authservice.repository.PasswordResetTokenRepository;
 import com.travelmate.authservice.repository.EmailVerificationTokenRepository;
@@ -22,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
@@ -41,8 +40,6 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
-    private final RoleRepository roleRepository;
 
     private final PasswordEncoder passwordEncoder;
     @Autowired
@@ -53,6 +50,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailServiceClient emailServiceClient;
 
     @Value("${app.frontend.url}")
+
     private String frontendUrl;
 
     public AuthResponse register(RegisterRequest request) {
@@ -68,14 +66,13 @@ public class AuthServiceImpl implements AuthService {
             user.setGender(User.Gender.valueOf(request.gender().toUpperCase()));
         }
 
-        Role userRole = roleRepository.findByName("USER").orElseThrow(() -> new RuntimeException("Default role not found"));
-        user.setRole(userRole);
+        user.setRole(User.Role.valueOf("USER"));
 
         User savedUser = userRepository.save(user);
         logger.info("User saved with ID: {}", savedUser.getUserId());
 
         // Generate tokens immediately after registration
-        String token = jwtUtil.generateToken(savedUser.getUserId().toString(), savedUser.getName(), savedUser.getEmail(), savedUser.getRole().getName());
+        String token = jwtUtil.generateToken(savedUser.getUserId().toString(), savedUser.getName(), savedUser.getEmail(), savedUser.getRole().toString());
         String refreshToken = jwtUtil.generateRefreshToken(savedUser.getUserId().toString());
 
         // Generate and send verification email
@@ -123,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
             logger.info("Verification token deleted for userId: {}", user.getUserId());
 
             // Generate auth tokens
-            String authToken = jwtUtil.generateToken(user.getUserId().toString(), user.getName(), user.getEmail(), user.getRole().getName());
+            String authToken = jwtUtil.generateToken(user.getUserId().toString(), user.getName(), user.getEmail(), user.getRole().toString());
             String refreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
             logger.info("Auth and refresh tokens generated for userId: {}", user.getUserId());
 
@@ -185,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedAccessException("Invalid credentials");
         }
         // Generate tokens
-        String role = user.getRole().getName();
+        String role = user.getRole().toString();
 
         String token = jwtUtil.generateToken(user.getUserId().toString(), user.getName(), user.getEmail(), role);
         String refreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
@@ -230,7 +227,7 @@ public class AuthServiceImpl implements AuthService {
             User user = userRepository.findById(Long.parseLong(userId)).orElseThrow(() -> new UserNotFoundException("User not found"));
 
             // Generate new tokens
-            String role = user.getRole().getName();
+            String role = user.getRole().toString();
 
             String newToken = jwtUtil.generateToken(user.getUserId().toString(), user.getName(), user.getEmail(), role);
             String newRefreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
@@ -311,7 +308,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findById(Long.parseLong(userId)).orElseThrow(() -> new RuntimeException("User not found"));
 
         // Store user info before deletion for return
-        UserInfoDTO userInfo = new UserInfoDTO(user.getUserId().toString(), user.getName(), user.getEmail(), user.getPhone(), user.getDob() != null ? user.getDob().toString() : null, user.getGender() != null ? user.getGender().toString() : null, user.getProfileImg() != null ? user.getProfileImg() : "", user.getRole().getName());
+        UserInfoDTO userInfo = new UserInfoDTO(user.getUserId().toString(), user.getName(), user.getEmail(), user.getPhone(), user.getDob() != null ? user.getDob().toString() : null, user.getGender() != null ? user.getGender().toString() : null, user.getProfileImg() != null ? user.getProfileImg() : "", user.getRole().toString());
 
         try {
             userRepository.delete(user);
@@ -381,7 +378,7 @@ public class AuthServiceImpl implements AuthService {
             passwordResetTokenRepository.delete(resetToken);
 
             // Generate new auth tokens
-            String newtoken = jwtUtil.generateToken(user.getUserId().toString(), user.getName(), user.getEmail(), user.getRole().getName());
+            String newtoken = jwtUtil.generateToken(user.getUserId().toString(), user.getName(), user.getEmail(), user.getRole().toString());
             String newrefreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
 
             UserInfoDTO userInfo = UserMapper.toUserInfoDTO(user);
@@ -390,6 +387,24 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             return new AuthResponse(false, "Password reset failed: " + e.getMessage(), null, null, null);
         }
+    }
+
+    @Override
+    public UserInfoDTO updateRoleToUser(String token, UserUpdateInfoRequest request) {
+        logger.info("Updating role to ADMIN for userId: {}", request.userId());
+        if (token == null || !jwtUtil.validateToken(token)) {
+            logger.warn("Invalid or missing token for updateRoleToUser");
+            throw new UnauthorizedAccessException("Invalid or missing token");
+        }
+        String userRole = jwtUtil.getRoleFromToken(token);
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            logger.warn("Unauthorized access by user role: {}", userRole);
+            throw new UnauthorizedAccessException("Only ADMIN or SUBADMIN can update user roles");
+        }
+        User user = userRepository.findById(Long.parseLong(request.userId())).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRole(User.Role.valueOf("ADMIN"));
+        User updatedUser = userRepository.save(user);
+        return UserMapper.toUserInfoDTO(updatedUser);
     }
 
     @Override
@@ -407,7 +422,6 @@ public class AuthServiceImpl implements AuthService {
         if (!role.equals("ADMIN")) {
             throw new RuntimeException("Unauthorized access");
         }
-
         return userRepository.findAll().stream().map(UserMapper::toUserInfoDTO).collect(toList());
     }
 
@@ -437,12 +451,21 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistException("Email already exists: " + request.email());
         }
-        Role subAdminRole = roleRepository.findByName("SUBADMIN").orElseThrow(() -> new RuntimeException("SUBADMIN role not found"));
-        User user = new User().builder().name(request.name()).email(request.email()).phone(request.phone()).dob(request.dob()).password(passwordEncoder.encode(request.password())).emailVerified(true).role(subAdminRole).build();
+        String subAdminRole = "SUBADMIN";
+        User user = new User().builder().name(request.name()).email(request.email()).phone(request.phone()).dob(request.dob()).password(passwordEncoder.encode(request.password())).emailVerified(true).role(User.Role.valueOf(subAdminRole)).build();
         User savedUser = userRepository.save(user);
         logger.info("Subadmin saved with ID: {}", savedUser.getUserId());
 
         UserInfoDTO userInfo = UserMapper.toUserInfoDTO(savedUser);
         return new AuthResponse(true, "Subadmin registered successfully", null, null, userInfo);
+    }
+
+    public List<Map<String, String>> getUserNameThroughId(String token, List<String> userIds) {
+        logger.info("Fetching user names for userIds: {}", userIds);
+        if (token == null || !jwtUtil.validateToken(token)) {
+            logger.warn("Invalid token for getUserNameThroughId");
+            throw new UnauthorizedAccessException("Invalid token");
+        }
+        return userRepository.findAllById(userIds.stream().map(Long::parseLong).collect(toList())).stream().map(user -> Map.of("userId", user.getUserId().toString(), "name", user.getName())).collect(toList());
     }
 }

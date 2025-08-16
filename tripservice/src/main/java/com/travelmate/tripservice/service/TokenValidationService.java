@@ -1,5 +1,7 @@
 package com.travelmate.tripservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.travelmate.tripservice.client.AuthServiceClient;
 import com.travelmate.tripservice.client.TokenValidationResponse;
 import org.slf4j.Logger;
@@ -28,7 +30,7 @@ public class TokenValidationService {
         try {
             TokenValidationResponse response = authServiceClient.validateTokenExtracted(token);
             logger.info("TokenValidationResponse extracted: {}", response);
-            tokenValidationCache.put(token, response.getRole());
+            tokenValidationCache.put(token, response);
             return response.isValid();
         } catch (Exception e) {
             logger.warn("Exception during token validation: {}", e.getMessage());
@@ -37,18 +39,19 @@ public class TokenValidationService {
         }
     }
 
-    public String getRole(String token) {
-        String cachedRole = tokenValidationCache.get(token);
+    public String getRole(String token) throws JsonProcessingException {
         logger.info("Checking role for token: {}", token);
-        if (cachedRole != null) {
+        String cachedResponse = tokenValidationCache.get(token);
+        if (cachedResponse != null) {
             logger.info("Role has been cached for token: {}", token);
-            return cachedRole;
+            TokenValidationResponse response = new ObjectMapper().readValue(cachedResponse, TokenValidationResponse.class);
+            return response.getRole();
         }
         try {
             TokenValidationResponse response = authServiceClient.validateTokenExtracted(token);
             logger.info("TokenValidationResponse extracted: {}", response);
             if (response.isValid()) {
-                tokenValidationCache.put(token, response.getRole());
+                tokenValidationCache.put(token, response);
                 return response.getRole();
             } else {
                 tokenValidationCache.put(token, null);
@@ -56,6 +59,56 @@ public class TokenValidationService {
             }
         } catch (Exception e) {
             logger.warn("Exception during role retrieval: {}", e.getMessage());
+            tokenValidationCache.put(token, null);
+            return null;
+        }
+    }
+
+    public String getUserId(String token) throws JsonProcessingException {
+        logger.info("Checking user ID for token: {}", token);
+        String cachedResponse = tokenValidationCache.get(token);
+        if (cachedResponse != null) {
+            logger.info("User ID has been cached for token: {}", token);
+            TokenValidationResponse response = new ObjectMapper().readValue(cachedResponse, TokenValidationResponse.class);
+            return response.getUserId();
+        }
+        try {
+            TokenValidationResponse response = authServiceClient.validateTokenExtracted(token);
+            logger.info("TokenValidationResponse extracted: {}", response);
+            if (response.isValid()) {
+                tokenValidationCache.put(token, response);
+                return response.getUserId();
+            } else {
+                tokenValidationCache.put(token, null);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.warn("Exception during user ID retrieval: {}", e.getMessage());
+            tokenValidationCache.put(token, null);
+            return null;
+        }
+    }
+
+    public String getUserName(String token) throws JsonProcessingException {
+        logger.info("Checking user ID for token: {}", token);
+        String cachedResponse = tokenValidationCache.get(token);
+        if (cachedResponse != null) {
+            logger.info("User ID has been cached for token: {}", token);
+            TokenValidationResponse response = new ObjectMapper().readValue(cachedResponse, TokenValidationResponse.class);
+            return response.getUsername();
+        }
+        try {
+            TokenValidationResponse response = authServiceClient.validateTokenExtracted(token);
+            logger.info("TokenValidationResponse extracted: {}", response);
+            if (response.isValid()) {
+                tokenValidationCache.put(token, response);
+                return response.getUsername();
+            } else {
+                tokenValidationCache.put(token, null);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.warn("Exception during user ID retrieval: {}", e.getMessage());
             tokenValidationCache.put(token, null);
             return null;
         }

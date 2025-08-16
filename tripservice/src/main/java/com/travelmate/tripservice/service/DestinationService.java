@@ -1,5 +1,6 @@
 package com.travelmate.tripservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.model.DestinationModel;
 
@@ -8,15 +9,17 @@ import java.util.Optional;
 
 public interface DestinationService {
 
-    DestinationModel createDestination(String token, DestinationModel destinationModel) throws DestinationExistException, UnauthorizedAccessException;
+    //Admin Operations
+    DestinationModel createDestination(String token, DestinationModel destinationModel) throws DestinationExistException, UnauthorizedAccessException, JsonProcessingException;
 
+    DestinationModel deleteDestination(String token, DestinationModel destinationModel) throws DestinationNotFoundException, UnauthorizedAccessException, JsonProcessingException;
+
+    DestinationModel updateDestination(String token, DestinationModel destinationModel) throws DestinationNotFoundException, UnauthorizedAccessException, JsonProcessingException;
+
+    // Both Admin and User Operations
     DestinationModel getDestinationById(String token, Long id) throws DestinationNotFoundException, UnauthorizedAccessException;
 
     List<DestinationModel> getAllDestinations(String token) throws UnauthorizedAccessException;
-
-    DestinationModel deleteDestination(String token, DestinationModel destinationModel) throws DestinationNotFoundException, UnauthorizedAccessException;
-
-    DestinationModel updateDestination(String token, DestinationModel destinationModel) throws DestinationNotFoundException, UnauthorizedAccessException;
 
     List<DestinationModel> getDestinationsByRegionId(String token, Long regionId) throws RegionNotFoundException, UnauthorizedAccessException;
 
@@ -25,5 +28,6 @@ public interface DestinationService {
     List<DestinationModel> searchDestinationByName(String token, String name) throws DestinationNotFoundException, UnauthorizedAccessException;
 
     List<String> suggestDestinations(String query);
+
     void indexDestination(DestinationModel destinationModel);
 }

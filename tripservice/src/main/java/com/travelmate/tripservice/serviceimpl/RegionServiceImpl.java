@@ -1,7 +1,10 @@
 package com.travelmate.tripservice.serviceimpl;
 
+import com.travelmate.tripservice.entity.Country;
 import com.travelmate.tripservice.entity.Region;
 import com.travelmate.tripservice.exceptions.RegionNotFoundException;
+import com.travelmate.tripservice.mapper.CountryMapper;
+import com.travelmate.tripservice.model.CountryModel;
 import com.travelmate.tripservice.model.RegionModel;
 import com.travelmate.tripservice.mapper.RegionMapper;
 import com.travelmate.tripservice.repository.CountryRepository;
@@ -17,11 +20,13 @@ import java.util.List;
 
 @Service
 public class RegionServiceImpl implements RegionService {
+
+
     @Autowired
     private RegionRepository regionRepository;
 
     @Autowired
-    private CountryRepository countryRepository;
+    private CountryServiceImpl countryService;
 
     private static final Logger logger = LoggerFactory.getLogger(RegionServiceImpl.class);
 
@@ -46,24 +51,25 @@ public class RegionServiceImpl implements RegionService {
             throw new RuntimeException("Region with name '" + regionModel.name() + "' already exists");
         }
         Region region = new Region();
-        if (regionModel.country().id() != null) {
-            region.setCountry(countryRepository.findById(regionModel.country().id()).orElse(null));
+        if (regionModel.country().id() == null) {
+            CountryModel countryModel = countryService.addCountry(regionModel.country());
+            region.setCountry(CountryMapper.toEntity(countryModel));
         }
-        Region saved = regionRepository.save(RegionMapper.toEntity(regionModel));
+        region.setName(regionModel.name());
+        Region saved = regionRepository.save(region);
         return RegionMapper.toModel(saved);
     }
 
     @Override
     public RegionModel updateRegion(Long id, RegionModel regionModel) throws RegionNotFoundException {
         Region existing = regionRepository.findById(id).orElseThrow(() -> new RegionNotFoundException(id));
-        if (existing == null) return null;
         existing.setName(regionModel.name());
-
-        if (regionModel.country().id() != null) {
-            var country = existing.getCountry();
-            if (country == null || !country.getId().equals(regionModel.country().id())) {
-                existing.setCountry(countryRepository.findById(regionModel.country().id()).orElse(null));
-            }
+        if (regionModel.country().id() == null) {
+            CountryModel countryModel = countryService.addCountry(regionModel.country());
+            existing.setCountry(CountryMapper.toEntity(countryModel));
+        } else {
+            Country existingCountry = CountryMapper.toEntity(regionModel.country());
+            existing.setCountry(existingCountry);
         }
         Region saved = regionRepository.save(existing);
         return RegionMapper.toModel(saved);

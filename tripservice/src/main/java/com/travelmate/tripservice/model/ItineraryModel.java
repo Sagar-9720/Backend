@@ -1,5 +1,6 @@
 package com.travelmate.tripservice.model;
 
-public record ItineraryModel(Long id, String itineraryName, Long destinationId, Integer dayNumber, String description,
-                             String arrivalTime, String departureTime) {
+import com.travelmate.tripservice.entity.Destination;
+
+public record ItineraryModel(Long id, String itineraryName, Destination destination, String description) {
 }
