@@ -35,13 +35,13 @@ export class CommentService implements ICommentService {
     }
 
     async getComments(req: Request): Promise<CommentResponse[]> {
-        const {trip, itenary, destination} = req.query;
+        const {trip, journal, destination} = req.query;
         let filter: any = {};
         if (trip) filter.trip_id = parseInt(trip as string);
-        if (itenary) filter.journal_id = parseInt(itenary as string);
+        if (journal) filter.journal_id = parseInt(journal as string);
         if (destination) filter.destination_id = parseInt(destination as string);
         if (Object.keys(filter).length === 0) {
-            throw new Error('At least one filter parameter (trip_id, itenary_id, or destination_id) is required');
+            throw new Error('At least one filter parameter (trip_id, journal_id, or destination_id) is required');
         }
         const comments = await Comment.find(filter)
             .sort({createdAt: -1})
@@ -51,7 +51,7 @@ export class CommentService implements ICommentService {
             id: (comment._id as any).toString(),
             user_id: comment.user_id.toString(),
             trip_id: comment.trip_id?.toString() ?? undefined,
-            itenary_id: comment.journal_id?.toString() ?? undefined,
+            journal_id: comment.journal_id?.toString() ?? undefined,
             destination_id: comment.destination_id?.toString() ?? undefined,
             comment: comment.comment,
             createdAt: comment.createdAt ?? new Date(),
