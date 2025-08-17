@@ -6,4 +6,5 @@ export interface IViewService {
 
     increaseViewCount(req: Request): Promise<{ increasedView: boolean; view?: ViewResponse }>;
 
+    getViewCount(req: Request): Promise<ViewResponse | null>;
 }

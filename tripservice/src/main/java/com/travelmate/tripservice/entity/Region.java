@@ -17,10 +17,10 @@ public class Region {
     private Long id;
 
     @NotBlank(message = "Region name should not be blank")
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String name;
 
-    @ManyToOne(optional = false,cascade = {CascadeType.PERSIST,CascadeType.MERGE})
+    @ManyToOne(optional = false, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinColumn(name = "country_id", nullable = false)
     private Country country;
 }

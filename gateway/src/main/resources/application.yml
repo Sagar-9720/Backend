@@ -44,6 +44,11 @@ spring:
           uri: lb://trip-service
           predicates:
             - Path=/api/trip/**
+
+        - id: journal-service
+          uri: lb://journal-service
+          predicates:
+            - Path=/api/journal/**
     kafka:
         bootstrap-servers: kafka:9092
 

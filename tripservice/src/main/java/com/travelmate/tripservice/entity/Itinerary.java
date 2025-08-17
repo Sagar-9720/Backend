@@ -19,18 +19,19 @@ public class Itinerary {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, name = "itinerary_name")
     @NotBlank(message = "Itinerary Name cannot be empty.")
+    @Column(nullable = false, name = "itinerary_name")
     private String itineraryName;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "destination_id")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "destination_id", nullable = false)
     private Destination destination;
 
     @NotBlank(message = "Description cannot be empty.")
-    private String description; // Generic description of this itinerary
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
+    @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL)
     private List<TripItineraryDetail> tripDetails; // All trip-specific schedules linked to this itinerary
 }

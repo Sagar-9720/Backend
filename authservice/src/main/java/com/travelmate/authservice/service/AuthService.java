@@ -47,4 +47,8 @@ public interface AuthService {
     UserInfoDTO updateRoleToUser(String token, UserUpdateInfoRequest request) throws UserNotFoundException, UnauthorizedAccessException;
 
     List<Map<String, String>> getUserNameThroughId(String token, List<String> userIds);
+
+    List<UserInfoDTO> getAllSubAdmins(String token) throws UnauthorizedAccessException;
+
+    List<UserInfoDTO> getALlDeleteRequestedUsers(String token) throws UnauthorizedAccessException;
 }

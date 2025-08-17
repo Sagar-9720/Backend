@@ -116,7 +116,9 @@ public class TripServiceImpl implements TripService {
             throw new UnauthorizedAccessException("Invalid token or unauthorized access");
         }
         logger.info("Fetching all trips");
-        return tripRepository.findAll().stream().map(TripMapper::toLiteModel).toList();
+        List<TripLiteModel> list = tripRepository.findAll().stream().map(TripMapper::toLiteModel).toList();
+        logger.info("Found {} trips", list);
+        return list;
     }
 
     @Override

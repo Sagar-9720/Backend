@@ -121,297 +121,171 @@ VALUES ('Manali', (SELECT id FROM region WHERE name = 'Himachal Pradesh'),
         'https://images.unsplash.com/photo-1561948952-8c6f3a3d3c8e'),
        ('Edinburgh Castle', (SELECT id FROM region WHERE name = 'Scotland'), 'Historic fortress in Edinburgh.',
         'https://images.unsplash.com/photo-1561948952-8c6f3a3d3c8e');
-ÏÏ
+
 -- 4. Itineraries (for Manali, Leh, Yosemite, London)
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Manali Adventure', (SELECT id FROM destination WHERE name = 'Manali'), 1, 'Arrive and explore Mall Road.',
-        '2025-09-01 10:00:00', '2025-09-01 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Manali Adventure', (SELECT id FROM destination WHERE name = 'Manali'), 2, 'Visit Solang Valley.',
-        '2025-09-02 09:00:00', '2025-09-02 17:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Leh Explorer', (SELECT id FROM destination WHERE name = 'Leh'), 1, 'Arrive and acclimatize.',
-        '2025-09-05 10:00:00', '2025-09-05 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Leh Explorer', (SELECT id FROM destination WHERE name = 'Leh'), 2, 'Visit Pangong Lake.',
-        '2025-09-06 08:00:00', '2025-09-06 20:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Yosemite Classic', (SELECT id FROM destination WHERE name = 'Yosemite'), 1, 'Explore Yosemite Valley.',
-        '2025-10-01 09:00:00', '2025-10-01 17:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('London Highlights', (SELECT id FROM destination WHERE name = 'London'), 1, 'See Buckingham Palace.',
-        '2025-11-01 10:00:00', '2025-11-01 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Rishikesh Adventure', (SELECT id FROM destination WHERE name = 'Rishikesh'), 1,
-        'Arrive and try river rafting.', '2025-09-10 09:00:00', '2025-09-10 17:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Rishikesh Adventure', (SELECT id FROM destination WHERE name = 'Rishikesh'), 2, 'Yoga and Ganga Aarti.',
-        '2025-09-11 06:00:00', '2025-09-11 20:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Edinburgh Explorer', (SELECT id FROM destination WHERE name = 'Edinburgh'), 1, 'Visit Edinburgh Castle.',
-        '2025-10-10 10:00:00', '2025-10-10 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Dubai Highlights', (SELECT id FROM destination WHERE name = 'Burj Khalifa'), 1,
-        'Visit Burj Khalifa and Dubai Mall.', '2025-10-01 10:00:00', '2025-10-01 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Abu Dhabi Culture', (SELECT id FROM destination WHERE name = 'Sheikh Zayed Mosque'), 1,
-        'Tour the Sheikh Zayed Mosque.', '2025-10-02 09:00:00', '2025-10-02 17:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Sydney Opera Day', (SELECT id FROM destination WHERE name = 'Sydney Opera House'), 1,
-        'Opera House and Harbour Bridge walk.', '2025-11-01 09:00:00', '2025-11-01 17:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Moscow Heritage', (SELECT id FROM destination WHERE name = 'Red Square'), 1, 'Red Square and Kremlin tour.',
-        '2025-12-01 10:00:00', '2025-12-01 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Saint Petersburg Art', (SELECT id FROM destination WHERE name = 'Hermitage Museum'), 1,
-        'Explore Hermitage Museum.', '2025-12-02 10:00:00', '2025-12-02 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Paris Romance', (SELECT id FROM destination WHERE name = 'Eiffel Tower'), 1, 'Eiffel Tower and Seine cruise.',
-        '2025-09-20 10:00:00', '2025-09-20 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Fuji Adventure', (SELECT id FROM destination WHERE name = 'Mount Fuji'), 1, 'Climb Mount Fuji.',
-        '2025-08-15 06:00:00', '2025-08-15 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Kyoto Temples', (SELECT id FROM destination WHERE name = 'Fushimi Inari Shrine'), 1,
-        'Visit Fushimi Inari and Gion.', '2025-08-16 09:00:00', '2025-08-16 17:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Milan Art', (SELECT id FROM destination WHERE name = 'Milan Cathedral'), 1,
-        'Tour Milan Cathedral and city center.', '2025-09-10 10:00:00', '2025-09-10 18:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('NYC Icons', (SELECT id FROM destination WHERE name = 'Statue of Liberty'), 1,
-        'Statue of Liberty and Ellis Island.', '2025-10-10 09:00:00', '2025-10-10 17:00:00');
-INSERT INTO itinerary (itinerary_name, destination_id, day_number, description, arrival_time, departure_time)
-VALUES ('Edinburgh Castle Day', (SELECT id FROM destination WHERE name = 'Edinburgh Castle'), 1,
-        'Tour Edinburgh Castle and Royal Mile.', '2025-09-15 10:00:00', '2025-09-15 18:00:00');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Manali Adventure', (SELECT id FROM destination WHERE name = 'Manali'), 'Arrive and explore Mall Road.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Manali Adventure', (SELECT id FROM destination WHERE name = 'Manali'), 'Visit Solang Valley.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Leh Explorer', (SELECT id FROM destination WHERE name = 'Leh'), 'Arrive and acclimatize.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Leh Explorer', (SELECT id FROM destination WHERE name = 'Leh'), 'Visit Pangong Lake.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Yosemite Classic', (SELECT id FROM destination WHERE name = 'Yosemite'), 'Explore Yosemite Valley.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('London Highlights', (SELECT id FROM destination WHERE name = 'London'), 'See Buckingham Palace.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Rishikesh Adventure', (SELECT id FROM destination WHERE name = 'Rishikesh'), 'Arrive and try river rafting.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Rishikesh Adventure', (SELECT id FROM destination WHERE name = 'Rishikesh'), 'Yoga and Ganga Aarti.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Edinburgh Explorer', (SELECT id FROM destination WHERE name = 'Edinburgh'), 'Visit Edinburgh Castle.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Dubai Highlights', (SELECT id FROM destination WHERE name = 'Burj Khalifa'), 'Visit Burj Khalifa and Dubai Mall.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Abu Dhabi Culture', (SELECT id FROM destination WHERE name = 'Sheikh Zayed Mosque'), 'Tour the Sheikh Zayed Mosque.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Sydney Opera Day', (SELECT id FROM destination WHERE name = 'Sydney Opera House'), 'Opera House and Harbour Bridge walk.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Moscow Heritage', (SELECT id FROM destination WHERE name = 'Red Square'), 'Red Square and Kremlin tour.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Saint Petersburg Art', (SELECT id FROM destination WHERE name = 'Hermitage Museum'), 'Explore Hermitage Museum.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Paris Romance', (SELECT id FROM destination WHERE name = 'Eiffel Tower'), 'Eiffel Tower and Seine cruise.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Fuji Adventure', (SELECT id FROM destination WHERE name = 'Mount Fuji'), 'Climb Mount Fuji.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Kyoto Temples', (SELECT id FROM destination WHERE name = 'Fushimi Inari Shrine'), 'Visit Fushimi Inari and Gion.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Milan Art', (SELECT id FROM destination WHERE name = 'Milan Cathedral'), 'Tour Milan Cathedral and city center.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('NYC Icons', (SELECT id FROM destination WHERE name = 'Statue of Liberty'), 'Statue of Liberty and Ellis Island.');
+INSERT INTO itinerary (itinerary_name, destination_id, description)
+VALUES ('Edinburgh Castle Day', (SELECT id FROM destination WHERE name = 'Edinburgh Castle'), 'Tour Edinburgh Castle and Royal Mile.');
 
 -- 5. Trips (reuse and mix itineraries)
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Manali Summer Escape', 'A fun summer trip to Manali.', '2025-09-01 09:00:00', '2025-09-03 18:00:00', 12000,
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Manali Summer Escape', 'A fun summer trip to Manali.', '2025-09-01 09:00:00', '2025-09-03 18:00:00', 12000.00,
         (SELECT id FROM destination WHERE name = 'Manali'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Manali Winter Wonderland', 'Experience snow in Manali.', '2025-12-15 09:00:00', '2025-12-17 18:00:00', 15000,
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Manali Winter Wonderland', 'Experience snow in Manali.', '2025-12-15 09:00:00', '2025-12-17 18:00:00', 15000.00,
         (SELECT id FROM destination WHERE name = 'Manali'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Leh Adventure', 'Adventure trip to Leh.', '2025-09-05 09:00:00', '2025-09-07 20:00:00', 20000,
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Leh Adventure', 'Adventure trip to Leh.', '2025-09-05 09:00:00', '2025-09-07 20:00:00', 20000.00,
         (SELECT id FROM destination WHERE name = 'Leh'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Yosemite Explorer', 'Explore Yosemite National Park.', '2025-10-01 09:00:00', '2025-10-02 17:00:00', 18000,
-        (SELECT id FROM destination WHERE name = 'Yosemite'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Yosemite Explorer', 'Explore Yosemite National Park.', '2025-10-01 09:00:00', '2025-10-02 17:00:00', 18000.00,
+        (SELECT id FROM destination WHERE name = 'Yosemite'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('London City Tour', 'Discover London''s best sights.', '2025-11-01 09:00:00', '2025-11-02 18:00:00', 25000,
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('London City Tour', 'Discover London''s best sights.', '2025-11-01 09:00:00', '2025-11-02 18:00:00', 25000.00,
         (SELECT id FROM destination WHERE name = 'London'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Rishikesh Spiritual Retreat', 'Yoga and adventure in Rishikesh.', '2025-09-10 08:00:00', '2025-09-12 20:00:00',
-        9000, (SELECT id FROM destination WHERE name = 'Rishikesh'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Rishikesh Spiritual Retreat', 'Yoga and adventure in Rishikesh.', '2025-09-10 08:00:00', '2025-09-12 20:00:00', 9000.00,
+        (SELECT id FROM destination WHERE name = 'Rishikesh'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Edinburgh Heritage Walk', 'Explore the history of Edinburgh.', '2025-10-10 09:00:00', '2025-10-11 18:00:00',
-        22000, (SELECT id FROM destination WHERE name = 'Edinburgh'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Edinburgh Heritage Walk', 'Explore the history of Edinburgh.', '2025-10-10 09:00:00', '2025-10-11 18:00:00', 22000.00,
+        (SELECT id FROM destination WHERE name = 'Edinburgh'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Manali & Leh Combo', 'Combo trip covering Manali and Leh.', '2025-09-01 09:00:00', '2025-09-07 20:00:00',
-        30000, (SELECT id FROM destination WHERE name = 'Manali'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Manali & Leh Combo', 'Combo trip covering Manali and Leh.', '2025-09-01 09:00:00', '2025-09-07 20:00:00', 30000.00,
+        (SELECT id FROM destination WHERE name = 'Manali'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Dubai Luxury Tour', 'Experience luxury in Dubai.', '2025-10-01 09:00:00', '2025-10-03 18:00:00', 35000,
-        (SELECT id FROM destination WHERE name = 'Burj Khalifa'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Dubai Luxury Tour', 'Experience luxury in Dubai.', '2025-10-01 09:00:00', '2025-10-03 18:00:00', 35000.00,
+        (SELECT id FROM destination WHERE name = 'Burj Khalifa'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Sydney City Break', 'Discover Sydney''s icons.', '2025-11-01 08:00:00', '2025-11-02 18:00:00', 28000,
-        (SELECT id FROM destination WHERE name = 'Sydney Opera House'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Sydney City Break', 'Discover Sydney''s icons.', '2025-11-01 08:00:00', '2025-11-02 18:00:00', 28000.00,
+        (SELECT id FROM destination WHERE name = 'Sydney Opera House'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Moscow & St. Petersburg', 'Explore Russia''s two capitals.', '2025-12-01 09:00:00', '2025-12-03 18:00:00',
-        32000, (SELECT id FROM destination WHERE name = 'Red Square'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Moscow & St. Petersburg', 'Explore Russia''s two capitals.', '2025-12-01 09:00:00', '2025-12-03 18:00:00', 32000.00,
+        (SELECT id FROM destination WHERE name = 'Red Square'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Paris Dream', 'Romantic trip to Paris.', '2025-09-20 09:00:00', '2025-09-21 18:00:00', 40000,
-        (SELECT id FROM destination WHERE name = 'Eiffel Tower'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Paris Dream', 'Romantic trip to Paris.', '2025-09-20 09:00:00', '2025-09-21 18:00:00', 40000.00,
+        (SELECT id FROM destination WHERE name = 'Eiffel Tower'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Fuji & Kyoto', 'Japan highlights: Fuji and Kyoto.', '2025-08-15 06:00:00', '2025-08-17 18:00:00', 37000,
-        (SELECT id FROM destination WHERE name = 'Mount Fuji'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Fuji & Kyoto', 'Japan highlights: Fuji and Kyoto.', '2025-08-15 06:00:00', '2025-08-17 18:00:00', 37000.00,
+        (SELECT id FROM destination WHERE name = 'Mount Fuji'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Milan Art Tour', 'Art and architecture in Milan.', '2025-09-10 09:00:00', '2025-09-11 18:00:00', 26000,
-        (SELECT id FROM destination WHERE name = 'Milan Cathedral'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Milan Art Tour', 'Art and architecture in Milan.', '2025-09-10 09:00:00', '2025-09-11 18:00:00', 26000.00,
+        (SELECT id FROM destination WHERE name = 'Milan Cathedral'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('NYC Essentials', 'See the best of New York.', '2025-10-10 08:00:00', '2025-10-11 18:00:00', 30000,
-        (SELECT id FROM destination WHERE name = 'Statue of Liberty'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('NYC Essentials', 'See the best of New York.', '2025-10-10 08:00:00', '2025-10-11 18:00:00', 30000.00,
+        (SELECT id FROM destination WHERE name = 'Statue of Liberty'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
-INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active,
-                  created_at, updated_at)
-VALUES ('Edinburgh Royal Tour', 'History and culture in Edinburgh.', '2025-09-15 09:00:00', '2025-09-16 18:00:00',
-        21000, (SELECT id FROM destination WHERE name = 'Edinburgh Castle'), 'admin', true, '2025-08-13 00:00:00',
-        '2025-08-13 00:00:00')
+INSERT INTO trip (title, description, start_date, end_date, price, main_destination_id, created_by, is_active, created_at, updated_at)
+VALUES ('Edinburgh Royal Tour', 'History and culture in Edinburgh.', '2025-09-15 09:00:00', '2025-09-16 18:00:00', 21000.00,
+        (SELECT id FROM destination WHERE name = 'Edinburgh Castle'), 'admin', true, '2025-08-13 00:00:00', '2025-08-13 00:00:00')
 ON CONFLICT (title) DO NOTHING;
 
--- 6. Trip-Itinerary mapping (assuming join table trip_itineraries(trip_id, itinerary_id))
--- Manali Summer Escape uses both Manali Adventure days
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
+-- 6. Trip Itinerary Details (mapping Trip, Itinerary, Day, Arrival, Departure)
+INSERT INTO trip_itinerary_detail (trip_id, itinerary_id, day_number, arrival_time, departure_time)
 VALUES ((SELECT id FROM trip WHERE title = 'Manali Summer Escape'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Manali Adventure' AND day_number = 1))
-ON CONFLICT DO NOTHING;
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Manali Summer Escape'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Manali Adventure' AND day_number = 2))
-ON CONFLICT DO NOTHING;
--- Manali Winter Wonderland reuses day 1 only
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Manali Winter Wonderland'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Manali Adventure' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Leh Adventure uses both Leh Explorer days
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Leh Adventure'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Leh Explorer' AND day_number = 1))
-ON CONFLICT DO NOTHING;
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Leh Adventure'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Leh Explorer' AND day_number = 2))
-ON CONFLICT DO NOTHING;
--- Yosemite Explorer uses Yosemite Classic
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Yosemite Explorer'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Yosemite Classic' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- London City Tour uses London Highlights
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'London City Tour'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'London Highlights' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Rishikesh Spiritual Retreat uses both Rishikesh Adventure days
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Rishikesh Spiritual Retreat'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Rishikesh Adventure' AND day_number = 1))
-ON CONFLICT DO NOTHING;
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Rishikesh Spiritual Retreat'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Rishikesh Adventure' AND day_number = 2))
-ON CONFLICT DO NOTHING;
--- Edinburgh Heritage Walk uses Edinburgh Explorer
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Edinburgh Heritage Walk'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Edinburgh Explorer' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Manali & Leh Combo reuses Manali Adventure day 1 and Leh Explorer day 2
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Manali & Leh Combo'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Manali Adventure' AND day_number = 1))
-ON CONFLICT DO NOTHING;
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Manali & Leh Combo'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Leh Explorer' AND day_number = 2))
-ON CONFLICT DO NOTHING;
--- Dubai Luxury Tour uses Dubai Highlights and Abu Dhabi Culture
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Dubai Luxury Tour'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Dubai Highlights' AND day_number = 1))
-ON CONFLICT DO NOTHING;
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Dubai Luxury Tour'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Abu Dhabi Culture' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Sydney City Break uses Sydney Opera Day
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Sydney City Break'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Sydney Opera Day' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Moscow & St. Petersburg uses Moscow Heritage and Saint Petersburg Art
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Moscow & St. Petersburg'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Moscow Heritage' AND day_number = 1))
-ON CONFLICT DO NOTHING;
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Moscow & St. Petersburg'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Saint Petersburg Art' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Paris Dream uses Paris Romance
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Paris Dream'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Paris Romance' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Fuji & Kyoto uses Fuji Adventure and Kyoto Temples
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Fuji & Kyoto'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Fuji Adventure' AND day_number = 1))
-ON CONFLICT DO NOTHING;
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Fuji & Kyoto'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Kyoto Temples' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Milan Art Tour uses Milan Art
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Milan Art Tour'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Milan Art' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- NYC Essentials uses NYC Icons
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'NYC Essentials'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'NYC Icons' AND day_number = 1))
-ON CONFLICT DO NOTHING;
--- Edinburgh Royal Tour uses Edinburgh Castle Day
-INSERT INTO trip_itinerary (trip_id, itinerary_id)
-VALUES ((SELECT id FROM trip WHERE title = 'Edinburgh Royal Tour'),
-        (SELECT id FROM itinerary WHERE itinerary_name = 'Edinburgh Castle Day' AND day_number = 1))
-ON CONFLICT DO NOTHING;
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Manali Adventure' LIMIT 1), 1, '2025-09-01 09:00:00', '2025-09-01 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Manali Summer Escape'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Manali Adventure' LIMIT 1 OFFSET 1), 2, '2025-09-02 09:00:00', '2025-09-02 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Leh Adventure'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Leh Explorer' LIMIT 1), 1, '2025-09-05 09:00:00', '2025-09-05 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Leh Adventure'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Leh Explorer' LIMIT 1 OFFSET 1), 2, '2025-09-06 09:00:00', '2025-09-06 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Yosemite Explorer'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Yosemite Classic' LIMIT 1), 1, '2025-10-01 09:00:00', '2025-10-01 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'London City Tour'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'London Highlights' LIMIT 1), 1, '2025-11-01 09:00:00', '2025-11-01 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Rishikesh Spiritual Retreat'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Rishikesh Adventure' LIMIT 1), 1, '2025-09-10 08:00:00', '2025-09-10 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Rishikesh Spiritual Retreat'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Rishikesh Adventure' LIMIT 1 OFFSET 1), 2, '2025-09-11 08:00:00', '2025-09-11 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Edinburgh Heritage Walk'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Edinburgh Explorer' LIMIT 1), 1, '2025-10-10 09:00:00', '2025-10-10 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Manali & Leh Combo'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Manali Adventure' LIMIT 1), 1, '2025-09-01 09:00:00', '2025-09-01 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Manali & Leh Combo'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Leh Explorer' LIMIT 1 OFFSET 1), 2, '2025-09-06 09:00:00', '2025-09-06 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Dubai Luxury Tour'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Dubai Highlights' LIMIT 1), 1, '2025-10-01 09:00:00', '2025-10-01 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Dubai Luxury Tour'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Abu Dhabi Culture' LIMIT 1), 2, '2025-10-02 09:00:00', '2025-10-02 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Sydney City Break'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Sydney Opera Day' LIMIT 1), 1, '2025-11-01 08:00:00', '2025-11-01 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Moscow & St. Petersburg'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Moscow Heritage' LIMIT 1), 1, '2025-12-01 09:00:00', '2025-12-01 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Moscow & St. Petersburg'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Saint Petersburg Art' LIMIT 1), 2, '2025-12-02 09:00:00', '2025-12-02 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Paris Dream'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Paris Romance' LIMIT 1), 1, '2025-09-20 09:00:00', '2025-09-20 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Fuji & Kyoto'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Fuji Adventure' LIMIT 1), 1, '2025-08-15 06:00:00', '2025-08-15 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Fuji & Kyoto'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Kyoto Temples' LIMIT 1), 2, '2025-08-16 09:00:00', '2025-08-16 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Milan Art Tour'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Milan Art' LIMIT 1), 1, '2025-09-10 09:00:00', '2025-09-10 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'NYC Essentials'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'NYC Icons' LIMIT 1), 1, '2025-10-10 08:00:00', '2025-10-10 18:00:00'),
+       ((SELECT id FROM trip WHERE title = 'Edinburgh Royal Tour'),
+        (SELECT id FROM itinerary WHERE itinerary_name = 'Edinburgh Castle Day' LIMIT 1), 1, '2025-09-15 09:00:00', '2025-09-15 18:00:00');
 
--- 7. Tags (demo tags for trips, destinations, itineraries)
-INSERT INTO tag (name, usage_count)
-VALUES ('Adventure', 4)
-ON CONFLICT (name) DO NOTHING;
-INSERT INTO tag (name, usage_count)
-VALUES ('Nature', 5)
-ON CONFLICT (name) DO NOTHING;
-INSERT INTO tag (name, usage_count)
-VALUES ('Culture', 1)
-ON CONFLICT (name) DO NOTHING;
-INSERT INTO tag (name, usage_count)
-VALUES ('Family', 2)
-ON CONFLICT (name) DO NOTHING;
-INSERT INTO tag (name, usage_count)
-VALUES ('Winter', 1)
-ON CONFLICT (name) DO NOTHING;
-INSERT INTO tag (name, usage_count)
-VALUES ('Summer', 1)
-ON CONFLICT (name) DO NOTHING;
-INSERT INTO tag (name, usage_count)
-VALUES ('Luxury', 0)
-ON CONFLICT (name) DO NOTHING;
-INSERT INTO tag (name, usage_count)
-VALUES ('Budget', 1)
-ON CONFLICT (name) DO NOTHING;
+-- 7. Itinerary Activities (Demo Data)
+INSERT INTO itinerary_activity (activity_name, description, trip_itinerary_detail_id)
+VALUES ('Mall Road Walk', 'Evening walk at Mall Road', (SELECT id FROM trip_itinerary_detail WHERE day_number = 1 AND trip_id = (SELECT id FROM trip WHERE title = 'Manali Summer Escape'))),
+       ('Solang Valley Adventure', 'Paragliding and zorbing at Solang Valley', (SELECT id FROM trip_itinerary_detail WHERE day_number = 2 AND trip_id = (SELECT id FROM trip WHERE title = 'Manali Summer Escape'))),
+       ('Acclimatization', 'Rest and acclimatize to high altitude', (SELECT id FROM trip_itinerary_detail WHERE day_number = 1 AND trip_id = (SELECT id FROM trip WHERE title = 'Leh Adventure'))),
+       ('Pangong Lake Visit', 'Day trip to Pangong Lake', (SELECT id FROM trip_itinerary_detail WHERE day_number = 2 AND trip_id = (SELECT id FROM trip WHERE title = 'Leh Adventure'))),
+       ('Yosemite Valley Tour', 'Explore Yosemite Valley', (SELECT id FROM trip_itinerary_detail WHERE day_number = 1 AND trip_id = (SELECT id FROM trip WHERE title = 'Yosemite Explorer'))),
+       ('Buckingham Palace Visit', 'See Buckingham Palace', (SELECT id FROM trip_itinerary_detail WHERE day_number = 1 AND trip_id = (SELECT id FROM trip WHERE title = 'London City Tour'))),
+       ('River Rafting', 'Try river rafting in Rishikesh', (SELECT id FROM trip_itinerary_detail WHERE day_number = 1 AND trip_id = (SELECT id FROM trip WHERE title = 'Rishikesh Spiritual Retreat'))),
+       ('Yoga and Ganga Aarti', 'Yoga session and Ganga Aarti', (SELECT id FROM trip_itinerary_detail WHERE day_number = 2 AND trip_id = (SELECT id FROM trip WHERE title = 'Rishikesh Spiritual Retreat'))),
+       ('Edinburgh Castle Tour', 'Visit Edinburgh Castle', (SELECT id FROM trip_itinerary_detail WHERE day_number = 1 AND trip_id = (SELECT id FROM trip WHERE title = 'Edinburgh Heritage Walk')));
 
--- Add more trips and mix itineraries as needed for demo.

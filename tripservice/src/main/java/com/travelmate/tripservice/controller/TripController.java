@@ -15,6 +15,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+import static com.travelmate.tripservice.client.AuthServiceClient.logger;
+
 @RestController
 @RequestMapping("/api/trip/trips")
 public class TripController {
@@ -29,6 +31,7 @@ public class TripController {
         }
         String token = authHeader.substring(7);
         List<TripLiteModel> trips = tripService.getAllTrips(token);
+        logger.info("Fetched trips {}", trips);
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Trips fetched", trips, "/api/trips"));
     }
 

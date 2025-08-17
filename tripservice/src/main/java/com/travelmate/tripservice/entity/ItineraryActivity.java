@@ -17,11 +17,12 @@ public class ItineraryActivity {
     private Long id;
 
     @NotBlank(message = "Activity name cannot be empty.")
+    @Column(nullable = false)
     private String activityName;
 
     private String description;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_itinerary_detail_id", nullable = false)
     private TripItineraryDetail tripItineraryDetail;
 }

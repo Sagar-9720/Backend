@@ -1,5 +1,6 @@
 package com.travelmate.tripservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -19,11 +20,11 @@ public class TripItineraryDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_id")
     private Trip trip;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "itinerary_id")
     private Itinerary itinerary;
 
@@ -39,6 +40,6 @@ public class TripItineraryDetail {
     @NotNull
     private LocalDateTime departureTime;
 
-    @OneToMany(mappedBy = "tripItineraryDetail", cascade = CascadeType.ALL)
-    private List<ItineraryActivity> activities; // Separate table for activities
+    @OneToMany(mappedBy = "tripItineraryDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItineraryActivity> activities;
 }

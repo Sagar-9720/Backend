@@ -290,4 +290,36 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to fetch user name: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
+
+    @GetMapping("/all-subadmins")
+    public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllSubAdmins(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
+        try {
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+            }
+            List<UserInfoDTO> subAdmins = authServiceImpl.getAllSubAdmins(token);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "All subadmins fetched successfully", subAdmins, servletRequest.getRequestURI()));
+        } catch (UnauthorizedAccessException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to fetch subadmins: " + e.getMessage(), servletRequest.getRequestURI()));
+        }
+    }
+
+    @GetMapping("/all-delete-requested-users")
+    public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllDeleteRequestedUsers(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
+        try {
+            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+            }
+            List<UserInfoDTO> deleteRequestedUsers = authServiceImpl.getALlDeleteRequestedUsers(token);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "All delete requested users fetched successfully", deleteRequestedUsers, servletRequest.getRequestURI()));
+        } catch (UnauthorizedAccessException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to fetch delete requested users: " + e.getMessage(), servletRequest.getRequestURI()));
+        }
+    }
 }

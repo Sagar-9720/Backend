@@ -20,7 +20,7 @@ db.comments.insertMany([
   },
   {
     user_id: 3, // Subadmin Two
-    itinerary_id: 1, // Manali Adventure Day 1
+    journal_id: 1, // Manali Adventure Day 1
     comment: 'Mall Road was fun!',
     createdAt: new Date(),
     updatedAt: new Date()

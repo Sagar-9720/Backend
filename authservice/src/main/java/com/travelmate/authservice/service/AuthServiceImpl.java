@@ -468,4 +468,26 @@ public class AuthServiceImpl implements AuthService {
         }
         return userRepository.findAllById(userIds.stream().map(Long::parseLong).collect(toList())).stream().map(user -> Map.of("userId", user.getUserId().toString(), "name", user.getName())).collect(toList());
     }
+
+    @Override
+    public List<UserInfoDTO> getAllSubAdmins(String token) throws UnauthorizedAccessException {
+        logger.info("Fetching all subadmins");
+        String role = jwtUtil.getRoleFromToken(token);
+        if (!role.equals("ADMIN")) {
+            logger.warn("Unauthorized access by user role: {}", role);
+            throw new UnauthorizedAccessException("Only ADMIN can fetch subadmins");
+        }
+        return userRepository.findAllByRole(User.Role.SUBADMIN).stream().map(UserMapper::toUserInfoDTO).collect(toList());
+    }
+
+    @Override
+    public List<UserInfoDTO> getALlDeleteRequestedUsers(String token) throws UnauthorizedAccessException {
+        logger.info("Fetching all delete requested users");
+        String role = jwtUtil.getRoleFromToken(token);
+        if (role.equals("USER") || role.equals("GUEST")) {
+            logger.warn("Unauthorized access by user role: {}", role);
+            throw new UnauthorizedAccessException("Only ADMIN can fetch delete requested users");
+        }
+        return userRepository.findAll().stream().filter(User::isRequestDelete).map(UserMapper::toUserInfoDTO).collect(toList());
+    }
 }

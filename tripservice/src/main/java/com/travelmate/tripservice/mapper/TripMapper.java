@@ -19,6 +19,16 @@ public class TripMapper {
 
     public static TripLiteModel toLiteModel(Trip entity) {
         if (entity == null) return null;
-        return TripLiteModel.builder().id(entity.getId()).isActive(entity.getIsActive()).title(entity.getTitle()).startDate(entity.getStartDate()).endDate(entity.getEndDate()).updatedAt(entity.getUpdatedAt()).price(entity.getPrice()).destinationModel(entity.getMainDestination() != null ? DestinationMapper.toModel(entity.getMainDestination()) : null).createdBy(entity.getCreatedBy()).build();
+        return TripLiteModel.builder().
+                id(entity.getId())
+                .isActive(entity.getIsActive())
+                .title(entity.getTitle())
+                .startDate(entity.getStartDate())
+                .endDate(entity.getEndDate())
+                .updatedAt(entity.getUpdatedAt())
+                .price(entity.getPrice())
+                .destinationModel(entity.getMainDestination() != null ? DestinationMapper.toModel(entity.getMainDestination()) : null)
+                .createdBy(entity.getCreatedBy())
+                .build();
     }
 }

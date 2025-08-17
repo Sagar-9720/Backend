@@ -40,10 +40,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<CustomResponseEntity<Object>> handleAll(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<?> handleAll(Exception ex, HttpServletRequest request) {
+        String contentType = request.getHeader("Accept");
+        String uri = request.getRequestURI();
+        // If the request is for Prometheus/OpenMetrics, return plain text error
+        if (uri.contains("prometheus") || (contentType != null && contentType.contains("openmetrics-text"))) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(org.springframework.http.MediaType.TEXT_PLAIN)
+                    .body("Internal server error");
+        }
+        // Default: return your custom JSON error
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(), request.getRequestURI())
+                CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(), uri)
         );
     }
 }
-

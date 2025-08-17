@@ -9,3 +9,8 @@ export const increaseView = async (req: Request, res: Response) => {
     res.status(200).json(result);
 };
 
+export const getViews = async (req: Request, res: Response) => {
+    const result = await viewService.getViewCount(req);
+    res.status(200).json(result);
+};
+

@@ -1,5 +1,6 @@
 package com.travelmate.tripservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,23 +23,24 @@ public class Trip {
     private Long id;
 
     @NotBlank(message = "Title should not be empty.")
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String title;
 
     @NotNull
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "start_date")
     @NotNull
+    @Column(name = "start_date")
     private LocalDateTime startDate;
 
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @NotBlank
+    @NotNull
     private BigDecimal price;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinColumn(name = "main_destination_id", nullable = false)
     private Destination mainDestination; // Optional main destination
 
@@ -58,6 +60,7 @@ public class Trip {
     @NotNull
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<TripItineraryDetail> tripItineraryDetails;
 }

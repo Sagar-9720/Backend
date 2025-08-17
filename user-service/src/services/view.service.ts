@@ -5,6 +5,42 @@ import {ViewResponse} from '../response/response';
 import View from '../models/view.model';
 
 export class ViewService implements IViewService {
+    getViewCount(req: Request): Promise<ViewResponse | null> {
+        const {trip_id, journal_id, destination_id} = req.query;
+
+        // Validate that at least one reference ID is provided
+        if (!trip_id && !journal_id && !destination_id) {
+            throw new Error('At least one of trip_id, journal_id, or destination_id must be provided');
+        }
+
+        // Use user identity from trusted source (e.g., req.authUser set by gateway/authservice)
+        const authUserId = (req as any).user?.userId;
+
+        // Build the query condition
+        const queryCondition: any = {
+            user_id: authUserId,
+            ...(trip_id && {trip_id}),
+            ...(journal_id && {journal_id}),
+            ...(destination_id && {destination_id})
+        };
+
+        return View.findOne({
+            where: queryCondition
+        }).then(view => {
+            if (!view) return null;
+            return {
+                id: view.id.toString(),
+                user_id: view.user_id.toString(),
+                trip_id: view.trip_id?.toString() ?? undefined,
+                journal_id: view.journal_id?.toString() ?? undefined,
+                destination_id: view.destination_id?.toString() ?? undefined,
+                view_count: view.view_count,
+                createdAt: view.created_at!,
+                updatedAt: view.updated_at!
+            };
+        });
+    }
+
     // Additional method to toggle like (like/unlike)
     async increaseViewCount(req: Request): Promise<{ increasedView: boolean; view?: ViewResponse }> {
         const {trip_id, journal_id, destination_id} = req.body;
@@ -67,4 +103,6 @@ export class ViewService implements IViewService {
             };
         }
     }
+
+
 }

@@ -13,7 +13,11 @@ public class EmailMessageListener {
 
     private final EmailService emailService;
 
-    @KafkaListener(topics = "email_verification", groupId = "emailservice-group")
+    @KafkaListener(
+        topics = "email_verification",
+        groupId = "emailservice-group",
+        containerFactory = "emailKafkaListenerContainerFactory"
+    )
     public void handleVerificationEmail(EmailRequest emailRequest) {
         try {
             emailService.sendEmail(emailRequest);
@@ -24,7 +28,11 @@ public class EmailMessageListener {
         }
     }
 
-    @KafkaListener(topics = "email_password_reset", groupId = "emailservice-group")
+    @KafkaListener(
+        topics = "email_password_reset",
+        groupId = "emailservice-group",
+        containerFactory = "emailKafkaListenerContainerFactory"
+    )
     public void handlePasswordResetEmail(EmailRequest emailRequest) {
         try {
             emailService.sendEmail(emailRequest);

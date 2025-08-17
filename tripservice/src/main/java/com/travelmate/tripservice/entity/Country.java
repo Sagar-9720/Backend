@@ -16,6 +16,6 @@ public class Country {
     private Long id;
 
     @NotBlank(message = "Country name should not be blank")
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String name;
 }
