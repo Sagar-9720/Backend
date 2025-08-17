@@ -12,7 +12,7 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()).cors(withDefaults()).authorizeHttpRequests(auth -> auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").hasRole("ADMIN").requestMatchers("/actuator/**", "/api/trip/**").permitAll().anyRequest().authenticated()).httpBasic(withDefaults());
+        http.csrf(csrf -> csrf.disable()).cors(withDefaults()).authorizeHttpRequests(auth -> auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").hasRole("ADMIN").requestMatchers("/actuator/**", "/api/journal/**").permitAll().anyRequest().authenticated()).httpBasic(withDefaults());
         return http.build();
     }
 }

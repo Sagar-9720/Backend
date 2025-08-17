@@ -1,5 +1,6 @@
 package com.travelmate.tripservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -32,6 +33,6 @@ public class Itinerary {
     private String description;
 
     @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
+    @JsonBackReference
     private List<TripItineraryDetail> tripDetails; // All trip-specific schedules linked to this itinerary
 }

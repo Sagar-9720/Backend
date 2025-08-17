@@ -273,152 +273,165 @@
                   "raw": "{\n  \"username\": \"subadmin\",\n  \"password\": \"SubAdmin@1234\",\n  \"email\": \"subadmin@example.com\"\n}"
                 }
               }
-            }
-          ]
-        },
-        {
-          "name": "Role",
-          "item": [
+            },
+            {
+              "name": "Verify Email",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{authservice_url}}/api/auth/verify-email",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "verify-email"]
+                }
+              }
+            },
+            {
+              "name": "Resend Verification Email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{authservice_url}}/api/auth/resend-verification",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "resend-verification"]
+                }
+              }
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{authservice_url}}/api/auth/logout",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "logout"]
+                }
+              }
+            },
+            {
+              "name": "Delete User",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{authservice_url}}/api/auth/delete-user/:userId",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "delete-user", ":userId"]
+                }
+              }
+            },
+            {
+              "name": "Get User Info",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{authservice_url}}/api/auth/user-info",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "user-info"]
+                }
+              }
+            },
+            {
+              "name": "Get All Users",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{authservice_url}}/api/auth/all-users",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "all-users"]
+                }
+              }
+            },
+            {
+              "name": "Check Email Exists",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{authservice_url}}/api/auth/check-email/:email",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "check-email", ":email"]
+                }
+              }
+            },
+            {
+              "name": "Delete Request",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{authservice_url}}/api/auth/delete-request",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "delete-request"]
+                }
+              }
+            },
             {
               "name": "Update Role to User",
               "request": {
                 "method": "PUT",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
                 ],
                 "url": {
-                  "raw": "{{authservice_url}}/api/auth/roles/update/:role",
-                  "host": [
-                    "{{authservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "auth",
-                    "roles",
-                    "update",
-                    ":role"
-                  ]
+                  "raw": "{{authservice_url}}/api/auth/update-role",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "update-role"]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"userId\": \"user-id-123\"\n}"
+                  "raw": "{\n  /* UserUpdateInfoRequest fields */\n}"
                 }
               }
             },
             {
-              "name": "Get All Roles",
+              "name": "Get User Name By IDs",
               "request": {
                 "method": "GET",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
                 ],
                 "url": {
-                  "raw": "{{authservice_url}}/api/auth/roles",
-                  "host": [
-                    "{{authservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "auth",
-                    "roles"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Create Role",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{authservice_url}}/api/auth/roles",
-                  "host": [
-                    "{{authservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "auth",
-                    "roles"
-                  ]
+                  "raw": "{{authservice_url}}/api/auth/get-user-name",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "get-user-name"]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"ROLE_MANAGER\"\n}"
+                  "raw": "[\n  \"userId1\",\n  \"userId2\"\n]"
                 }
               }
             },
             {
-              "name": "Update Role",
+              "name": "Get All SubAdmins",
               "request": {
-                "method": "PUT",
+                "method": "GET",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
-                  "raw": "{{authservice_url}}/api/auth/roles/:roleId",
-                  "host": [
-                    "{{authservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "auth",
-                    "roles",
-                    ":roleId"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"ROLE_UPDATED\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Delete Role",
-              "request": {
-                "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{authservice_url}}/api/auth/roles/:roleId",
-                  "host": [
-                    "{{authservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "auth",
-                    "roles",
-                    ":roleId"
-                  ]
+                  "raw": "{{authservice_url}}/api/auth/all-subadmins",
+                  "host": ["{{authservice_url}}"],
+                  "path": ["api", "auth", "all-subadmins"]
                 }
               }
             }
@@ -535,6 +548,119 @@
                     "api",
                     "trip",
                     "countries",
+                    ":id"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Region",
+          "item": [
+            {
+              "name": "Get All Regions",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/regions",
+                  "host": [
+                    "{{tripservice_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "trip",
+                    "regions"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Region By ID",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/regions/:id",
+                  "host": [
+                    "{{tripservice_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "trip",
+                    "regions",
+                    ":id"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Region",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/regions",
+                  "host": [
+                    "{{tripservice_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "trip",
+                    "regions"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Sample Region\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Region",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/regions/:id",
+                  "host": [
+                    "{{tripservice_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "trip",
+                    "regions",
+                    ":id"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Region\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Region",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/regions/:id",
+                  "host": [
+                    "{{tripservice_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "trip",
+                    "regions",
                     ":id"
                   ]
                 }
@@ -926,14 +1052,9 @@
                   ]
                 }
               }
-            }
-          ]
-        },
-        {
-          "name": "Travel Journal",
-          "item": [
+            },
             {
-              "name": "Get All Journals",
+              "name": "Suggest Itineraries",
               "request": {
                 "method": "GET",
                 "header": [
@@ -943,223 +1064,21 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals",
+                  "raw": "{{tripservice_url}}/api/trip/itineraries/suggest?keyword=Sample",
                   "host": [
                     "{{tripservice_url}}"
                   ],
                   "path": [
                     "api",
                     "trip",
-                    "journals"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Create Journal",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals",
-                  "host": [
-                    "{{tripservice_url}}"
+                    "itineraries",
+                    "suggest"
                   ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "journals"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Sample Journal\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Update Journal",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "journals"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Updated Journal\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Delete Journal",
-              "request": {
-                "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals/:id",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "journals",
-                    ":id"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Get Journal By ID",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals/:id",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "journals",
-                    ":id"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Get Journals By User",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals/user/:userId",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "journals",
-                    "user",
-                    ":userId"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Get Journals By Trip",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals/trip/:tripId",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "journals",
-                    "trip",
-                    ":tripId"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Get Public Journals",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals/public",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "journals",
-                    "public"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Search Journals By Tag",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{tripservice_url}}/api/trip/journals/tag/:tag",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "journals",
-                    "tag",
-                    ":tag"
+                  "query": [
+                    {
+                      "key": "keyword",
+                      "value": "Sample"
+                    }
                   ]
                 }
               }
@@ -1174,21 +1093,12 @@
               "request": {
                 "method": "GET",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips"
-                  ]
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips"]
                 }
               }
             },
@@ -1197,22 +1107,12 @@
               "request": {
                 "method": "GET",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips/:id",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips",
-                    ":id"
-                  ]
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", ":id"]
                 }
               }
             },
@@ -1221,29 +1121,17 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips"
-                  ]
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips"]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Sample Trip\"\n}"
+                  "raw": "{\n  /* TripModel fields */\n}"
                 }
               }
             },
@@ -1252,29 +1140,17 @@
               "request": {
                 "method": "PUT",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips"
-                  ]
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips"]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Updated Trip\"\n}"
+                  "raw": "{\n  /* TripModel fields */\n}"
                 }
               }
             },
@@ -1283,54 +1159,31 @@
               "request": {
                 "method": "DELETE",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips/:id",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips",
-                    ":id"
-                  ]
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", ":id"]
                 }
               }
             },
             {
-              "name": "Add Trip Request",
+              "name": "Submit Trip Request",
               "request": {
                 "method": "POST",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips/request",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips",
-                    "request"
-                  ]
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "request"]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Requested Trip\"\n}"
+                  "raw": "{\n  /* TripRequest fields */\n}"
                 }
               }
             },
@@ -1339,31 +1192,17 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips/approve/:requestId",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips",
-                    "approve",
-                    ":requestId"
-                  ]
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "approve", ":requestId"]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"approved\": true\n}"
+                  "raw": "{\n  /* TripRequest fields */\n}"
                 }
               }
             },
@@ -1372,27 +1211,14 @@
               "request": {
                 "method": "GET",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
-                  "raw": "{{tripservice_url}}/api/trip/trips/by-destination?destinationName=Sample",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips",
-                    "by-destination"
-                  ],
+                  "raw": "{{tripservice_url}}/api/trip/trips/by-destination?destination=SampleDestination",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "by-destination"],
                   "query": [
-                    {
-                      "key": "destinationName",
-                      "value": "Sample"
-                    }
+                    { "key": "destination", "value": "SampleDestination" }
                   ]
                 }
               }
@@ -1402,31 +1228,15 @@
               "request": {
                 "method": "GET",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
-                  "raw": "{{tripservice_url}}/api/trip/trips/by-price-range?startPrice=100&endPrice=500",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips",
-                    "by-price-range"
-                  ],
+                  "raw": "{{tripservice_url}}/api/trip/trips/by-price-range?startPrice=0&endPrice=1000",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "by-price-range"],
                   "query": [
-                    {
-                      "key": "startPrice",
-                      "value": "100"
-                    },
-                    {
-                      "key": "endPrice",
-                      "value": "500"
-                    }
+                    { "key": "startPrice", "value": "0" },
+                    { "key": "endPrice", "value": "1000" }
                   ]
                 }
               }
@@ -1436,24 +1246,12 @@
               "request": {
                 "method": "GET",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips/requests/user/:userId",
-                  "host": [
-                    "{{tripservice_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "trip",
-                    "trips",
-                    "requests",
-                    "user",
-                    ":userId"
-                  ]
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "requests", "user", ":userId"]
                 }
               }
             },
@@ -1462,22 +1260,438 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{token}}"
-                  }
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
                 ],
                 "url": {
                   "raw": "{{tripservice_url}}/api/trip/trips/auto-delete",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "auto-delete"]
+                }
+              }
+            },
+            {
+              "name": "Get All Trip Requests",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/trips/requests/all",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "requests", "all"]
+                }
+              }
+            },
+            {
+              "name": "Suggest Trips",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/trips/suggest?q=sample",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "suggest"],
+                  "query": [
+                    { "key": "q", "value": "sample" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Trip Names By IDs",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/trips/get-trip-name",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trips", "get-trip-name"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n  \"tripId1\",\n  \"tripId2\"\n]"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Itinerary Activity",
+          "item": [
+            {
+              "name": "Create Itinerary Activity",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/itinerary-activities",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "itinerary-activities"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  /* ItineraryActivityModel fields */\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Itinerary Activity",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/itinerary-activities/:id",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "itinerary-activities", ":id"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  /* ItineraryActivityModel fields */\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Itinerary Activity",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/itinerary-activities/:id",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "itinerary-activities", ":id"]
+                }
+              }
+            },
+            {
+              "name": "Get Itinerary Activity By ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/itinerary-activities/:id",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "itinerary-activities", ":id"]
+                }
+              }
+            },
+            {
+              "name": "Get All Itinerary Activities",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/itinerary-activities",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "itinerary-activities"]
+                }
+              }
+            },
+            {
+              "name": "Suggest Itinerary Activities",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/itinerary-activities/suggest?keyword=Sample",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "itinerary-activities", "suggest"],
+                  "query": [
+                    { "key": "keyword", "value": "Sample" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trip Itinerary Detail",
+          "item": [
+            {
+              "name": "Create Trip Itinerary Detail",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/trip-itinerary-details",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trip-itinerary-details"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  /* TripItineraryDetailModel fields */\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Trip Itinerary Detail",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/trip-itinerary-details/:id",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trip-itinerary-details", ":id"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  /* TripItineraryDetailModel fields */\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Trip Itinerary Detail",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/trip-itinerary-details/:id",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trip-itinerary-details", ":id"]
+                }
+              }
+            },
+            {
+              "name": "Get Trip Itinerary Detail By ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/trip-itinerary-details/:id",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trip-itinerary-details", ":id"]
+                }
+              }
+            },
+            {
+              "name": "Get All Trip Itinerary Details",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{tripservice_url}}/api/trip/trip-itinerary-details",
+                  "host": ["{{tripservice_url}}"],
+                  "path": ["api", "trip", "trip-itinerary-details"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Journal Service",
+      "item": [
+        {
+          "name": "Tags",
+          "item": [
+            {
+              "name": "Get All Tags",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/tags",
                   "host": [
-                    "{{tripservice_url}}"
+                    "{{journalservice_url}}"
                   ],
                   "path": [
                     "api",
-                    "trip",
-                    "trips",
-                    "auto-delete"
+                    "journal",
+                    "tags"
                   ]
+                }
+              }
+            },
+            {
+              "name": "Suggest Tags",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/tags/suggest?q=sample",
+                  "host": [
+                    "{{journalservice_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "journal",
+                    "tags",
+                    "suggest"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "sample"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Journals",
+          "item": [
+            {
+              "name": "Get All Journals",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals"]
+                }
+              }
+            },
+            {
+              "name": "Create Journal",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Sample Journal\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Journal",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Journal\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Journal",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals/:id",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals", ":id"]
+                }
+              }
+            },
+            {
+              "name": "Get Journal By ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals/:id",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals", ":id"]
+                }
+              }
+            },
+            {
+              "name": "Get Journals By User",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals/user/:userId",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals", "user", ":userId"]
+                }
+              }
+            },
+            {
+              "name": "Get Journals By Trip",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals/trip/:tripId",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals", "trip", ":tripId"]
+                }
+              }
+            },
+            {
+              "name": "Get Public Journals",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals/public",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals", "public"]
+                }
+              }
+            },
+            {
+              "name": "Search Journals By Tag",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{journalservice_url}}/api/journal/journals/tag/:tag",
+                  "host": ["{{journalservice_url}}"],
+                  "path": ["api", "journal", "journals", "tag", ":tag"]
                 }
               }
             }
@@ -1489,272 +1703,153 @@
       "name": "User Service",
       "item": [
         {
-          "name": "Create Comment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/comments",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "comments"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"string\",\n  \"targetId\": \"string\",\n  \"targetType\": \"string\",\n  \"content\": \"string\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Get All Comments",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/comments?targetId={{targetId}}&targetType={{targetType}}",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "comments"
-              ],
-              "query": [
-                {
-                  "key": "targetId",
-                  "value": "{{targetId}}"
+          "name": "Comment",
+          "item": [
+            {
+              "name": "Create Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{userservice_url}}/comments",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["comments"]
                 },
-                {
-                  "key": "targetType",
-                  "value": "{{targetType}}"
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userId\": \"string\",\n  \"targetId\": \"string\",\n  \"targetType\": \"string\",\n  \"content\": \"string\"\n}"
                 }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Delete Comment",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
               }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/comments/:id",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "comments",
-                ":id"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Toggle Like",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/likes",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "likes"
-              ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  /* like fields */\n}"
-            }
-          }
-        },
-        {
-          "name": "Get All Likes",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/likes?trip={{trip}}&itinerary={{itinerary}}&destination={{destination}}&user={{user}}",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "likes"
-              ],
-              "query": [
-                {
-                  "key": "trip",
-                  "value": "{{trip}}"
-                },
-                {
-                  "key": "itinerary",
-                  "value": "{{itinerary}}"
-                },
-                {
-                  "key": "destination",
-                  "value": "{{destination}}"
-                },
-                {
-                  "key": "user",
-                  "value": "{{user}}"
+            {
+              "name": "Get All Comments",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{userservice_url}}/comments?targetId={{targetId}}&targetType={{targetType}}",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["comments"],
+                  "query": [
+                    { "key": "targetId", "value": "{{targetId}}" },
+                    { "key": "targetType", "value": "{{targetType}}" }
+                  ]
                 }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Toggle Like",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
               }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/likes",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "likes"
-              ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"trip_id\": 5,\n  \"itinerary_id\": 2,\n  \"destination_id\": 3\n}"
-            }
-          }
-        },
-        {
-          "name": "Toggle Saved Trip",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/saved-trips?trip=1",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "saved-trips"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  /* saved trip fields */\n}"
-            }
-          }
-        },
-        {
-          "name": "Get All Saved Trips",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/saved-trips?trip={{trip}}&itinerary={{itinerary}}&destination={{destination}}&user={{user}}",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "saved-trips"
-              ],
-              "query": [
-                {
-                  "key": "trip",
-                  "value": "{{trip}}"
-                },
-                {
-                  "key": "itinerary",
-                  "value": "{{itinerary}}"
-                },
-                {
-                  "key": "destination",
-                  "value": "{{destination}}"
-                },
-                {
-                  "key": "user",
-                  "value": "{{user}}"
+            {
+              "name": "Delete Comment",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{userservice_url}}/comments/:id",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["comments", ":id"]
                 }
-              ]
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Toggle Saved Trip",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+          "name": "Like",
+          "item": [
+            {
+              "name": "Get All Likes",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{userservice_url}}/likes?trip={{trip}}&itinerary={{itinerary}}&destination={{destination}}&user={{user}}",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["likes"],
+                  "query": [
+                    { "key": "trip", "value": "{{trip}}" },
+                    { "key": "itinerary", "value": "{{itinerary}}" },
+                    { "key": "destination", "value": "{{destination}}" },
+                    { "key": "user", "value": "{{user}}" }
+                  ]
+                }
               }
-            ],
-            "url": {
-              "raw": "{{userservice_url}}/saved-trips",
-              "host": [
-                "{{userservice_url}}"
-              ],
-              "path": [
-                "saved-trips"
-              ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"trip_id\": 5,\n  \"itinerary_id\": 2,\n  \"destination_id\": 3\n}"
+            {
+              "name": "Toggle Like",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{userservice_url}}/likes",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["likes"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trip_id\": 5,\n  \"itinerary_id\": 2,\n  \"destination_id\": 3\n}"
+                }
+              }
             }
-          }
+          ]
+        },
+        {
+          "name": "View",
+          "item": [
+            {
+              "name": "Increase View Count",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{userservice_url}}/views",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["views"]
+                }
+              }
+            },
+            {
+              "name": "Get View Count",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{userservice_url}}/views",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["views"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Saved Trip",
+          "item": [
+            {
+              "name": "Toggle Saved Trip",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{userservice_url}}/saved-trips",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["saved-trips"]
+                }
+              }
+            },
+            {
+              "name": "Get All Saved Trips",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{userservice_url}}/saved-trips?trip={{trip}}&itinerary={{itinerary}}&destination={{destination}}&user={{user}}",
+                  "host": ["{{userservice_url}}"],
+                  "path": ["saved-trips"],
+                  "query": [
+                    { "key": "trip", "value": "{{trip}}" },
+                    { "key": "itinerary", "value": "{{itinerary}}" },
+                    { "key": "destination", "value": "{{destination}}" },
+                    { "key": "user", "value": "{{user}}" }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     }

@@ -10,9 +10,9 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("Trip Service API")
+                .info(new Info().title("Journal Service API")
                         .version("1.0")
-                        .description("API documentation for Trip Service. Swagger UI is protected by admin credentials."));
+                        .description("API documentation for Journal Service. Swagger UI is protected by admin credentials."));
     }
 }
 
