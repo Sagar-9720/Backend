@@ -1,19 +1,15 @@
 package com.travelmate.tripservice.service;
 
-import com.travelmate.tripservice.exceptions.UnauthorizedAccessException;
 import com.travelmate.tripservice.model.TripItineraryDetailModel;
 
 import java.util.List;
 
 public interface TripItineraryDetailService {
-    TripItineraryDetailModel create(String token, TripItineraryDetailModel model) throws UnauthorizedAccessException;
+    TripItineraryDetailModel create(TripItineraryDetailModel model);
 
-    TripItineraryDetailModel update(String token, Long id, TripItineraryDetailModel model) throws UnauthorizedAccessException;
+    TripItineraryDetailModel update(Long id, TripItineraryDetailModel model);
 
-    void delete(String token, Long id) throws UnauthorizedAccessException;
+    TripItineraryDetailModel getById(Long id);
 
-    TripItineraryDetailModel getById(String token, Long id) throws UnauthorizedAccessException;
-
-    List<TripItineraryDetailModel> getAll(String token) throws UnauthorizedAccessException;
+    List<TripItineraryDetailModel> getAll();
 }
-

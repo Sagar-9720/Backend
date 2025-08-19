@@ -5,17 +5,14 @@ import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.travelmate.tripservice.entity.Itinerary;
 import com.travelmate.tripservice.exceptions.DestinationNotFoundException;
 import com.travelmate.tripservice.exceptions.ItineraryNotFoundException;
 import com.travelmate.tripservice.exceptions.UnauthorizedAccessException;
 import com.travelmate.tripservice.model.ItineraryModel;
 import com.travelmate.tripservice.mapper.ItineraryMapper;
-import com.travelmate.tripservice.repository.DestinationRepository;
 import com.travelmate.tripservice.repository.ItineraryRepository;
 import com.travelmate.tripservice.service.ItineraryService;
-import com.travelmate.tripservice.service.TokenValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -37,9 +34,6 @@ public class ItineraryServiceImpl implements ItineraryService {
     private DestinationServiceImpl destinationService;
 
     @Autowired
-    private TokenValidationService tokenValidationService;
-
-    @Autowired
     private ElasticsearchClient elasticsearchClient;
 
     @Value("${elasticsearch.index.itineraries:itineraries}")
@@ -48,8 +42,7 @@ public class ItineraryServiceImpl implements ItineraryService {
     private static final Logger logger = LoggerFactory.getLogger(ItineraryServiceImpl.class);
 
     @Override
-    public ItineraryModel createItinerary(String token, ItineraryModel itineraryModel) throws UnauthorizedAccessException, JsonProcessingException {
-        String role = tokenValidationService.getRole(token);
+    public ItineraryModel createItinerary(String role, ItineraryModel itineraryModel) throws UnauthorizedAccessException {
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User does not have permission to create itineraries");
         }
@@ -71,10 +64,7 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
-    public Optional<ItineraryModel> getItineraryById(String token, Long id) throws ItineraryNotFoundException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to Itinerary by id: " + id);
-        }
+    public Optional<ItineraryModel> getItineraryById(Long id) throws ItineraryNotFoundException {
         logger.info("Fetching itinerary by id: {}", id);
         return itineraryRepository.findById(id).map(ItineraryMapper::toModel).or(() -> {
             logger.error("Itinerary with id {} not found", id);
@@ -83,17 +73,13 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
-    public List<ItineraryModel> getAllItineraries(String token) throws UnauthorizedAccessException, JsonProcessingException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to itineraries");
-        }
+    public List<ItineraryModel> getAllItineraries() throws UnauthorizedAccessException {
         logger.info("Fetching all itineraries");
         return itineraryRepository.findAll().stream().map(ItineraryMapper::toModel).toList();
     }
 
     @Override
-    public ItineraryModel updateItinerary(String token, ItineraryModel updatedItineraryModel) throws ItineraryNotFoundException, UnauthorizedAccessException, JsonProcessingException {
-        String role = tokenValidationService.getRole(token);
+    public ItineraryModel updateItinerary(String role, ItineraryModel updatedItineraryModel) throws ItineraryNotFoundException, UnauthorizedAccessException {
         if (role != null && role.compareToIgnoreCase("user") == 0) {
             throw new UnauthorizedAccessException("User does not have permission to update itineraries");
         }
@@ -111,29 +97,9 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
-    public ItineraryModel deleteItinerary(String token, Long id) throws ItineraryNotFoundException, UnauthorizedAccessException, JsonProcessingException {
-        String role = tokenValidationService.getRole(token);
-        if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
-            throw new UnauthorizedAccessException("User does not have permission to delete itineraries");
-        }
-        logger.info("Deleting itinerary id: {}", id);
-        if (!itineraryRepository.existsById(id)) {
-            logger.error("Itinerary with id {} not found for deletion", id);
-            throw new ItineraryNotFoundException(id);
-        }
-        ItineraryModel itineraryModel = itineraryRepository.findById(id).map(ItineraryMapper::toModel).orElseThrow(() -> new ItineraryNotFoundException(id));
-        itineraryRepository.deleteById(id);
-        logger.info("Itinerary with id {} deleted successfully", id);
-        return itineraryModel;
-    }
-
-    @Override
-    public List<ItineraryModel> getItinerariesByDestinationId(String token, Long destinationId) throws DestinationNotFoundException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to itineraries by destination id: " + destinationId);
-        }
+    public List<ItineraryModel> getItinerariesByDestinationId(Long destinationId) throws DestinationNotFoundException {
         logger.info("Fetching itineraries by destination id: {}", destinationId);
-        if (destinationService.getDestinationById(token, destinationId) != null) {
+        if (destinationService.getDestinationById(destinationId) != null) {
             return itineraryRepository.findByDestinationId(destinationId).stream().map(ItineraryMapper::toModel).collect(Collectors.toList());
         } else {
             logger.error("Destination with id {} not found", destinationId);
@@ -142,10 +108,7 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
-    public List<ItineraryModel> suggestItineraries(String token, String keyword, Long destinationId) {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to suggest itineraries");
-        }
+    public List<ItineraryModel> suggestItineraries(String keyword, Long destinationId) {
         logger.info("Suggesting itineraries for keyword: {} and destinationId: {}", keyword, destinationId);
         try {
             SearchRequest searchRequest = SearchRequest.of(s -> s.index(itineraryIndex).query(q -> q.fuzzy(f -> f.field("itineraryName").value(keyword).fuzziness("AUTO"))).size(10));

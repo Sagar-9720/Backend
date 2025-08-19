@@ -32,7 +32,4 @@ public class Itinerary {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
-    private List<TripItineraryDetail> tripDetails; // All trip-specific schedules linked to this itinerary
 }

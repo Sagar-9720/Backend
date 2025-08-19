@@ -9,12 +9,10 @@ public interface CountryService {
 
     List<CountryModel> getAllCountries();
 
-    CountryModel getCountryById(Long id) throws CountryNotFoundException;
-
     CountryModel addCountry(CountryModel countryModel) throws RuntimeException;
 
     CountryModel updateCountry(Long id, CountryModel countryModel) throws CountryNotFoundException;
 
-    CountryModel deleteCountry(Long id) throws CountryNotFoundException;
+    CountryModel getCountryById(Long countryId) throws CountryNotFoundException;
 
 }

@@ -28,14 +28,6 @@ public class CountryServiceImpl implements CountryService {
     }
 
     @Override
-    public CountryModel getCountryById(Long id) throws CountryNotFoundException {
-        return countryRepository.findById(id).map(CountryMapper::toModel).orElseThrow(() -> {
-            logger.error("Country with id {} not found", id);
-            return new CountryNotFoundException(id);
-        });
-    }
-
-    @Override
     public CountryModel addCountry(CountryModel countryModel) throws RuntimeException {
         Country existing = countryRepository.findByName(countryModel.name());
         if (existing != null) {
@@ -60,13 +52,10 @@ public class CountryServiceImpl implements CountryService {
         return CountryMapper.toModel(saved);
     }
 
-    @Override
-    public CountryModel deleteCountry(Long id) throws CountryNotFoundException {
-        var existing = countryRepository.findById(id).orElseThrow(() -> {
-            logger.error("Country with id {} not found for deletion", id);
-            return new CountryNotFoundException(id);
-        });
-        countryRepository.delete(existing);
-        return CountryMapper.toModel(existing);
+    public CountryModel getCountryById(Long countryId) {
+        logger.info("Fetching country by id: {}", countryId);
+        return countryRepository.findById(countryId)
+                .map(CountryMapper::toModel)
+                .orElseThrow(() -> new CountryNotFoundException(countryId));
     }
 }

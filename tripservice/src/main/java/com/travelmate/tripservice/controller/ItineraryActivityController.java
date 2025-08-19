@@ -17,10 +17,9 @@ public class ItineraryActivityController {
     private ItineraryActivityService service;
 
     @PostMapping
-    public ResponseEntity<CustomResponseEntity<ItineraryActivityModel>> create(@RequestHeader("Authorization") String authHeader, @RequestBody ItineraryActivityModel model) {
+    public ResponseEntity<CustomResponseEntity<ItineraryActivityModel>> create(@RequestHeader("X-UserInfo") String authHeader, @RequestBody ItineraryActivityModel model) {
         try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            ItineraryActivityModel saved = service.create(token, model);
+            ItineraryActivityModel saved = service.create(model);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary activity created", saved, "/api/itinerary-activities"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/itinerary-activities"));
@@ -28,32 +27,19 @@ public class ItineraryActivityController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<ItineraryActivityModel>> update(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, @RequestBody ItineraryActivityModel model) {
+    public ResponseEntity<CustomResponseEntity<ItineraryActivityModel>> update(@RequestHeader("X-UserInfo") String authHeader, @PathVariable Long id, @RequestBody ItineraryActivityModel model) {
         try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            ItineraryActivityModel updated = service.update(token, id, model);
+            ItineraryActivityModel updated = service.update(id, model);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary activity updated", updated, "/api/itinerary-activities/" + id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/itinerary-activities/" + id));
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<Void>> delete(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
-        try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            service.delete(token, id);
-            return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary activity deleted", null, "/api/itinerary-activities/" + id));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/itinerary-activities/" + id));
-        }
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<ItineraryActivityModel>> getById(@RequestHeader("Authorization") String authHeader, @PathVariable Long id) {
+    public ResponseEntity<CustomResponseEntity<ItineraryActivityModel>> getById(@RequestHeader("X-UserInfo") String authHeader, @PathVariable Long id) {
         try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            ItineraryActivityModel activity = service.getById(token, id);
+            ItineraryActivityModel activity = service.getById(id);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary activity fetched", activity, "/api/itinerary-activities/" + id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(404, e.getMessage(), "/api/itinerary-activities/" + id));
@@ -61,10 +47,9 @@ public class ItineraryActivityController {
     }
 
     @GetMapping
-    public ResponseEntity<CustomResponseEntity<List<ItineraryActivityModel>>> getAll(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<CustomResponseEntity<List<ItineraryActivityModel>>> getAll(@RequestHeader("X-UserInfo") String authHeader) {
         try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            List<ItineraryActivityModel> activities = service.getAll(token);
+            List<ItineraryActivityModel> activities = service.getAll();
             return ResponseEntity.ok(CustomResponseEntity.success(200, "All itinerary activities fetched", activities, "/api/itinerary-activities"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/itinerary-activities"));
@@ -72,10 +57,9 @@ public class ItineraryActivityController {
     }
 
     @GetMapping("/suggest")
-    public ResponseEntity<CustomResponseEntity<List<ItineraryActivityModel>>> suggest(@RequestHeader("Authorization") String authHeader, @RequestParam String keyword) {
+    public ResponseEntity<CustomResponseEntity<List<ItineraryActivityModel>>> suggest(@RequestHeader("X-UserInfo") String authHeader, @RequestParam String keyword) {
         try {
-            String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-            List<ItineraryActivityModel> suggestions = service.suggest(token, keyword);
+            List<ItineraryActivityModel> suggestions = service.suggest(keyword);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary activity suggestions fetched", suggestions, "/api/itinerary-activities/suggest?keyword=" + keyword));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/itinerary-activities/suggest?keyword=" + keyword));

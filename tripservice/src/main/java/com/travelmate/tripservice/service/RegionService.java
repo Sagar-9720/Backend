@@ -15,5 +15,4 @@ public interface RegionService {
 
     RegionModel updateRegion(Long id, RegionModel regionModel) throws RegionNotFoundException;
 
-    RegionModel deleteRegion(Long id) throws RegionNotFoundException;
 }

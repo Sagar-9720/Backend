@@ -45,10 +45,4 @@ public class CountryController {
         }
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Country updated", updated, "/countries/" + id));
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<Void>> deleteCountry(@PathVariable Long id) {
-        countryService.deleteCountry(id);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Country deleted", null, "/countries/" + id));
-    }
 }

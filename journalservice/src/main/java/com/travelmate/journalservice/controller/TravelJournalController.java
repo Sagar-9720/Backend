@@ -1,6 +1,7 @@
 package com.travelmate.journalservice.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.travelmate.journalservice.dto.UserInfo;
 import com.travelmate.journalservice.model.TravelJournalLiteModel;
 import com.travelmate.journalservice.model.TravelJournalModel;
 import com.travelmate.journalservice.response.CustomResponseEntity;
@@ -17,18 +18,23 @@ public class TravelJournalController {
     @Autowired
     private TravelJournalServiceImpl travelJournalService;
 
+    public UserInfo extractHeader(String authHeader) throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        UserInfo userInfo = objectMapper.readValue(authHeader, UserInfo.class);
+        return userInfo;
+    }
+
     @GetMapping
-    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> getAllJournals(@RequestHeader("Authorization") String authHeader) throws JsonProcessingException {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        List<TravelJournalLiteModel> journals = travelJournalService.getAllJournals(token);
+    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> getAllJournals(@RequestHeader("X-UserInfo") String authHeader) throws Exception {
+        UserInfo userInfo = extractHeader(authHeader);
+        List<TravelJournalLiteModel> journals = travelJournalService.getAllJournals(userInfo.role());
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Journals fetched", journals, "/journals"));
     }
 
     @PostMapping
-    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> createJournal(@RequestHeader("Authorization") String authHeader, @RequestBody TravelJournalModel journalModel) {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> createJournal(@RequestHeader("X-UserInfo") String authHeader, @RequestBody TravelJournalModel journalModel) {
         try {
-            TravelJournalModel created = travelJournalService.createJournal(token, journalModel);
+            TravelJournalModel created = travelJournalService.createJournal(journalModel);
             return ResponseEntity.status(201).body(CustomResponseEntity.success(201, "Journal created", created, "/journals"));
         } catch (Exception e) {
             return ResponseEntity.status(400).body(CustomResponseEntity.error(400, "Failed to create journal: " + e.getMessage(), "/journals"));
@@ -36,10 +42,10 @@ public class TravelJournalController {
     }
 
     @PutMapping
-    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> updateJournal(@RequestHeader("Authorization") String authHeader, @RequestBody TravelJournalModel journalModel) {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> updateJournal(@RequestHeader("X-UserInfo") String authHeader, @RequestBody TravelJournalModel journalModel) {
         try {
-            TravelJournalModel updated = travelJournalService.updateJournal(token, journalModel);
+            UserInfo userInfo = extractHeader(authHeader);
+            TravelJournalModel updated = travelJournalService.updateJournal(userInfo.userId(), journalModel);
             if (updated != null) {
                 return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal updated", updated, "/journals/" + journalModel.id()));
             } else {
@@ -51,10 +57,10 @@ public class TravelJournalController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> deleteJournal(@RequestHeader("Authorization") String authHeader, @PathVariable String id) {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
+    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> deleteJournal(@RequestHeader("X-UserInfo") String authHeader, @PathVariable String id) {
         try {
-            TravelJournalModel deleted = travelJournalService.deleteJournal(token, id);
+            UserInfo userInfo = extractHeader(authHeader);
+            TravelJournalModel deleted = travelJournalService.deleteJournal(userInfo.userId(), id);
             if (deleted != null) {
                 return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal deleted", deleted, "/journals/" + id));
             } else {
@@ -66,9 +72,8 @@ public class TravelJournalController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> getJournalById(@RequestHeader("Authorization") String authHeader, @PathVariable String id) {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        TravelJournalModel journal = travelJournalService.getJournalById(token, id);
+    public ResponseEntity<CustomResponseEntity<TravelJournalModel>> getJournalById(@RequestHeader("X-UserInfo") String authHeader, @PathVariable String id) {
+        TravelJournalModel journal = travelJournalService.getJournalById(id);
         if (journal != null) {
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Journal fetched", journal, "/journals/" + id));
         } else {
@@ -77,9 +82,9 @@ public class TravelJournalController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> getJournalsByUserId(@RequestHeader("Authorization") String authHeader, @PathVariable String userId) throws JsonProcessingException {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        List<TravelJournalLiteModel> journals = travelJournalService.getJournalsByUserId(token, userId);
+    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> getJournalsByUserId(@RequestHeader("X-UserInfo") String authHeader, @PathVariable String userId) throws Exception {
+        UserInfo userInfo = extractHeader(authHeader);
+        List<TravelJournalLiteModel> journals = travelJournalService.getJournalsByUserId(userInfo.role(), userInfo.userId(), userId);
         if (journals == null || journals.isEmpty()) {
             return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "No journals found for user", "/journals/user/" + userId));
         }
@@ -87,9 +92,9 @@ public class TravelJournalController {
     }
 
     @GetMapping("/trip/{tripId}")
-    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> getJournalsByTripId(@RequestHeader("Authorization") String authHeader, @PathVariable String tripId) throws JsonProcessingException {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        List<TravelJournalLiteModel> journals = travelJournalService.getJournalsByTripId(token, tripId);
+    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> getJournalsByTripId(@RequestHeader("X-UserInfo") String authHeader, @PathVariable String tripId) throws Exception {
+        UserInfo userInfo = extractHeader(authHeader);
+        List<TravelJournalLiteModel> journals = travelJournalService.getJournalsByTripId(userInfo.userId(), userInfo.role(), tripId);
         if (journals == null || journals.isEmpty()) {
             return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "No journals found for trip", "/journals/trip/" + tripId));
         }
@@ -97,17 +102,15 @@ public class TravelJournalController {
     }
 
     @GetMapping("/public")
-    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> getPublicJournals(@RequestHeader("Authorization") String authHeader) {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        // If token is provided, fetch public journals for the
-        List<TravelJournalLiteModel> journals = travelJournalService.getPublicJournals(token);
+    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> getPublicJournals(@RequestHeader("X-UserInfo") String authHeader) {
+        List<TravelJournalLiteModel> journals = travelJournalService.getPublicJournals();
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Public journals fetched", journals, "/journals/public"));
     }
 
     @GetMapping("/tag/{tag}")
-    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> searchByTag(@RequestHeader("Authorization") String authHeader, @PathVariable String tag) throws JsonProcessingException {
-        String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        List<TravelJournalLiteModel> journals = travelJournalService.searchByTag(token, tag);
+    public ResponseEntity<CustomResponseEntity<List<TravelJournalLiteModel>>> searchByTag(@RequestHeader("X-UserInfo") String authHeader, @PathVariable String tag) throws Exception {
+        UserInfo userInfo = extractHeader(authHeader);
+        List<TravelJournalLiteModel> journals = travelJournalService.searchByTag(userInfo.userId(), tag);
         if (journals == null || journals.isEmpty()) {
             return ResponseEntity.status(404).body(CustomResponseEntity.error(404, "No journals found for tag", "/journals/tag/" + tag));
         }

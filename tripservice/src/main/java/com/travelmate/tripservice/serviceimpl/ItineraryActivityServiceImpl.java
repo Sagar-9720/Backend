@@ -11,7 +11,6 @@ import com.travelmate.tripservice.mapper.ItineraryActivityMapper;
 import com.travelmate.tripservice.model.ItineraryActivityModel;
 import com.travelmate.tripservice.repository.ItineraryActivityRepository;
 import com.travelmate.tripservice.service.ItineraryActivityService;
-import com.travelmate.tripservice.service.TokenValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,19 +24,13 @@ public class ItineraryActivityServiceImpl implements ItineraryActivityService {
     private ItineraryActivityRepository repository;
 
     @Autowired
-    private TokenValidationService tokenValidationService;
-
-    @Autowired
     private ElasticsearchClient elasticsearchClient;
 
     @Value("${elasticsearch.index.itineraryactivities:itineraryactivities}")
     private String itineraryActivityIndex;
 
     @Override
-    public ItineraryActivityModel create(String token, ItineraryActivityModel model) {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to create ItineraryActivity");
-        }
+    public ItineraryActivityModel create(ItineraryActivityModel model) {
         ItineraryActivity entity = ItineraryActivityMapper.toEntity(model);
         ItineraryActivityModel savedModel = ItineraryActivityMapper.toModel(repository.save(entity));
         indexItineraryActivity(savedModel);
@@ -45,10 +38,7 @@ public class ItineraryActivityServiceImpl implements ItineraryActivityService {
     }
 
     @Override
-    public ItineraryActivityModel update(String token, Long id, ItineraryActivityModel model) {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to update ItineraryActivity");
-        }
+    public ItineraryActivityModel update(Long id, ItineraryActivityModel model) {
         ItineraryActivity entity = repository.findById(id).orElseThrow(() -> new RuntimeException("ItineraryActivity not found"));
         entity.setActivityName(model.activityName());
         entity.setDescription(model.description());
@@ -58,34 +48,17 @@ public class ItineraryActivityServiceImpl implements ItineraryActivityService {
     }
 
     @Override
-    public void delete(String token, Long id) {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to delete ItineraryActivity");
-        }
-        repository.deleteById(id);
-    }
-
-    @Override
-    public ItineraryActivityModel getById(String token, Long id) {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to get ItineraryActivity by id: " + id);
-        }
+    public ItineraryActivityModel getById(Long id) {
         return repository.findById(id).map(ItineraryActivityMapper::toModel).orElseThrow();
     }
 
     @Override
-    public List<ItineraryActivityModel> getAll(String token) {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to get all ItineraryActivities");
-        }
+    public List<ItineraryActivityModel> getAll() {
         return repository.findAll().stream().map(ItineraryActivityMapper::toModel).toList();
     }
 
     @Override
-    public List<ItineraryActivityModel> suggest(String token, String keyword) {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to suggest ItineraryActivities");
-        }
+    public List<ItineraryActivityModel> suggest(String keyword) {
         try {
             SearchRequest searchRequest = SearchRequest.of(s -> s.index(itineraryActivityIndex).query(q -> q.fuzzy(f -> f.field("activityName").value(keyword).fuzziness("AUTO"))).size(10));
             SearchResponse<ItineraryActivityModel> response = elasticsearchClient.search(searchRequest, ItineraryActivityModel.class);

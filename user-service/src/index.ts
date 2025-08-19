@@ -42,40 +42,6 @@ const startServer = async () => {
             res.end(await promClient.register.metrics());
         });
 
-        // // Parse allowed origins into array
-        // const allowedOrigins = process.env.FRONTEND_URLS
-        //     ? process.env.FRONTEND_URLS.split(',').map(o => o.trim())
-        //     : [];
-        //
-        // // Configure CORS
-        // app.use(cors({
-        //     origin: (origin, callback) => {
-        //         // Allow requests with no origin (like curl or Postman)
-        //         if (!origin) return callback(null, true);
-        //
-        //         if (allowedOrigins.includes(origin)) {
-        //             return callback(null, true);
-        //         } else {
-        //             return callback(new Error('CORS policy: Origin not allowed'), false);
-        //         }
-        //     },
-        //     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        //     allowedHeaders: ['Content-Type', 'Authorization'],
-        //     credentials: true
-        // }));
-        //
-        // // Preflight handling
-        // app.options('*', cors({
-        //     origin: (origin, callback) => {
-        //         if (!origin || allowedOrigins.includes(origin)) {
-        //             return callback(null, true);
-        //         }
-        //         return callback(new Error('CORS policy: Origin not allowed'), false);
-        //     },
-        //     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        //     allowedHeaders: ['Content-Type', 'Authorization'],
-        //     credentials: true
-        // }));
         app.use(cors());
         app.use(express.json());
 
@@ -93,63 +59,6 @@ const startServer = async () => {
         app.use('/api/users/comments', commentRoutes);
         app.use('/api/users/like', likeRoutes);
         app.use('/api/users/view', viewRoutes);
-
-        // Token validation cache (2 min TTL)
-        const tokenCache = new NodeCache({stdTTL: 120, checkperiod: 150});
-
-        // Token validation response type
-        interface TokenValidationData {
-            valid: boolean;
-            userId: string;
-            username: string;
-            email: string;
-            role: string;
-            message?: string;
-
-            [key: string]: any;
-        }
-
-        // --- Bearer Token Validation Middleware ---
-        app.use(async (req, res, next) => {
-            if (req.path === '/health' || req.path === '/metrics') return next();
-            const authHeader = req.headers['authorization'];
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({message: 'Missing or invalid Authorization header'});
-            }
-            // Check cache first
-            const cached = tokenCache.get(authHeader) as TokenValidationData | undefined;
-            if (cached && cached.valid) {
-                (req as any).user = cached;
-                return next();
-            }
-            try {
-                // Discover auth-service from Eureka
-                const authServiceUrl = getAuthServiceUrl();
-                if (!authServiceUrl) {
-                    return res.status(503).json({message: 'Auth service unavailable'});
-                }
-                console.log('Validating token with:', authServiceUrl);
-                console.log('Authorization header:', authHeader);
-                const response = await axios.post(
-                    authServiceUrl,
-                    {},
-                    {headers: {Authorization: authHeader}}
-                );
-                console.log('Validation response:', response.data);
-                const data = response.data.data as TokenValidationData;
-                if (!data?.valid) {
-                    return res.status(401).json({message: data?.message || 'Invalid token'});
-                }
-                // Cache the result
-                tokenCache.set(authHeader, data);
-                (req as any).user = data;
-                next();
-            } catch (err) {
-                // Fallback logic: return a custom response if all retries fail
-                return res.status(401).json({message: 'Token validation failed (with retry/fallback)'});
-            }
-        });
-
         // Add axios-retry for Feign-like retry logic
         axiosRetry(axios, {retries: 3, retryDelay: axiosRetry.exponentialDelay});
 

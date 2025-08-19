@@ -1,12 +1,9 @@
 package com.travelmate.journalservice.serviceimpl;
 
-import com.travelmate.journalservice.entity.Tag;
-import com.travelmate.journalservice.exceptions.UnauthorizedAccessException;
 import com.travelmate.journalservice.repository.TagRepository;
 import com.travelmate.journalservice.service.TagService;
 import com.travelmate.journalservice.model.TagModel;
 import com.travelmate.journalservice.mapper.TagMapper;
-import com.travelmate.journalservice.service.TokenValidationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
@@ -30,9 +26,6 @@ public class TagServiceImpl implements TagService {
 
     @Autowired
     private ElasticsearchClient elasticsearchClient;
-
-    @Autowired
-    private TokenValidationService tokenValidationService;
 
     @Value("${elasticsearch.index.tags:tags}")
     private String tagIndex;

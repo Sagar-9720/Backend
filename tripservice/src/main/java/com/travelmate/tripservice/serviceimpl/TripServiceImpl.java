@@ -5,30 +5,24 @@ import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.travelmate.tripservice.client.AuthServiceClient;
-import com.travelmate.tripservice.client.TokenValidationResponse;
 import com.travelmate.tripservice.entity.*;
 import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.mapper.*;
 import com.travelmate.tripservice.model.*;
-import com.travelmate.tripservice.repository.DestinationRepository;
-import com.travelmate.tripservice.repository.ItineraryRepository;
 import com.travelmate.tripservice.repository.TripRepository;
 import com.travelmate.tripservice.repository.TripRequestRepository;
 import com.travelmate.tripservice.service.*;
-import org.antlr.v4.runtime.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TripServiceImpl implements TripService {
@@ -38,14 +32,6 @@ public class TripServiceImpl implements TripService {
 
     @Autowired
     private DestinationServiceImpl destinationService;
-    @Autowired
-    private ItineraryServiceImpl itineraryService;
-
-    @Autowired
-    private TripItineraryDetailService itineraryDetailService;
-
-    @Autowired
-    private ItineraryActivityServiceImpl itineraryActivityService;
 
     @Autowired
     private TripRequestRepository tripRequestRepository;
@@ -53,12 +39,8 @@ public class TripServiceImpl implements TripService {
     @Autowired
     private ElasticsearchClient elasticsearchClient;
 
-    @Autowired
-    private TokenValidationService tokenValidationService;
-
     @Value("${elasticsearch.index.trips:trips}")
     private String tripIndex;
-
     private static final Logger logger = LoggerFactory.getLogger(TripServiceImpl.class);
     @Autowired
     private TripItineraryDetailService tripItineraryDetailService;
@@ -66,12 +48,8 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @CacheEvict(value = {"trips", "tripsAll"}, allEntries = true)
-    public TripLiteModel createTrip(String token, TripModel tripModel) throws TripExistsException, UnauthorizedAccessException, JsonProcessingException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
-        String userName = tokenValidationService.getUserName(token);
-        String role = tokenValidationService.getRole(token);
+    public TripLiteModel createTrip(String userName, String role, TripModel tripModel) throws TripExistsException, UnauthorizedAccessException {
+
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
@@ -82,13 +60,13 @@ public class TripServiceImpl implements TripService {
         }
         Trip trip = TripMapper.toEntity(tripModel);
         if (tripModel.destination().id() == null) {
-            trip.setMainDestination(DestinationMapper.toEntity(destinationService.createDestination(token, tripModel.destination())));
+            trip.setMainDestination(DestinationMapper.toEntity(destinationService.createDestination(role, tripModel.destination())));
         }
         if (tripModel.itineraryDetails() != null && !tripModel.itineraryDetails().isEmpty()) {
             List<TripItineraryDetail> itineraries = new ArrayList<>();
             for (TripItineraryDetailModel itinerary : tripModel.itineraryDetails()) {
                 TripItineraryDetail tripItineraryDetail = TripItineraryDetailMapper.toEntity(itinerary);
-                itineraries.add(TripItineraryDetailMapper.toEntity(tripItineraryDetailService.create(token, TripItineraryDetailMapper.toModel(tripItineraryDetail))));
+                itineraries.add(TripItineraryDetailMapper.toEntity(tripItineraryDetailService.create(TripItineraryDetailMapper.toModel(tripItineraryDetail))));
             }
             trip.setTripItineraryDetails(itineraries);
         }
@@ -101,33 +79,27 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Cacheable(value = "trips", key = "#id")
-    public TripModel getTripById(String token, Long id) throws TripNotFoundException, UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
+    public TripModel getTripById(Long id) throws TripNotFoundException, UnauthorizedAccessException {
         logger.info("Fetching trip by id: {}", id);
         return tripRepository.findById(id).map(TripMapper::toModel).orElseThrow(() -> new TripNotFoundException(id));
     }
 
     @Override
     @Cacheable(value = "tripsAll")
-    public List<TripLiteModel> getAllTrips(String token) throws UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
+    public List<TripLiteModel> getAllTrips(String role) throws UnauthorizedAccessException {
         logger.info("Fetching all trips");
         List<TripLiteModel> list = tripRepository.findAll().stream().map(TripMapper::toLiteModel).toList();
+        if (role.equalsIgnoreCase("USER") || role.equalsIgnoreCase("GUEST")) {
+            list = list.stream().filter(TripLiteModel::isActive).collect(Collectors.toList());
+        }
         logger.info("Found {} trips", list);
         return list;
     }
 
     @Override
     @CacheEvict(value = {"trips", "tripsAll"}, allEntries = true)
-    public TripLiteModel updateTrip(String token, TripModel updatedTripModel) throws TripNotFoundException, UnauthorizedAccessException, JsonProcessingException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
-        String role = tokenValidationService.getRole(token);
+    public TripLiteModel updateTrip(String role, TripModel updatedTripModel) throws TripNotFoundException, UnauthorizedAccessException {
+
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
@@ -143,9 +115,9 @@ public class TripServiceImpl implements TripService {
         // Set main destination (create if needed)
         if (updatedTripModel.destination() != null) {
             if (updatedTripModel.destination().id() == null) {
-                existingTrip.setMainDestination(DestinationMapper.toEntity(destinationService.createDestination(token, updatedTripModel.destination())));
+                existingTrip.setMainDestination(DestinationMapper.toEntity(destinationService.createDestination(role, updatedTripModel.destination())));
             } else {
-                DestinationModel destinationModel = destinationService.getDestinationById(token, updatedTripModel.destination().id());
+                DestinationModel destinationModel = destinationService.getDestinationById(updatedTripModel.destination().id());
                 if (destinationModel == null) {
                     throw new DestinationNotFoundException(updatedTripModel.destination().id());
                 }
@@ -158,9 +130,9 @@ public class TripServiceImpl implements TripService {
             for (TripItineraryDetailModel itinerary : updatedTripModel.itineraryDetails()) {
                 TripItineraryDetail tripItineraryDetail = TripItineraryDetailMapper.toEntity(itinerary);
                 if (itinerary.id() == null) {
-                    itineraryDetails.add(TripItineraryDetailMapper.toEntity(tripItineraryDetailService.create(token, TripItineraryDetailMapper.toModel(tripItineraryDetail))));
+                    itineraryDetails.add(TripItineraryDetailMapper.toEntity(tripItineraryDetailService.create(TripItineraryDetailMapper.toModel(tripItineraryDetail))));
                 } else {
-                    TripItineraryDetailModel existingItinerary = tripItineraryDetailService.getById(token, itinerary.id());
+                    TripItineraryDetailModel existingItinerary = tripItineraryDetailService.getById(itinerary.id());
                     itineraryDetails.add(TripItineraryDetailMapper.toEntity(existingItinerary));
                 }
             }
@@ -173,11 +145,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @CacheEvict(value = {"trips", "tripsAll"}, allEntries = true)
-    public TripLiteModel deleteTrip(String token, Long id) throws TripNotFoundException, UnauthorizedAccessException, JsonProcessingException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
-        String role = tokenValidationService.getRole(token);
+    public TripLiteModel deleteTrip(String role, Long id) throws TripNotFoundException, UnauthorizedAccessException {
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
@@ -191,30 +159,28 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Cacheable(value = "tripsByDestination", key = "#destinationName")
-    public List<TripLiteModel> getTripsByDestinationName(String token, String destinationName) throws DestinationNotFoundException, UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
+    public List<TripLiteModel> getTripsByDestinationName(String role, String destinationName) throws DestinationNotFoundException {
         logger.info("Fetching trips by destination name: {}", destinationName);
         List<Trip> trips = tripRepository.findByMainDestinationContainingIgnoreCase(destinationName);
-        return trips.stream()
-                .map(TripMapper::toLiteModel)
-                .toList();
+        if (role.equalsIgnoreCase("user") || role.equalsIgnoreCase("guest")) {
+            trips = trips.stream().filter(Trip::getIsActive).toList();
+        }
+        return trips.stream().map(TripMapper::toLiteModel).toList();
     }
 
     @Override
     @Cacheable(value = "tripsByPrice", key = "#startPrice.toString().concat('-').concat(#endPrice.toString())")
-    public List<TripLiteModel> tripsBtwPriceRanges(String token, BigDecimal startPrice, BigDecimal endPrice) throws UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
+    public List<TripLiteModel> tripsBtwPriceRanges(String role, BigDecimal startPrice, BigDecimal endPrice) throws UnauthorizedAccessException {
         logger.info("Fetching trips between price range: {} - {}", startPrice, endPrice);
-        return tripRepository.findByPriceBetween(startPrice, endPrice).stream().map(TripMapper::toLiteModel).toList();
+        List<TripLiteModel> trips = tripRepository.findByPriceBetween(startPrice, endPrice).stream().map(TripMapper::toLiteModel).toList();
+        if (role.equalsIgnoreCase("user") || role.equalsIgnoreCase("guest")) {
+            trips = trips.stream().filter(TripLiteModel::isActive).collect(Collectors.toList());
+        }
+        return trips;
     }
 
     @Override
-    public void autoDeleteTripByDate(String token) throws UnauthorizedAccessException, JsonProcessingException {
-        String role = tokenValidationService.getRole(token);
+    public void autoDeleteTripByDate(String role) throws UnauthorizedAccessException {
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
@@ -250,10 +216,7 @@ public class TripServiceImpl implements TripService {
         }
     }
 
-    public List<Map<String, String>> getTripNamesById(String token, List<String> tripIds) {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
+    public List<Map<String, String>> getTripNamesById(List<String> tripIds) {
         logger.info("Fetching trip names by IDs: {}", tripIds);
         List<Map<String, String>> tripNames = new ArrayList<>();
         for (String id : tripIds) {
@@ -273,12 +236,7 @@ public class TripServiceImpl implements TripService {
     // User Trip Request Thing
 
     @Override
-    public List<TripRequest> getTripRequestByUserId(String token, String userId) throws UnauthorizedAccessException, JsonProcessingException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
-        String role = tokenValidationService.getRole(token);
-        String authUserId = tokenValidationService.getUserId(token);
+    public List<TripRequest> getTripRequestByUserId(String authUserId, String role, String userId) throws UnauthorizedAccessException {
         if (!authUserId.equals(userId) && !"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not authorized to view this trip request");
         }
@@ -294,8 +252,8 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripLiteModel approveTripRequest(String token, String tripRequestId, TripRequest tripRequest) throws UnauthorizedAccessException, JsonProcessingException {
-        String role = tokenValidationService.getRole(token);
+    public TripLiteModel approveTripRequest(String role, String tripRequestId) throws UnauthorizedAccessException {
+
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
@@ -312,8 +270,8 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripRequest> getAllTripsRequested(String token) throws UnauthorizedAccessException, JsonProcessingException {
-        String role = tokenValidationService.getRole(token);
+    public List<TripRequest> getAllTripsRequested(String role) throws UnauthorizedAccessException {
+
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
@@ -328,12 +286,8 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripRequest addTripsRequestedByUser(String token, TripRequest tripRequest) throws UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Invalid token or unauthorized access");
-        }
+    public TripRequest addTripsRequestedByUser(TripRequest tripRequest) {
         return tripRequestRepository.save(tripRequest);
-
     }
 
 

@@ -1,6 +1,5 @@
 package com.travelmate.tripservice.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.travelmate.tripservice.entity.TripRequest;
 import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.model.TripLiteModel;
@@ -14,38 +13,38 @@ import java.util.Optional;
 public interface TripService {
 
     //Admin operations
-    TripLiteModel createTrip(String token, TripModel tripModel) throws TripExistsException, UnauthorizedAccessException, JsonProcessingException;
+    TripLiteModel createTrip(String userName, String role, TripModel tripModel) throws TripExistsException;
 
-    TripLiteModel updateTrip(String token, TripModel updatedTripModel) throws TripNotFoundException, UnauthorizedAccessException, JsonProcessingException;
+    TripLiteModel updateTrip(String role, TripModel updatedTripModel) throws TripNotFoundException;
 
-    TripLiteModel deleteTrip(String token, Long id) throws TripNotFoundException, UnauthorizedAccessException, JsonProcessingException;
+    TripLiteModel deleteTrip(String role, Long id) throws TripNotFoundException;
 
-    void autoDeleteTripByDate(String token) throws UnauthorizedAccessException, JsonProcessingException;
+    void autoDeleteTripByDate(String role);
 
-    List<TripRequest> getTripRequestByUserId(String token, String userId) throws UnauthorizedAccessException, JsonProcessingException;
+    List<TripRequest> getTripRequestByUserId(String authUserId, String role, String userId);
 
-    TripLiteModel approveTripRequest(String token, String tripRequestId, TripRequest tripRequest) throws UnauthorizedAccessException, JsonProcessingException;
+    TripLiteModel approveTripRequest(String role, String tripRequestId);
 
-    List<TripRequest> getAllTripsRequested(String token) throws UnauthorizedAccessException, JsonProcessingException;
+    List<TripRequest> getAllTripsRequested(String role);
 
 
     //User operations
 
-    List<TripLiteModel> tripsBtwPriceRanges(String token, BigDecimal startPrice, BigDecimal endPrice) throws UnauthorizedAccessException;
+    List<TripLiteModel> tripsBtwPriceRanges(String role, BigDecimal startPrice, BigDecimal endPrice);
 
-    TripRequest addTripsRequestedByUser(String token, TripRequest tripRequest) throws UnauthorizedAccessException;
+    TripRequest addTripsRequestedByUser(TripRequest tripRequest);
 
     //Both Admin and User operations
-    List<TripLiteModel> getTripsByDestinationName(String token, String destinationName) throws DestinationNotFoundException, UnauthorizedAccessException;
+    List<TripLiteModel> getTripsByDestinationName(String role, String destinationName) throws DestinationNotFoundException;
 
-    List<TripLiteModel> getAllTrips(String token) throws UnauthorizedAccessException;
+    List<TripLiteModel> getAllTrips(String role);
 
-    TripModel getTripById(String token, Long id) throws TripNotFoundException, UnauthorizedAccessException;
+    TripModel getTripById(Long id) throws TripNotFoundException;
 
     List<String> suggestTrips(String query);
 
     void indexTrip(TripModel tripModel);
 
-    List<Map<String, String>> getTripNamesById(String token, List<String> tripIds);
+    List<Map<String, String>> getTripNamesById(List<String> tripIds);
 
 }

@@ -44,10 +44,4 @@ public class RegionController {
         }
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Region updated", updated, "/regions/" + id));
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<Void>> deleteRegion(@PathVariable Long id) {
-        regionService.deleteRegion(id);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Region deleted", null, "/regions/" + id));
-    }
 }

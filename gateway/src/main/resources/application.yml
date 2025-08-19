@@ -14,16 +14,16 @@ spring:
       enabled: true
       id: ${spring.application.name}
     stream:
-        kafka:
-            binder:
-                brokers: kafka:9092
-                auto-create-topics: true
-        bindings:
-          springCloudBusInput:
-            destination: springCloudBus
-            group: ${spring.application.name}
-          springCloudBusOutput:
-            destination: springCloudBus
+      kafka:
+        binder:
+          brokers: kafka:9092
+          auto-create-topics: true
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          group: ${spring.application.name}
+        springCloudBusOutput:
+          destination: springCloudBus
     gateway:
       discovery:
         locator:
@@ -50,7 +50,7 @@ spring:
           predicates:
             - Path=/api/journal/**
     kafka:
-        bootstrap-servers: kafka:9092
+      bootstrap-servers: kafka:9092
 
   profiles:
     active: docker

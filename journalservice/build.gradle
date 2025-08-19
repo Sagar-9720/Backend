@@ -46,8 +46,6 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.postgresql:postgresql:42.7.3'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
@@ -55,7 +53,6 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'org.apache.kafka:kafka-clients'
 	implementation 'co.elastic.clients:elasticsearch-java:8.13.4'
-	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 	compileOnly libraries.lombok
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly libraries.postgresql

@@ -1,6 +1,7 @@
 package com.travelmate.tripservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -25,6 +26,6 @@ public class ItineraryActivity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trip_itinerary_detail_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore
     private TripItineraryDetail tripItineraryDetail;
 }

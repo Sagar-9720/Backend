@@ -7,7 +7,6 @@ import com.travelmate.tripservice.mapper.CountryMapper;
 import com.travelmate.tripservice.model.CountryModel;
 import com.travelmate.tripservice.model.RegionModel;
 import com.travelmate.tripservice.mapper.RegionMapper;
-import com.travelmate.tripservice.repository.CountryRepository;
 import com.travelmate.tripservice.repository.RegionRepository;
 import com.travelmate.tripservice.service.RegionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,14 +72,5 @@ public class RegionServiceImpl implements RegionService {
         }
         Region saved = regionRepository.save(existing);
         return RegionMapper.toModel(saved);
-    }
-
-    @Override
-    public RegionModel deleteRegion(Long id) throws RegionNotFoundException {
-        logger.info("Deleting region with id: {}", id);
-        Region existing = regionRepository.findById(id).orElseThrow(() -> new RegionNotFoundException(id));
-
-        regionRepository.deleteById(id);
-        return RegionMapper.toModel(existing);
     }
 }

@@ -1,6 +1,5 @@
 package com.travelmate.journalservice.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.travelmate.journalservice.model.TravelJournalLiteModel;
 import com.travelmate.journalservice.model.TravelJournalModel;
 
@@ -8,23 +7,22 @@ import java.util.List;
 
 public interface TravelJournalService {
 
-    TravelJournalModel createJournal(String token, TravelJournalModel journalModel);
+    TravelJournalModel createJournal(TravelJournalModel journalModel);
 
-    TravelJournalModel updateJournal(String token, TravelJournalModel journalModel) throws JsonProcessingException;
+    TravelJournalModel updateJournal(String userId, TravelJournalModel journalModel);
 
-    TravelJournalModel deleteJournal(String token, String id) throws JsonProcessingException;
+    TravelJournalModel deleteJournal(String userId, String id);
 
-    TravelJournalModel getJournalById(String token, String id);
+    TravelJournalModel getJournalById(String id);
 
-    List<TravelJournalLiteModel> getJournalsByUserId(String token, String userId) throws JsonProcessingException;
+    List<TravelJournalLiteModel> getJournalsByUserId(String role, String authUserId, String userId);
 
-    List<TravelJournalLiteModel> getJournalsByTripId(String token, String tripId) throws JsonProcessingException;
+    List<TravelJournalLiteModel> getJournalsByTripId(String userId, String role, String tripId);
 
-    List<TravelJournalLiteModel> getPublicJournals(String token);
+    List<TravelJournalLiteModel> getPublicJournals();
 
-    List<TravelJournalLiteModel> searchByTag(String tag, String token) throws JsonProcessingException;
+    List<TravelJournalLiteModel> searchByTag(String userId, String tag);
 
-    List<TravelJournalLiteModel> getAllJournals(String token) throws JsonProcessingException;
-
+    List<TravelJournalLiteModel> getAllJournals(String role);
 
 }

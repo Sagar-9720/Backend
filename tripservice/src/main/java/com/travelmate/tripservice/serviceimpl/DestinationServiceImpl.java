@@ -1,9 +1,6 @@
 package com.travelmate.tripservice.serviceimpl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.travelmate.tripservice.entity.Country;
 import com.travelmate.tripservice.entity.Destination;
-import com.travelmate.tripservice.entity.Region;
 import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.mapper.CountryMapper;
 import com.travelmate.tripservice.mapper.DestinationMapper;
@@ -11,11 +8,8 @@ import com.travelmate.tripservice.mapper.RegionMapper;
 import com.travelmate.tripservice.model.CountryModel;
 import com.travelmate.tripservice.model.DestinationModel;
 import com.travelmate.tripservice.model.RegionModel;
-import com.travelmate.tripservice.repository.CountryRepository;
 import com.travelmate.tripservice.repository.DestinationRepository;
-import com.travelmate.tripservice.repository.RegionRepository;
 import com.travelmate.tripservice.service.DestinationService;
-import com.travelmate.tripservice.service.TokenValidationService;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
@@ -47,20 +41,14 @@ public class DestinationServiceImpl implements DestinationService {
     @Autowired
     private ElasticsearchClient elasticsearchClient;
 
-    @Autowired
-    private TokenValidationService tokenValidationService;
-
     @Value("${elasticsearch.index.destinations:destinations}")
     private String destinationIndex;
 
     private static final Logger logger = LoggerFactory.getLogger(DestinationServiceImpl.class);
 
     @Override
-    public DestinationModel createDestination(String token, DestinationModel destinationModel) throws DestinationExistException, UnauthorizedAccessException, JsonProcessingException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to create destination");
-        }
-        String role = tokenValidationService.getRole(token);
+    public DestinationModel createDestination(String role, DestinationModel destinationModel) throws DestinationExistException, UnauthorizedAccessException {
+
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("Role is not authorized to create destination");
         }
@@ -79,29 +67,20 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
-    public DestinationModel getDestinationById(String token, Long id) throws DestinationNotFoundException, UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to destination");
-        }
+    public DestinationModel getDestinationById(Long id) throws DestinationNotFoundException {
         logger.info("Fetching destination by id: {}", id);
         return destinationRepository.findById(id).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(id));
     }
 
     @Override
-    public List<DestinationModel> getAllDestinations(String token) throws UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to destinations");
-        }
+    public List<DestinationModel> getAllDestinations() {
         logger.info("Fetching all destinations");
         return destinationRepository.findAll().stream().map(DestinationMapper::toModel).toList();
     }
 
     @Override
-    public DestinationModel updateDestination(String token, DestinationModel model) throws DestinationNotFoundException, UnauthorizedAccessException, JsonProcessingException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to update destination");
-        }
-        String role = tokenValidationService.getRole(token);
+    public DestinationModel updateDestination(String role, DestinationModel model) throws DestinationNotFoundException, UnauthorizedAccessException {
+
         if (role != null && !"user".equalsIgnoreCase(role)) {
             logger.info("Updating destination id: {}", model.id());
             Optional<Destination> existingDestination = destinationRepository.findById(model.id());
@@ -112,7 +91,6 @@ public class DestinationServiceImpl implements DestinationService {
             existing.setName(model.name());
             existing.setDescription(model.description());
             existing.setImageUrl(model.imageUrl());
-            // Handle region update/creation like in createDestination
             if (model.region() != null) {
                 if (model.region().id() == null) {
                     existing.setRegion(RegionMapper.toEntity(regionService.addRegion(model.region())));
@@ -129,10 +107,8 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
-    public List<DestinationModel> getDestinationsByRegionId(String token, Long regionId) throws RegionNotFoundException, UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to destinations by region");
-        }
+    public List<DestinationModel> getDestinationsByRegionId(Long regionId) throws RegionNotFoundException {
+
         logger.info("Fetching destinations by region id: {}", regionId);
         RegionModel regionModel = regionService.getRegionById(regionId);
         if (regionModel == null) {
@@ -142,10 +118,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
-    public List<DestinationModel> getDestinationsByCountryId(String token, Long countryId) throws CountryNotFoundException, UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to destinations by country");
-        }
+    public List<DestinationModel> getDestinationsByCountryId(Long countryId) throws CountryNotFoundException, UnauthorizedAccessException {
         logger.info("Fetching destinations by country id: {}", countryId);
         CountryModel countryModel = countryService.getCountryById(countryId);
         if (countryModel == null) {
@@ -155,10 +128,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
-    public List<DestinationModel> searchDestinationByName(String token, String name) throws DestinationNotFoundException, UnauthorizedAccessException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to search destinations");
-        }
+    public List<DestinationModel> searchDestinationByName(String name) throws DestinationNotFoundException, UnauthorizedAccessException {
         logger.info("Searching destinations by name: {}", name);
         List<Destination> destinations = destinationRepository.findByNameContainingIgnoreCase(name);
         if (destinations.isEmpty()) {
@@ -167,22 +137,6 @@ public class DestinationServiceImpl implements DestinationService {
         return destinations.stream().map(DestinationMapper::toModel).toList();
     }
 
-
-    @Override
-    public DestinationModel deleteDestination(String token, DestinationModel model) throws DestinationNotFoundException, UnauthorizedAccessException, JsonProcessingException {
-        if (!tokenValidationService.isTokenValid(token)) {
-            throw new UnauthorizedAccessException("Unauthorized access to delete destination");
-        }
-        String role = tokenValidationService.getRole(token);
-        if ("admin".equalsIgnoreCase(role) || "subadmin".equalsIgnoreCase(role)) {
-            DestinationModel deleted = destinationRepository.findById(model.id()).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(model.id()));
-            destinationRepository.deleteById(model.id());
-            logger.info("Deleting destination id: {}", model.id());
-            return deleted;
-        } else {
-            throw new UnauthorizedAccessException("Not authorized to delete destination");
-        }
-    }
 
     @Override
     public void indexDestination(DestinationModel destinationModel) {

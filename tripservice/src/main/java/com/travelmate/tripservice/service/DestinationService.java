@@ -1,31 +1,27 @@
 package com.travelmate.tripservice.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.model.DestinationModel;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface DestinationService {
 
     //Admin Operations
-    DestinationModel createDestination(String token, DestinationModel destinationModel) throws DestinationExistException, UnauthorizedAccessException, JsonProcessingException;
+    DestinationModel createDestination(String role, DestinationModel destinationModel) throws DestinationExistException;
 
-    DestinationModel deleteDestination(String token, DestinationModel destinationModel) throws DestinationNotFoundException, UnauthorizedAccessException, JsonProcessingException;
-
-    DestinationModel updateDestination(String token, DestinationModel destinationModel) throws DestinationNotFoundException, UnauthorizedAccessException, JsonProcessingException;
+    DestinationModel updateDestination(String role, DestinationModel destinationModel) throws DestinationNotFoundException;
 
     // Both Admin and User Operations
-    DestinationModel getDestinationById(String token, Long id) throws DestinationNotFoundException, UnauthorizedAccessException;
+    DestinationModel getDestinationById(Long id) throws DestinationNotFoundException;
 
-    List<DestinationModel> getAllDestinations(String token) throws UnauthorizedAccessException;
+    List<DestinationModel> getAllDestinations();
 
-    List<DestinationModel> getDestinationsByRegionId(String token, Long regionId) throws RegionNotFoundException, UnauthorizedAccessException;
+    List<DestinationModel> getDestinationsByRegionId(Long regionId) throws RegionNotFoundException;
 
-    List<DestinationModel> getDestinationsByCountryId(String token, Long countryId) throws CountryNotFoundException, UnauthorizedAccessException;
+    List<DestinationModel> getDestinationsByCountryId(Long countryId) throws CountryNotFoundException;
 
-    List<DestinationModel> searchDestinationByName(String token, String name) throws DestinationNotFoundException, UnauthorizedAccessException;
+    List<DestinationModel> searchDestinationByName(String name) throws DestinationNotFoundException;
 
     List<String> suggestDestinations(String query);
 
