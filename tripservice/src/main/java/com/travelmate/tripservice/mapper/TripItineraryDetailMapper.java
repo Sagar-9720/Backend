@@ -3,6 +3,8 @@ package com.travelmate.tripservice.mapper;
 import com.travelmate.tripservice.entity.TripItineraryDetail;
 import com.travelmate.tripservice.model.TripItineraryDetailModel;
 
+import java.util.stream.Collectors;
+
 public class TripItineraryDetailMapper {
     public static TripItineraryDetailModel toModel(TripItineraryDetail entity) {
         if (entity == null) return null;
@@ -24,7 +26,7 @@ public class TripItineraryDetailMapper {
                 .dayNumber(model.dayNumber())
                 .arrivalTime(model.arrivalTime())
                 .departureTime(model.departureTime())
-                .activities(model.activities().stream().map(ItineraryActivityMapper::toEntity).toList())
+                .activities(model.activities().stream().map(ItineraryActivityMapper::toEntity).collect(Collectors.toSet()))
                 .build();
     }
 }

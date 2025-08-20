@@ -9,6 +9,7 @@ import com.travelmate.tripservice.service.ExtractHeader;
 import com.travelmate.tripservice.serviceimpl.TripServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,20 +25,28 @@ public class TripController {
 
     @Autowired
     private TripServiceImpl tripService;
-    private Logger logger;
+    private static final Logger logger = LoggerFactory.getLogger(TripController.class);
 
     @GetMapping
     public ResponseEntity<CustomResponseEntity<List<TripLiteModel>>> getAllTrips(@RequestHeader("X-UserInfo") String authHeader, HttpServletRequest servletRequest) throws Exception {
-        UserInfo userInfo = ExtractHeader.extractHeader(authHeader);
-        List<TripLiteModel> trips = tripService.getAllTrips(userInfo.role());
-        logger.info("Fetched trips {}", trips);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Trips fetched", trips, servletRequest.getRequestURI()));
+        try {
+            UserInfo userInfo = ExtractHeader.extractHeader(authHeader);
+            List<TripLiteModel> trips = tripService.getAllTrips(userInfo.role());
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "Trips fetched", trips, servletRequest.getRequestURI()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), servletRequest.getRequestURI()));
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponseEntity<TripModel>> getTripById(@RequestHeader("X-UserInfo") String authHeader, @PathVariable Long id, HttpServletRequest servletRequest) throws Exception {
-        TripModel trip = tripService.getTripById(id);
-        return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip fetched", trip, servletRequest.getRequestURI() + id));
+    public ResponseEntity<CustomResponseEntity<TripModel>> getTripById(@RequestHeader("X-UserInfo") String authHeader, @PathVariable Long id, HttpServletRequest servletRequest) {
+        try {
+            TripModel trip = tripService.getTripById(id);
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip fetched", trip, servletRequest.getRequestURI() + id));
+        } catch (Exception e) {
+            logger.error("Error fetching trip by id: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), servletRequest.getRequestURI() + id));
+        }
     }
 
     @PostMapping

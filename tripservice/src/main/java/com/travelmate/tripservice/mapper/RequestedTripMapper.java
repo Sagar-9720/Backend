@@ -9,6 +9,7 @@ import com.travelmate.tripservice.model.DestinationModel;
 import com.travelmate.tripservice.model.TripLiteModel;
 import com.travelmate.tripservice.model.TripModel;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RequestedTripMapper {
@@ -23,7 +24,7 @@ public class RequestedTripMapper {
 
         // Map TripItineraryDetailRequest to TripItineraryDetail
         if (req.getItineraries() != null && !req.getItineraries().isEmpty()) {
-            List<TripItineraryDetail> details = req.getItineraries().stream().map(detailReq -> {
+            Set<TripItineraryDetail> details = req.getItineraries().stream().map(detailReq -> {
                 TripItineraryDetail.TripItineraryDetailBuilder detailBuilder = TripItineraryDetail.builder()
                         .dayNumber(detailReq.getDayNumber())
                         .arrivalTime(detailReq.getArrivalTime())
@@ -43,16 +44,16 @@ public class RequestedTripMapper {
 
                 // Map activities
                 if (detailReq.getActivities() != null && !detailReq.getActivities().isEmpty()) {
-                    List<ItineraryActivity> activities = detailReq.getActivities().stream().map(act ->
+                    Set<ItineraryActivity> activities = detailReq.getActivities().stream().map(act ->
                         ItineraryActivity.builder()
                             .activityName(act.getActivityName())
                             .description(act.getActivityDescription())
                             .build()
-                    ).collect(Collectors.toList());
+                    ).collect(Collectors.toSet());
                     detailBuilder.activities(activities);
                 }
                 return detailBuilder.build();
-            }).collect(Collectors.toList());
+            }).collect(Collectors.toSet());
             tripBuilder.tripItineraryDetails(details);
         }
         return tripBuilder.build();

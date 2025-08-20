@@ -26,7 +26,7 @@ public class CacheSyncManager {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public void publishCacheEvent(String cacheName, String key, String operation) {
+    public void publishCacheEvent(String cacheName, String key, CacheEvent.CacheOperation operation) {
         try {
             CacheEvent event = new CacheEvent(cacheName, key, operation, instanceId);
             String message = objectMapper.writeValueAsString(event);
@@ -45,10 +45,10 @@ public class CacheSyncManager {
 
         try {
             switch (event.getOperation()) {
-                case "CLEAR":
+                case CacheEvent.CacheOperation.CLEAR:
                     cacheManager.getCache(event.getCacheName()).clear();
                     break;
-                case "DELETE":
+                case CacheEvent.CacheOperation.DELETE:
                     cacheManager.getCache(event.getCacheName()).evict(event.getKey());
                     break;
                 default:

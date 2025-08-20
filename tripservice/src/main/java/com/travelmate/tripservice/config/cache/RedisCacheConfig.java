@@ -27,31 +27,52 @@ public class RedisCacheConfig {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-        return template;
+        try {
+            RedisTemplate<String, Object> template = new RedisTemplate<>();
+            template.setConnectionFactory(connectionFactory);
+            template.setKeySerializer(new StringRedisSerializer());
+            template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+            return template;
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating RedisTemplate", e);
+            throw e;
+        }
     }
 
     @Bean
     public RedisMessageListenerContainer redisMessageListener(
             RedisConnectionFactory connectionFactory,
             MessageListenerAdapter listenerAdapter) {
-        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(listenerAdapter, new ChannelTopic(CACHE_SYNC_TOPIC));
-
-        return container;
+        try {
+            RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+            container.setConnectionFactory(connectionFactory);
+            container.addMessageListener(listenerAdapter, new ChannelTopic(CACHE_SYNC_TOPIC));
+            return container;
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating RedisMessageListenerContainer", e);
+            throw e;
+        }
     }
 
     @Bean
     public MessageListenerAdapter messageListener(CacheSyncManager cacheSyncManager, ObjectMapper objectMapper) {
-        return new MessageListenerAdapter(new CacheMessageListener(cacheSyncManager, objectMapper));
+        try {
+            MessageListenerAdapter adapter = new MessageListenerAdapter(new CacheMessageListener(cacheSyncManager, objectMapper), "onMessage");
+            adapter.setSerializer(new GenericJackson2JsonRedisSerializer());
+            return adapter;
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating MessageListenerAdapter", e);
+            throw e;
+        }
     }
 
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        try {
+            return new ObjectMapper();
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating ObjectMapper", e);
+            throw e;
+        }
     }
 }

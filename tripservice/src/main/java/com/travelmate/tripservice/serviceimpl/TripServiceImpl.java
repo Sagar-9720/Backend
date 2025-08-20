@@ -63,7 +63,7 @@ public class TripServiceImpl implements TripService {
             trip.setMainDestination(DestinationMapper.toEntity(destinationService.createDestination(role, tripModel.destination())));
         }
         if (tripModel.itineraryDetails() != null && !tripModel.itineraryDetails().isEmpty()) {
-            List<TripItineraryDetail> itineraries = new ArrayList<>();
+            Set<TripItineraryDetail> itineraries = new HashSet<>();
             for (TripItineraryDetailModel itinerary : tripModel.itineraryDetails()) {
                 TripItineraryDetail tripItineraryDetail = TripItineraryDetailMapper.toEntity(itinerary);
                 itineraries.add(TripItineraryDetailMapper.toEntity(tripItineraryDetailService.create(TripItineraryDetailMapper.toModel(tripItineraryDetail))));
@@ -85,14 +85,12 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    @Cacheable(value = "tripsAll")
     public List<TripLiteModel> getAllTrips(String role) throws UnauthorizedAccessException {
         logger.info("Fetching all trips");
         List<TripLiteModel> list = tripRepository.findAll().stream().map(TripMapper::toLiteModel).toList();
         if (role.equalsIgnoreCase("USER") || role.equalsIgnoreCase("GUEST")) {
             list = list.stream().filter(TripLiteModel::isActive).collect(Collectors.toList());
         }
-        logger.info("Found {} trips", list);
         return list;
     }
 
@@ -126,7 +124,7 @@ public class TripServiceImpl implements TripService {
         }
         // Set itinerary details (create if needed)
         if (updatedTripModel.itineraryDetails() != null && !updatedTripModel.itineraryDetails().isEmpty()) {
-            List<TripItineraryDetail> itineraryDetails = new ArrayList<>();
+            Set<TripItineraryDetail> itineraryDetails = new HashSet<>();
             for (TripItineraryDetailModel itinerary : updatedTripModel.itineraryDetails()) {
                 TripItineraryDetail tripItineraryDetail = TripItineraryDetailMapper.toEntity(itinerary);
                 if (itinerary.id() == null) {

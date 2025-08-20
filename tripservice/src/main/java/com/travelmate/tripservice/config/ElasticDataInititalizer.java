@@ -9,6 +9,9 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +22,8 @@ import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 
 @Component
 class ElasticsearchDataInitializer {
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchDataInitializer.class);
+
     @Autowired
     private ElasticsearchClient elasticsearchClient;
     @Autowired
@@ -38,9 +43,6 @@ class ElasticsearchDataInitializer {
                 Map<String, Object> doc = new HashMap<>();
                 doc.put("id", dest.getId());
                 doc.put("name", dest.getName());
-                doc.put("regionId", dest.getRegion().getId());
-                doc.put("description", dest.getDescription());
-                doc.put("imageUrl", dest.getImageUrl());
                 elasticsearchClient.index(IndexRequest.of(i -> i.index("destinations").id(String.valueOf(dest.getId())).document(doc)));
             }
             // Trips
@@ -52,13 +54,10 @@ class ElasticsearchDataInitializer {
                 Map<String, Object> doc = new HashMap<>();
                 doc.put("title", trip.getTitle());
                 doc.put("description", trip.getDescription());
-                doc.put("startDate", trip.getStartDate());
-                doc.put("endDate", trip.getEndDate());
-
                 elasticsearchClient.index(IndexRequest.of(i -> i.index("trips").id(String.valueOf(trip.getId())).document(doc)));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error initializing Elasticsearch data", e);
         }
     }
 

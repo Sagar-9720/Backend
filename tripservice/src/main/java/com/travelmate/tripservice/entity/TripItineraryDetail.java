@@ -1,9 +1,7 @@
 package com.travelmate.tripservice.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -13,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -55,5 +53,5 @@ public class TripItineraryDetail {
     private LocalDateTime departureTime;
 
     @OneToMany(mappedBy = "tripItineraryDetail", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItineraryActivity> activities;
+    private Set<ItineraryActivity> activities;
 }
