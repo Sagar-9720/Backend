@@ -17,18 +17,54 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     // Search trips by title containing keyword (case-insensitive)
     List<Trip> findByTitleContainingIgnoreCase(String title);
 
-    @EntityGraph(attributePaths = {"mainDestination", "mainDestination.region", "mainDestination.region.country", "tripItineraryDetails", "tripItineraryDetails.itinerary", "tripItineraryDetails.itinerary.destination", "tripItineraryDetails.itinerary.destination.region", "tripItineraryDetails.itinerary.destination.region.country"})
+    @EntityGraph(attributePaths = {"mainDestination"
+            , "mainDestination.region"
+            , "mainDestination.region.country"
+            , "tripItineraryDetails"
+            , "tripItineraryDetails.itinerary"
+            , "tripItineraryDetails.itinerary.destination"
+            , "tripItineraryDetails.itinerary.destination.region"
+            , "tripItineraryDetails.itinerary.destination.region.country"
+            , "tripItineraryDetails.activities"
+    })
     @Query("SELECT t FROM Trip t WHERE LOWER(t.mainDestination.name) LIKE LOWER(CONCAT('%', :mainDestination, '%'))")
     List<Trip> findByMainDestinationContainingIgnoreCase(@Param("mainDestination") String mainDestination);
 
-    @EntityGraph(attributePaths = {"mainDestination", "mainDestination.region", "mainDestination.region.country", "tripItineraryDetails", "tripItineraryDetails.itinerary", "tripItineraryDetails.itinerary.destination", "tripItineraryDetails.itinerary.destination.region", "tripItineraryDetails.itinerary.destination.region.country"})
+    @EntityGraph(attributePaths = {"mainDestination"
+            , "mainDestination.region"
+            , "mainDestination.region.country"
+            , "tripItineraryDetails"
+            , "tripItineraryDetails.itinerary"
+            , "tripItineraryDetails.itinerary.destination"
+            , "tripItineraryDetails.itinerary.destination.region"
+            , "tripItineraryDetails.itinerary.destination.region.country"
+            , "tripItineraryDetails.activities"
+    })
     @Query("SELECT t FROM Trip t WHERE t.price BETWEEN :startPrice AND :endPrice")
     List<Trip> findByPriceBetween(@Param("startPrice") BigDecimal startPrice, @Param("endPrice") BigDecimal endPrice);
 
-    @EntityGraph(attributePaths = {"mainDestination", "mainDestination.region", "mainDestination.region.country", "tripItineraryDetails", "tripItineraryDetails.itinerary", "tripItineraryDetails.itinerary.destination", "tripItineraryDetails.itinerary.destination.region", "tripItineraryDetails.itinerary.destination.region.country"})
+    @EntityGraph(attributePaths = {"mainDestination"
+            , "mainDestination.region"
+            , "mainDestination.region.country"
+            , "tripItineraryDetails"
+            , "tripItineraryDetails.itinerary"
+            , "tripItineraryDetails.itinerary.destination"
+            , "tripItineraryDetails.itinerary.destination.region"
+            , "tripItineraryDetails.itinerary.destination.region.country"
+            , "tripItineraryDetails.activities"
+    })
     List<Trip> findAll();
 
-    @EntityGraph(attributePaths = {"mainDestination", "mainDestination.region", "mainDestination.region.country", "tripItineraryDetails", "tripItineraryDetails.itinerary", "tripItineraryDetails.itinerary.destination", "tripItineraryDetails.itinerary.destination.region", "tripItineraryDetails.itinerary.destination.region.country"})
+    @EntityGraph(attributePaths = {"mainDestination"
+            , "mainDestination.region"
+            , "mainDestination.region.country"
+            , "tripItineraryDetails"
+            , "tripItineraryDetails.itinerary"
+            , "tripItineraryDetails.itinerary.destination"
+            , "tripItineraryDetails.itinerary.destination.region"
+            , "tripItineraryDetails.itinerary.destination.region.country"
+            , "tripItineraryDetails.activities"
+    })
     Optional<Trip> findById(Long id);
 
 

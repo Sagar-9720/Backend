@@ -65,7 +65,7 @@ public class CustomAuthFilter implements GlobalFilter, Ordered {
                 jwtUtil.getEmailFromToken(token)
         );
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                .header("X-User-Info", userInfoJson)
+                .header("X-UserInfo", userInfoJson)
                 .build();
         ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
         return chain.filter(mutatedExchange);

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface TripItineraryDetailRepository extends JpaRepository<TripItineraryDetail, Long> {
 
-    @EntityGraph(attributePaths = {"itinerary", "itinerary.destination", "itinerary.destination.region", "itinerary.destination.country", "activities"})
+    @EntityGraph(attributePaths = {"itinerary", "itinerary.destination", "itinerary.destination.region", "itinerary.destination.region.country", "activities"})
     List<TripItineraryDetail> findAll();
 }
 
