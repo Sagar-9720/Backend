@@ -34,8 +34,9 @@ public class CacheConfig {
                                     .entryTtl(Duration.ofMinutes(15)))  // User-specific trips cache expires after 15 minutes
                     .build();
         } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(CacheConfig.class).error("Error creating CacheManager", e);
-            throw e;
+            org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(CacheConfig.class);
+            logger.error("Error creating CacheManager, caching will be disabled.", e);
+            return new org.springframework.cache.concurrent.ConcurrentMapCacheManager();
         }
     }
 }

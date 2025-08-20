@@ -1,0 +1,135 @@
+{
+  "id": null,
+  "title": "Backend Service Overview",
+  "tags": ["backend", "microservices", "monitoring"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Service Health & Uptime",
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Auth Service Health",
+          "targets": [{
+            "expr": "up{job=\"authservice\"}",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "stat",
+          "title": "Trip Service Health",
+          "targets": [{
+            "expr": "up{job=\"tripservice\"}",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "stat",
+          "title": "User Service Health",
+          "targets": [{
+            "expr": "up{job=\"user-service\"}",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "stat",
+          "title": "Journal Service Health",
+          "targets": [{
+            "expr": "up{job=\"journalservice\"}",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "stat",
+          "title": "Gateway Health",
+          "targets": [{
+            "expr": "up{job=\"gateway\"}",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "HTTP Requests & Errors",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "HTTP Requests Rate",
+          "targets": [{
+            "expr": "sum(rate(http_server_requests_seconds_count[1m])) by (job, status)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "HTTP Error Rate",
+          "targets": [{
+            "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])) by (job)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "JVM & System Metrics",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "JVM Memory Used",
+          "targets": [{
+            "expr": "jvm_memory_used_bytes{area=\"heap\"}",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "CPU Usage",
+          "targets": [{
+            "expr": "process_cpu_usage",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Cache Metrics",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Cache Hits",
+          "targets": [{
+            "expr": "sum(rate(spring_cache_gets_total{result=\"hit\"}[1m])) by (job, cache)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Cache Misses",
+          "targets": [{
+            "expr": "sum(rate(spring_cache_gets_total{result=\"miss\"}[1m])) by (job, cache)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,191 @@
+version: "3.9"
+
+networks:
+  monitoring:
+  app:
+    external: false
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+  tempo-data:
+
+services:
+  # ---------------- Metrics Core ----------------
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    volumes:
+      - prometheus-data:/prometheus
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports:
+      - "9090:9090"
+    networks: [monitoring, app]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.4
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
+    networks: [monitoring, app]
+    depends_on: [prometheus, loki, tempo]
+    restart: unless-stopped
+
+  # ---------------- Infra Exporters ----------------
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: node-exporter
+    pid: host
+    network_mode: host
+    restart: unless-stopped
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - "/:/host:ro,rslave"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.2
+    container_name: cadvisor
+    ports:
+      - "8085:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks: [monitoring]
+    restart: unless-stopped
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.25.0
+    container_name: blackbox-exporter
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    command: ["--config.file=/etc/blackbox_exporter/config.yml"]
+    ports: ["9115:9115"]
+    networks: [monitoring]
+    restart: unless-stopped
+
+  # ---------------- App / Infra Exporters ----------------
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    container_name: redis-exporter
+    environment:
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: redispass
+    ports: ["9121:9121"]
+    networks: [monitoring, app]
+    restart: unless-stopped
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_URI: "postgres:5432/postgres?sslmode=disable"
+      DATA_SOURCE_USER: "postgres"
+      DATA_SOURCE_PASS: "postgres"
+      PG_EXPORTER_AUTO_DISCOVER_DATABASES: "true"
+    ports: ["9187:9187"]
+    networks: [monitoring, app]
+    restart: unless-stopped
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40.0
+    container_name: mongodb-exporter
+    command:
+      - --mongodb.uri=$(MONGODB_URI)
+    environment:
+      MONGODB_URI: "mongodb://user:pass@mongodb:27017/admin"
+    ports: ["9216:9216"]
+    networks: [monitoring, app]
+    restart: unless-stopped
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.7.0
+    container_name: kafka-exporter
+    command:
+      - "--kafka.server=kafka:9092"
+    ports: ["9308:9308"]
+    networks: [monitoring, app]
+    restart: unless-stopped
+
+  zookeeper-exporter:
+    image: dabealu/zookeeper-exporter:0.1.15
+    container_name: zookeeper-exporter
+    environment:
+      ZOOKEEPER_HOSTS: "zookeeper:2181"
+    ports: ["9141:9141"]
+    networks: [monitoring, app]
+    restart: unless-stopped
+
+  nginx-exporter:
+    image: nginxinc/nginx-prometheus-exporter:1.3.0
+    container_name: nginx-exporter
+    command:
+      - "-nginx.scrape-uri=http://nginx:80/stub_status"
+    ports: ["9113:9113"]
+    networks: [monitoring, app]
+    restart: unless-stopped
+
+  # ---------------- Logs & Traces ----------------
+  loki:
+    image: grafana/loki:2.9.8
+    container_name: loki
+    command: ["-config.file=/etc/loki/config/loki.yml"]
+    volumes:
+      - loki-data:/loki
+      - ./monitoring/loki/loki.yml:/etc/loki/config/loki.yml:ro
+    ports: ["3100:3100"]
+    networks: [monitoring]
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:2.9.8
+    container_name: promtail
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./monitoring/promtail/config.yml:/etc/promtail/config.yml:ro
+    networks: [monitoring]
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:2.5.0
+    container_name: tempo
+    command: ["-config.file=/etc/tempo/tempo.yml"]
+    volumes:
+      - tempo-data:/var/tempo
+      - ./monitoring/tempo/tempo.yml:/etc/tempo/tempo.yml:ro
+    ports: ["3200:3200"]
+    networks: [monitoring]
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.113.0
+    container_name: otel-collector
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./monitoring/otel/config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    networks: [monitoring, app]
+    restart: unless-stopped
+

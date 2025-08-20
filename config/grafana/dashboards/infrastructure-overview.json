@@ -1,0 +1,290 @@
+{
+  "id": null,
+  "title": "Infrastructure Overview",
+  "tags": ["infrastructure", "monitoring", "redis", "postgres", "backend"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Database & Cache Health",
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Redis Status",
+          "targets": [{
+            "expr": "up{job=\"redis\"}",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "stat",
+          "title": "Postgres Status",
+          "targets": [{
+            "expr": "up{job=\"postgres\"}",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Redis Metrics",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Redis Memory Usage",
+          "targets": [{
+            "expr": "redis_memory_used_bytes",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Redis Connected Clients",
+          "targets": [{
+            "expr": "redis_connected_clients",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Postgres Metrics",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Postgres Connections",
+          "targets": [{
+            "expr": "pg_stat_activity_count",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Postgres Transactions",
+          "targets": [{
+            "expr": "rate(pg_stat_database_xact_commit[1m]) + rate(pg_stat_database_xact_rollback[1m])",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Request & Error Spikes",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Request Rate (All Services)",
+          "targets": [{
+            "expr": "sum(rate(http_server_requests_seconds_count[1m])) by (job)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Error Rate (5xx, All Services)",
+          "targets": [{
+            "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])) by (job)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Request Spike Alert",
+          "targets": [{
+            "expr": "max_over_time(sum(rate(http_server_requests_seconds_count[1m])) by (job)[5m:1m])",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Custom Backend Metrics",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Active Users (AuthService)",
+          "targets": [{
+            "expr": "sum(auth_active_users)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Trip Creations (TripService)",
+          "targets": [{
+            "expr": "sum(rate(trip_created_total[1m]))",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Cache Evictions (All Services)",
+          "targets": [{
+            "expr": "sum(rate(spring_cache_evictions_total[1m])) by (job, cache)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Service Request Frequency",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Request Frequency (All Services)",
+          "targets": [{
+            "expr": "sum by (job) (rate(http_server_requests_seconds_count[1m]))",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Login Failures (AuthService)",
+          "targets": [{
+            "expr": "sum(rate(auth_login_failures_total[1m]))",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "DB Query Time (TripService)",
+          "targets": [{
+            "expr": "avg(rate(tripservice_db_query_duration_seconds_sum[1m]) / rate(tripservice_db_query_duration_seconds_count[1m]))",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Queue Length (JournalService)",
+          "targets": [{
+            "expr": "journalservice_queue_length",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Nginx Traffic & Status Codes",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Nginx Requests by Status Code",
+          "targets": [{
+            "expr": "sum(rate(nginx_http_requests_total[1m])) by (status)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Nginx Requests by Path",
+          "targets": [{
+            "expr": "sum(rate(nginx_http_requests_total[1m])) by (path)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Nginx 5xx Error Rate",
+          "targets": [{
+            "expr": "sum(rate(nginx_http_requests_total{status=~\"5..\"}[1m])) by (path)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Host Metrics (Node Exporter)",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "CPU Usage (%)",
+          "targets": [{
+            "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Memory Usage (%)",
+          "targets": [{
+            "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Disk Usage (%)",
+          "targets": [{
+            "expr": "100 * (1 - node_filesystem_free_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Network Traffic (Bytes/s)",
+          "targets": [{
+            "expr": "sum(rate(node_network_receive_bytes_total[1m])) by (instance) + sum(rate(node_network_transmit_bytes_total[1m])) by (instance)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Container Metrics (cAdvisor)",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Container CPU Usage (%)",
+          "targets": [{
+            "expr": "sum(rate(container_cpu_usage_seconds_total[1m])) by (container_label_com_docker_swarm_service_name)",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        },
+        {
+          "type": "graph",
+          "title": "Container Memory Usage (MB)",
+          "targets": [{
+            "expr": "sum(container_memory_usage_bytes) by (container_label_com_docker_swarm_service_name) / 1024 / 1024",
+            "format": "time_series"
+          }],
+          "datasource": "Prometheus"
+        }
+      ]
+    }
+  ]
+}

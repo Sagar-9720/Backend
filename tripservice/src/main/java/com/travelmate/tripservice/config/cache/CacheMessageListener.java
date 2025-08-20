@@ -13,9 +13,8 @@ public class CacheMessageListener implements MessageListener {
     private final CacheSyncManager cacheSyncManager;
     private final GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
 
-    public CacheMessageListener(CacheSyncManager cacheSyncManager, ObjectMapper objectMapper) {
+    public CacheMessageListener(CacheSyncManager cacheSyncManager) {
         this.cacheSyncManager = cacheSyncManager;
-        this.objectMapper = objectMapper;
     }
 
     @Override

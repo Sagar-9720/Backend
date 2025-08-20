@@ -1,0 +1,17 @@
+{
+  "title": "Logs & Traces",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    { "type":"logs","title":"Container Logs (Loki)","datasource":"Loki",
+      "targets":[{"expr":"{job=\"docker\"}"}],
+      "gridPos":{"h":12,"w":24,"x":0,"y":0}
+    },
+    { "type":"traces","title":"Recent Traces (Tempo)","datasource":"Tempo",
+      "gridPos":{"h":12,"w":24,"x":0,"y":12}
+    }
+  ],
+  "time": { "from":"now-1h","to":"now" }
+}
+

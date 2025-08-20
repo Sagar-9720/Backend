@@ -310,8 +310,9 @@ services:
     container_name: redis-replica-1
     depends_on:
       - redis-master
-    command: >
-      sh -c "redis-server --replicaof redis-master 6379 --masterauth redispass --requirepass redispass --loglevel warning"
+    volumes:
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --replicaof redis-master 6379 --loglevel warning
     networks:
       - backend_travel-mate-network
 
@@ -320,8 +321,9 @@ services:
     container_name: redis-replica-2
     depends_on:
       - redis-master
-    command: >
-      sh -c "redis-server --replicaof redis-master 6379 --masterauth redispass --requirepass redispass --loglevel warning"
+    volumes:
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --replicaof redis-master 6379 --loglevel warning
     networks:
       - backend_travel-mate-network
 

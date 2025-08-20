@@ -18,6 +18,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -149,6 +150,7 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Cacheable(value = "destinationSuggestions", key = "#query")
     public List<String> suggestDestinations(String query) {
         try {
             SearchRequest searchRequest = SearchRequest.of(s -> s.index(destinationIndex).query(q -> q.fuzzy(f -> f.field("name").value(query).fuzziness("AUTO"))).size(10));

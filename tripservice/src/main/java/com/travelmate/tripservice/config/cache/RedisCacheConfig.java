@@ -34,42 +34,42 @@ public class RedisCacheConfig {
             template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
             return template;
         } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating RedisTemplate", e);
-            throw e;
+            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating RedisTemplate, Redis features will be disabled.", e);
+            return null;
         }
     }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListener(
-            RedisConnectionFactory connectionFactory,
-            MessageListenerAdapter listenerAdapter) {
+    public RedisMessageListenerContainer redisMessageListener(RedisConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter) {
         try {
             RedisMessageListenerContainer container = new RedisMessageListenerContainer();
             container.setConnectionFactory(connectionFactory);
             container.addMessageListener(listenerAdapter, new ChannelTopic(CACHE_SYNC_TOPIC));
             return container;
         } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating RedisMessageListenerContainer", e);
-            throw e;
+            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating RedisMessageListenerContainer, Redis pub/sub will be disabled.", e);
+            return null;
         }
     }
 
     @Bean
-    public MessageListenerAdapter messageListener(CacheSyncManager cacheSyncManager, ObjectMapper objectMapper) {
+    public MessageListenerAdapter messageListener(CacheSyncManager cacheSyncManager) {
         try {
-            MessageListenerAdapter adapter = new MessageListenerAdapter(new CacheMessageListener(cacheSyncManager, objectMapper), "onMessage");
+            MessageListenerAdapter adapter = new MessageListenerAdapter(new CacheMessageListener(cacheSyncManager), "onMessage");
             adapter.setSerializer(new GenericJackson2JsonRedisSerializer());
             return adapter;
         } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating MessageListenerAdapter", e);
-            throw e;
+            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating MessageListenerAdapter, Redis pub/sub will be disabled.", e);
+            return null;
         }
     }
 
     @Bean
     public ObjectMapper objectMapper() {
         try {
-            return new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.findAndRegisterModules(); // registers JavaTimeModule, etc.
+            return mapper;
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating ObjectMapper", e);
             throw e;

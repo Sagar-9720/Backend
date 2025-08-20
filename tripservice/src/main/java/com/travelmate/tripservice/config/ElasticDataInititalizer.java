@@ -23,7 +23,6 @@ import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 @Component
 class ElasticsearchDataInitializer {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchDataInitializer.class);
-
     @Autowired
     private ElasticsearchClient elasticsearchClient;
     @Autowired
