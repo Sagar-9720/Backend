@@ -19,25 +19,16 @@ storage:
     backend: local
     block:
       bloom_filter_false_positive: 0.05
-      index_downsample_bytes: 1000
-      encoding: zstd
     wal:
-      path: /tmp/tempo/wal
-      encoding: snappy
+      path: /tempo-data/wal
     local:
-      path: /tmp/tempo/blocks
+      path: /tempo-data/blocks
     pool:
       max_workers: 100
       queue_depth: 10000
 
-metrics:
-  prometheus:
-    endpoint: 0.0.0.0:9095
-
 overrides:
-  metrics_generator_processors:
-    - service-graphs
-    - span-metrics
+  metrics_generator_processors: [service-graphs, span-metrics]
 
 usage_report:
   reporting_enabled: false

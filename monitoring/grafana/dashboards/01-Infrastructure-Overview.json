@@ -6,17 +6,389 @@
   "version": 1,
   "refresh": "10s",
   "panels": [
-    { "type":"stat","title":"Redis Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"redis\"}"}],"gridPos":{"h":4,"w":4,"x":0,"y":0}},
-    { "type":"stat","title":"Postgres Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"postgres\"}"}],"gridPos":{"h":4,"w":4,"x":4,"y":0}},
-    { "type":"stat","title":"Mongo Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"mongo\"}"}],"gridPos":{"h":4,"w":4,"x":8,"y":0}},
-    { "type":"stat","title":"Kafka Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"kafka\"}"}],"gridPos":{"h":4,"w":4,"x":12,"y":0}},
-    { "type":"stat","title":"Zookeeper Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"zookeeper\"}"}],"gridPos":{"h":4,"w":4,"x":16,"y":0}},
-    { "type":"timeseries","title":"Redis Memory","datasource":"Prometheus","targets":[{"expr":"redis_memory_used_bytes"}],"gridPos":{"h":8,"w":8,"x":0,"y":4}},
-    { "type":"timeseries","title":"Redis Clients","datasource":"Prometheus","targets":[{"expr":"redis_connected_clients"}],"gridPos":{"h":8,"w":8,"x":8,"y":4}},
-    { "type":"timeseries","title":"Postgres Connections","datasource":"Prometheus","targets":[{"expr":"pg_stat_database_connections"}],"gridPos":{"h":8,"w":8,"x":16,"y":4}},
-    { "type":"timeseries","title":"Nginx Requests by Status","datasource":"Prometheus","targets":[{"expr":"sum(rate(nginx_http_requests_total[1m])) by (status)"}],"gridPos":{"h":8,"w":12,"x":0,"y":12}},
-    { "type":"timeseries","title":"Nginx 5xx Rate by Path","datasource":"Prometheus","targets":[{"expr":"sum(rate(nginx_http_requests_total{status=~\"5..\"}[1m])) by (path)"}],"gridPos":{"h":8,"w":12,"x":12,"y":12}}
+    {
+      "type":"stat",
+      "title":"Redis Up",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"up{job=\"redis-exporter\"}"}],
+      "gridPos":{"h":4,"w":4,"x":0,"y":0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type":"stat",
+      "title":"Postgres Up",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"up{job=\"postgres-exporter\"}"}],
+      "gridPos":{"h":4,"w":4,"x":4,"y":0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type":"stat",
+      "title":"Mongo Up",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"up{job=\"mongodb-exporter\"}"}],
+      "gridPos":{"h":4,"w":4,"x":8,"y":0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type":"stat",
+      "title":"Kafka Up",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"up{job=\"kafka-exporter\"}"}],
+      "gridPos":{"h":4,"w":4,"x":12,"y":0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type":"stat",
+      "title":"Zookeeper Up",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"up{job=\"node-exporter\"} or up{job=\"zookeeper\"}"}],
+      "gridPos":{"h":4,"w":4,"x":16,"y":0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type":"timeseries",
+      "title":"Redis Memory",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"redis_memory_used_bytes{job=\"redis-exporter\"} or userservice_redis_memory_bytes"}],
+      "gridPos":{"h":8,"w":8,"x":0,"y":4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type":"timeseries",
+      "title":"Redis Clients",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"redis_connected_clients{job=\"redis-exporter\"} or userservice_redis_connection_status"}],
+      "gridPos":{"h":8,"w":8,"x":8,"y":4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    },
+    {
+      "type":"timeseries",
+      "title":"Postgres Connections",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"pg_stat_activity_count{job=\"postgres-exporter\"} or pg_stat_database_numbackends{job=\"postgres-exporter\"}"}],
+      "gridPos":{"h":8,"w":8,"x":16,"y":4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    },
+    {
+      "type":"timeseries",
+      "title":"Nginx Requests by Status",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"sum by(status) (rate(nginx_http_requests_total[1m]))"}],
+      "gridPos":{"h":8,"w":12,"x":0,"y":12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    },
+    {
+      "type":"timeseries",
+      "title":"Nginx 5xx Rate by Path",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"sum by(request_path) (rate(nginx_http_requests_total{status=~\"5..\"}[1m]))"}],
+      "gridPos":{"h":8,"w":12,"x":12,"y":12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    },
+    {
+      "type":"timeseries",
+      "title":"Redis Operations - User Service",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"rate(userservice_redis_operations_total[1m])"}],
+      "gridPos":{"h":8,"w":12,"x":0,"y":20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    },
+    {
+      "type":"timeseries",
+      "title":"Kafka Messages - User Service",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"rate(userservice_kafka_messages_total[1m])"}],
+      "gridPos":{"h":8,"w":12,"x":12,"y":20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    },
+    {
+      "type":"timeseries",
+      "title":"MongoDB Connections",
+      "datasource":"Prometheus",
+      "targets":[{"expr":"mongodb_connections{state=\"current\"} or userservice_mongodb_connections"}],
+      "gridPos":{"h":8,"w":12,"x":0,"y":28},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    }
   ],
   "time": { "from":"now-6h","to":"now" }
 }
-

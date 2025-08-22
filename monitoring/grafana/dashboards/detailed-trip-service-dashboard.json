@@ -1,0 +1,220 @@
+{
+  "title": "TripService Dashboard",
+  "tags": ["trip-service", "spring-boot", "microservice"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Service Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"trip-service\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Instance Count",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{job=\"trip-service\"})"}],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "gauge",
+      "title": "CPU Usage",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(process_cpu_seconds_total{job=\"trip-service\"}[1m])) * 100"}],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 60 },
+            { "color": "red", "value": 80 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Heap Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(jvm_memory_used_bytes{job=\"trip-service\",area=\"heap\"}) / sum(jvm_memory_max_bytes{job=\"trip-service\",area=\"heap\"}) * 100"
+      }],
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 70 },
+            { "color": "red", "value": 85 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP Request Rate",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(http_server_requests_seconds_count{job=\"trip-service\"}[1m])) by (uri)",
+        "legendFormat": "{{uri}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Response Time",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(http_server_requests_seconds_sum{job=\"trip-service\"}[1m])) by (uri) / sum(rate(http_server_requests_seconds_count{job=\"trip-service\"}[1m])) by (uri)",
+        "legendFormat": "{{uri}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(http_server_requests_seconds_count{job=\"trip-service\",status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count{job=\"trip-service\"}[1m])) * 100",
+        "legendFormat": "Error %"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "fillOpacity": 20
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{job=\"trip-service\",area=\"heap\"}", "legendFormat": "Heap Used" },
+        { "expr": "jvm_memory_committed_bytes{job=\"trip-service\",area=\"heap\"}", "legendFormat": "Heap Committed" },
+        { "expr": "jvm_memory_max_bytes{job=\"trip-service\",area=\"heap\"}", "legendFormat": "Heap Max" },
+        { "expr": "jvm_memory_used_bytes{job=\"trip-service\",area=\"nonheap\"}", "legendFormat": "Non-Heap Used" }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "GC Collection Time",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "rate(jvm_gc_collection_seconds_sum{job=\"trip-service\"}[1m]) * 1000",
+        "legendFormat": "{{gc}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redis Cache Operations",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(spring_cache_gets_total{job=\"trip-service\"}[1m])) by (cache)",
+        "legendFormat": "Gets - {{cache}}"
+      }, {
+        "expr": "sum(rate(spring_cache_puts_total{job=\"trip-service\"}[1m])) by (cache)",
+        "legendFormat": "Puts - {{cache}}"
+      }, {
+        "expr": "sum(rate(spring_cache_evictions_total{job=\"trip-service\"}[1m])) by (cache)",
+        "legendFormat": "Evictions - {{cache}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Tomcat Threads",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "tomcat_threads_current{job=\"trip-service\"}",
+        "legendFormat": "Current Threads"
+      }, {
+        "expr": "tomcat_threads_busy{job=\"trip-service\"}",
+        "legendFormat": "Busy Threads"
+      }],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

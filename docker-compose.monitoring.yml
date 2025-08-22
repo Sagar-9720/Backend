@@ -1,7 +1,7 @@
 networks:
-  monitoring:
-  travel-mate-network:
-    external: false
+  monitoring: { }
+  backend_travel-mate-network: # 👈 attach to backend stack
+    external: true
 
 volumes:
   prometheus-data:
@@ -26,7 +26,7 @@ services:
       - "9090:9090"
     networks:
       - monitoring
-      - travel-mate-network
+      - backend_travel-mate-network
     restart: unless-stopped
 
   grafana:
@@ -46,8 +46,8 @@ services:
       - "3000:3000"
     networks:
       - monitoring
-      - travel-mate-network
-    depends_on: [prometheus, loki, tempo]
+      - backend_travel-mate-network
+    depends_on: [ prometheus, loki, tempo ]
     restart: unless-stopped
 
   # ---------------- Infra Exporters ----------------
@@ -55,14 +55,19 @@ services:
     image: prom/node-exporter:v1.8.2
     container_name: node-exporter
     volumes:
-      - "/:/host:ro,rslave"
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro"
     command:
-      - "--path.rootfs=/host"
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     ports:
       - "9100:9100"
     networks:
       - monitoring
-      - travel-mate-network
+      - backend_travel-mate-network
     restart: unless-stopped
 
   cadvisor:
@@ -77,7 +82,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - monitoring
-      - travel-mate-network
+      - backend_travel-mate-network
     restart: unless-stopped
 
   # ---------------- App / Infra Exporters ----------------
@@ -86,11 +91,11 @@ services:
     container_name: redis-exporter
     environment:
       REDIS_ADDR: redis-master:6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-redispass}
-    ports: ["9121:9121"]
+      REDIS_PASSWORD: redispass
+    ports: [ "9121:9121" ]
     networks:
       - monitoring
-      - travel-mate-network
+      - backend_travel-mate-network
     restart: unless-stopped
 
   postgres-exporter:
@@ -98,10 +103,10 @@ services:
     container_name: postgres-exporter
     environment:
       DATA_SOURCE_NAME: "postgresql://traveluser:postgres@postgres-trip:5432/trip_service_db?sslmode=disable"
-    ports: ["9187:9187"]
+    ports: [ "9187:9187" ]
     networks:
       - monitoring
-      - travel-mate-network
+      - backend_travel-mate-network
     restart: unless-stopped
 
   # ---------------- Logging ----------------
@@ -116,7 +121,7 @@ services:
       - "3100:3100"
     networks:
       - monitoring
-      - travel-mate-network
+      - backend_travel-mate-network
     restart: unless-stopped
 
   # ---------------- Tracing ----------------
@@ -124,14 +129,15 @@ services:
     image: grafana/tempo:2.5.0
     container_name: tempo
     command: -config.file=/etc/tempo/tempo.yaml
+    user: "0:0" # Run as root to avoid permission issues
     volumes:
       - ./monitoring/tempo/tempo.yaml:/etc/tempo/tempo.yaml
-      - tempo-data:/tmp/tempo
+      - tempo-data:/tempo-data
     ports:
       - "3200:3200"   # tempo
       - "4317:4317"   # otlp grpc
       - "4318:4318"   # otlp http
     networks:
       - monitoring
-      - travel-mate-network
+      - backend_travel-mate-network
     restart: unless-stopped

@@ -1,0 +1,139 @@
+{
+  "title": "PostgreSQL Dashboard",
+  "tags": ["postgres", "database"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "PostgreSQL Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"postgres-exporter\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Active Connections",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(pg_stat_activity_count{job=\"postgres-exporter\"})"}],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Transaction Time (ms)",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "pg_stat_database_xact_commit_time_ms{job=\"postgres-exporter\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Database Size",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "pg_database_size_bytes{job=\"postgres-exporter\"} / 1024 / 1024"}],
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MB"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Connections by Database",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum by (datname) (pg_stat_database_numbackends{job=\"postgres-exporter\"})"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+    },
+    {
+      "type": "timeseries",
+      "title": "Connections by State",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum by (state) (pg_stat_activity_count{job=\"postgres-exporter\"})"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+    },
+    {
+      "type": "timeseries",
+      "title": "Transactions",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "rate(pg_stat_database_xact_commit{job=\"postgres-exporter\"}[1m])", "legendFormat": "Commits - {{datname}}"},
+        {"expr": "rate(pg_stat_database_xact_rollback{job=\"postgres-exporter\"}[1m])", "legendFormat": "Rollbacks - {{datname}}"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+    },
+    {
+      "type": "timeseries",
+      "title": "Rows Activity",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "rate(pg_stat_database_tup_fetched{job=\"postgres-exporter\"}[1m])", "legendFormat": "Fetched - {{datname}}"},
+        {"expr": "rate(pg_stat_database_tup_inserted{job=\"postgres-exporter\"}[1m])", "legendFormat": "Inserted - {{datname}}"},
+        {"expr": "rate(pg_stat_database_tup_updated{job=\"postgres-exporter\"}[1m])", "legendFormat": "Updated - {{datname}}"},
+        {"expr": "rate(pg_stat_database_tup_deleted{job=\"postgres-exporter\"}[1m])", "legendFormat": "Deleted - {{datname}}"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+    },
+    {
+      "type": "timeseries",
+      "title": "Query Execution Time",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "pg_stat_statements_seconds{job=\"postgres-exporter\"}"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Index Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "rate(pg_stat_user_tables_idx_scan{job=\"postgres-exporter\"}[5m])", "legendFormat": "Index Scans - {{relname}}"},
+        {"expr": "rate(pg_stat_user_tables_seq_scan{job=\"postgres-exporter\"}[5m])", "legendFormat": "Seq Scans - {{relname}}"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+    },
+    {
+      "type": "bargauge",
+      "title": "Table Sizes",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "pg_tables_size_bytes{job=\"postgres-exporter\"} / 1024 / 1024"}],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MB"
+        }
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28}
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

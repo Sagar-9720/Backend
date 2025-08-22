@@ -1,0 +1,137 @@
+{
+  "title": "MongoDB Dashboard",
+  "tags": ["mongodb", "database", "nosql"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "MongoDB Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"mongodb-exporter\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Connections",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "mongodb_connections{state=\"current\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Operations Per Second",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(mongodb_op_counters_total[1m]))"}],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Memory Usage (MB)",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "mongodb_memory{type=\"virtual\"} / 1024 / 1024"}],
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MB"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Connections Over Time",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "mongodb_connections{state=~\"current|available|active\"}"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Operation Counters",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "rate(mongodb_op_counters_total[1m])"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Traffic",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "rate(mongodb_network_bytes_total{state=\"in\"}[1m])", "legendFormat": "In"},
+        {"expr": "rate(mongodb_network_bytes_total{state=\"out\"}[1m])", "legendFormat": "Out"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Document Operations",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "rate(mongodb_metrics_document_total[1m])"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "mongodb_memory"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "User Service MongoDB Connections",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "userservice_mongodb_connections"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+    },
+    {
+      "type": "bargauge",
+      "title": "Collection Sizes",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "mongodb_collection_size_bytes / 1024 / 1024"}],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28},
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MB"
+        }
+      }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

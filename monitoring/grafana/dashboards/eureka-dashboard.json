@@ -1,0 +1,188 @@
+{
+  "title": "Eureka Server Dashboard",
+  "tags": ["eureka", "service-discovery", "spring-cloud"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Eureka Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"eureka-server\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Instance Count",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{job=\"eureka-server\"})"}],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "gauge",
+      "title": "CPU Usage",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(process_cpu_seconds_total{job=\"eureka-server\"}[1m])) * 100"}],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 60 },
+            { "color": "red", "value": 80 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Heap Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(jvm_memory_used_bytes{job=\"eureka-server\",area=\"heap\"}) / sum(jvm_memory_max_bytes{job=\"eureka-server\",area=\"heap\"}) * 100"
+      }],
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 70 },
+            { "color": "red", "value": 85 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Registered Services",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(eureka_registry_application_count{job=\"eureka-server\"})",
+        "legendFormat": "Service Count"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Instance Count by Application",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "eureka_registry_application_instances_count{job=\"eureka-server\"}",
+        "legendFormat": "{{application}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{job=\"eureka-server\",area=\"heap\"}", "legendFormat": "Heap Used" },
+        { "expr": "jvm_memory_committed_bytes{job=\"eureka-server\",area=\"heap\"}", "legendFormat": "Heap Committed" },
+        { "expr": "jvm_memory_max_bytes{job=\"eureka-server\",area=\"heap\"}", "legendFormat": "Heap Max" },
+        { "expr": "jvm_memory_used_bytes{job=\"eureka-server\",area=\"nonheap\"}", "legendFormat": "Non-Heap Used" }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(http_server_requests_seconds_count{job=\"eureka-server\"}[1m])) by (uri)",
+        "legendFormat": "{{uri}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "GC Collection Time",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "rate(jvm_gc_collection_seconds_sum{job=\"eureka-server\"}[1m]) * 1000",
+        "legendFormat": "{{gc}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Tomcat Threads",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "tomcat_threads_current{job=\"eureka-server\"}",
+        "legendFormat": "Current Threads"
+      }, {
+        "expr": "tomcat_threads_busy{job=\"eureka-server\"}",
+        "legendFormat": "Busy Threads"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

@@ -1,0 +1,198 @@
+{
+  "title": "User Service Dashboard",
+  "tags": ["user-service", "nodejs", "microservice"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "User Service Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"user-service\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Active Instances",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{job=\"user-service\"})"}],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Memory Usage (MB)",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(process_resident_memory_bytes{job=\"user-service\"}) / 1024 / 1024"}],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MB"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "CPU Usage",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(process_cpu_seconds_total{job=\"user-service\"}[1m])) * 100"}],
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP Request Rate",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(userservice_http_requests_total[1m])) by (method, route)",
+        "legendFormat": "{{method}} {{route}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP Response Time",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(userservice_http_request_duration_seconds_sum[1m])) by (method, route) / sum(rate(userservice_http_request_duration_seconds_count[1m])) by (method, route)",
+        "legendFormat": "{{method}} {{route}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Node.js Event Loop Lag",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "nodejs_eventloop_lag_seconds{job=\"user-service\"}",
+        "legendFormat": "Event Loop Lag"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Node.js Heap Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "nodejs_heap_size_total_bytes{job=\"user-service\"}", "legendFormat": "Total Size" },
+        { "expr": "nodejs_heap_size_used_bytes{job=\"user-service\"}", "legendFormat": "Used Size" },
+        { "expr": "nodejs_external_memory_bytes{job=\"user-service\"}", "legendFormat": "External Memory" }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redis Connection Status",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "userservice_redis_connection_status{job=\"user-service\"}",
+        "legendFormat": "Redis Connected"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "options": {
+        "legend": { "calcs": ["last", "min", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Redis Operations Rate",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "rate(userservice_redis_operations_total{job=\"user-service\"}[1m])",
+        "legendFormat": "{{operation}} - {{status}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka Connection Status",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "userservice_kafka_connection_status{job=\"user-service\"}",
+        "legendFormat": "Kafka Connected"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+      "options": {
+        "legend": { "calcs": ["last", "min", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka Message Rate",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "rate(userservice_kafka_messages_total{job=\"user-service\"}[1m])",
+        "legendFormat": "{{topic}} - {{operation}} - {{status}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "View Processing Rate",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "rate(userservice_view_increments_total{job=\"user-service\"}[1m])", "legendFormat": "View Increments"},
+        {"expr": "rate(userservice_view_batch_process_total{job=\"user-service\"}[1m])", "legendFormat": "Batch Processes"}
+      ],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 36},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

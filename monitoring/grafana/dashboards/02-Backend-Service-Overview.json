@@ -1,25 +1,293 @@
 {
   "title": "Backend Service Overview",
-  "tags": ["backend","microservices"],
+  "tags": ["backend", "services", "monitoring"],
   "timezone": "browser",
   "schemaVersion": 38,
   "version": 1,
   "refresh": "10s",
   "panels": [
-    { "type":"stat","title":"Auth Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"spring-apps\",instance=~\"authservice:.*\"}"}],"gridPos":{"h":4,"w":4,"x":0,"y":0}},
-    { "type":"stat","title":"Trip Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"spring-apps\",instance=~\"tripservice:.*\"}"}],"gridPos":{"h":4,"w":4,"x":4,"y":0}},
-    { "type":"stat","title":"User Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"spring-apps\",instance=~\"userservice:.*\"}"}],"gridPos":{"h":4,"w":4,"x":8,"y":0}},
-    { "type":"stat","title":"Journal Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"spring-apps\",instance=~\"journalservice:.*\"}"}],"gridPos":{"h":4,"w":4,"x":12,"y":0}},
-    { "type":"stat","title":"Gateway Up","datasource":"Prometheus","targets":[{"expr":"up{job=\"spring-apps\",instance=~\"gateway:.*\"}"}],"gridPos":{"h":4,"w":4,"x":16,"y":0}},
-    { "type":"timeseries","title":"HTTP RPS by Status","datasource":"Prometheus","targets":[{"expr":"sum(rate(http_server_requests_seconds_count[1m])) by (job,status)"}],"gridPos":{"h":8,"w":12,"x":0,"y":4}},
-    { "type":"timeseries","title":"HTTP 5xx Rate","datasource":"Prometheus","targets":[{"expr":"sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])) by (job)"}],"gridPos":{"h":8,"w":12,"x":12,"y":4}},
-    { "type":"timeseries","title":"Avg Response Time (s)","datasource":"Prometheus","targets":[{"expr":"sum(rate(http_server_requests_seconds_sum{status!~\"5..\"}[5m])) by (job) / sum(rate(http_server_requests_seconds_count{status!~\"5..\"}[5m])) by (job)"}],"gridPos":{"h":8,"w":12,"x":0,"y":12}},
-    { "type":"timeseries","title":"JVM Heap Used","datasource":"Prometheus","targets":[{"expr":"sum(jvm_memory_used_bytes{area=\"heap\"}) by (instance)"}],"gridPos":{"h":8,"w":12,"x":12,"y":12}},
-    { "type":"timeseries","title":"Cache Hit/Miss","datasource":"Prometheus","targets":[
-        {"expr":"sum(rate(spring_cache_gets_total{result=\"hit\"}[1m])) by (cache)"},
-        {"expr":"sum(rate(spring_cache_gets_total{result=\"miss\"}[1m])) by (cache)"}],
-      "gridPos":{"h":8,"w":24,"x":0,"y":20}}
+    {
+      "type": "stat",
+      "title": "Auth Up",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"auth-service\"}"}],
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Trip Up",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"trip-service\"}"}],
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "User Up",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"user-service\"}"}],
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Journal Up",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"journal-service\"}"}],
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Gateway Up",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"gateway\"}"}],
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP RPS by Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum by(status)(rate(http_server_requests_seconds_count{application=~\"auth-service|trip-service|journal-service|gateway\"}[1m]))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP 5xx Rate",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum by(instance, job)(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m]))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Avg Response Time (s)",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum by(instance, job)(rate(http_server_requests_seconds_sum[1m])) / sum by(instance, job)(rate(http_server_requests_seconds_count[1m]))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM Heap Used",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum by(instance, job)(jvm_memory_used_bytes{area=\"heap\"}) / sum by(instance, job)(jvm_memory_max_bytes{area=\"heap\"})"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "percentunit"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Node.js Metrics - User Service",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "rate(userservice_http_requests_total[1m])"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        }
+      }
+    }
   ],
-  "time": { "from":"now-6h","to":"now" }
+  "time": { "from": "now-6h", "to": "now" }
 }
-

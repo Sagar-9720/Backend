@@ -18,9 +18,17 @@ scrape_configs:
   # User-service (Node.js)
   - job_name: 'node-service'
     scrape_interval: 10s
+    metrics_path: '/metrics'
     static_configs:
       - targets:
           - 'user-service:5000'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'user-service'
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'user-service'
 
   # Kafka
   - job_name: 'kafka'
@@ -28,6 +36,11 @@ scrape_configs:
     static_configs:
       - targets:
           - 'kafka-exporter:9308'  # Need kafka-exporter container
+          - 'user-service:5000'   # Additional scrape from user-service for Kafka metrics
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'userservice_kafka_.*'
+        action: keep
 
   # Zookeeper
   - job_name: 'zookeeper'
@@ -41,6 +54,11 @@ scrape_configs:
     static_configs:
       - targets:
           - 'redis-exporter:9121'
+          - 'user-service:5000'   # Additional scrape from user-service for Redis metrics
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'userservice_redis_.*'
+        action: keep
 
   # Postgres
   - job_name: 'postgres'

@@ -82,6 +82,23 @@ scrape_configs:
       - targets: ["user-service:5000"]
         labels:
           application: "user-service"
+          service_type: "node"
+    metric_relabel_configs:
+      # Keep and categorize Redis metrics
+      - source_labels: [__name__]
+        regex: 'userservice_redis_.*'
+        target_label: metric_type
+        replacement: "redis"
+      # Keep and categorize Kafka metrics
+      - source_labels: [__name__]
+        regex: 'userservice_kafka_.*'
+        target_label: metric_type
+        replacement: "kafka"
+      # Keep and categorize View metrics
+      - source_labels: [__name__]
+        regex: 'userservice_view_.*'
+        target_label: metric_type
+        replacement: "view"
 
   # Infrastructure monitoring
   - job_name: "node-exporter"

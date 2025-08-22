@@ -1,0 +1,151 @@
+{
+  "title": "Kafka Dashboard",
+  "tags": ["kafka", "messaging", "broker"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Kafka Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"kafka-exporter\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Active Controllers",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(kafka_controller_activecontrollercount)"}],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Online Partitions",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(kafka_controller_onlinepartitionscount)"}],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Under-Replicated Partitions",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(kafka_server_replicamanager_underreplicatedpartitions)"}],
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Messages In Per Second",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(kafka_server_brokertopicmetrics_messagesinpersec_count[1m])) by (topic)"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Bytes In/Out Per Second",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "sum(rate(kafka_server_brokertopicmetrics_bytesinpersec_count[1m]))", "legendFormat": "Bytes In"},
+        {"expr": "sum(rate(kafka_server_brokertopicmetrics_bytesoutpersec_count[1m]))", "legendFormat": "Bytes Out"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "sum(rate(kafka_network_requestmetrics_requests_total[1m])) by (request)"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Time - 99th Percentile",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "kafka_network_requestmetrics_totaltimems{quantile=\"0.99\"}"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "sum(kafka_jvm_memory_bytes_used) by (area)", "legendFormat": "{{area}} Used"},
+        {"expr": "sum(kafka_jvm_memory_bytes_max) by (area)", "legendFormat": "{{area}} Max"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "User Service Kafka Operations",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "rate(userservice_kafka_messages_total[1m])"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Topic Message Counts",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "kafka_topic_partitions_count"}],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28}
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

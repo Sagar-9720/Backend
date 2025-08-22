@@ -1,0 +1,145 @@
+{
+  "title": "Nginx Dashboard",
+  "tags": ["nginx", "web-server", "load-balancer"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Nginx Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"nginx-exporter\"}"}],
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Active Connections",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "nginx_connections_active"}],
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Requests Per Second",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(nginx_http_requests_total[1m]))"}],
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Requests by Status Code",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(nginx_http_requests_total[1m])) by (status)",
+        "legendFormat": "HTTP {{status}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Connections",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "nginx_connections_accepted", "legendFormat": "Accepted"},
+        {"expr": "nginx_connections_handled", "legendFormat": "Handled"},
+        {"expr": "nginx_connections_active", "legendFormat": "Active"},
+        {"expr": "nginx_connections_reading", "legendFormat": "Reading"},
+        {"expr": "nginx_connections_writing", "legendFormat": "Writing"},
+        {"expr": "nginx_connections_waiting", "legendFormat": "Waiting"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate by Path",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(nginx_http_requests_total[1m])) by (request_path)",
+        "legendFormat": "{{request_path}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate by Path",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(nginx_http_requests_total{status=~\"5..\"}[1m])) by (request_path) / sum(rate(nginx_http_requests_total[1m])) by (request_path) * 100",
+        "legendFormat": "{{request_path}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Size",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "avg(nginx_http_request_size_bytes) by (request_path)",
+        "legendFormat": "{{request_path}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Response Size",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "avg(nginx_http_response_size_bytes) by (request_path)",
+        "legendFormat": "{{request_path}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

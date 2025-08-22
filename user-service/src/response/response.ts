@@ -34,7 +34,6 @@ export type SavedTripResponse = {
 
 export type ViewResponse = {
     id: string;
-    user_id: string;
     trip_id?: string;
     journal_id?: string;
     destination_id?: string;
@@ -42,4 +41,3 @@ export type ViewResponse = {
     createdAt: Date;
     updatedAt: Date;
 }
-

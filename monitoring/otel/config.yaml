@@ -1,0 +1,52 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  attributes:
+    actions:
+      - key: service.name
+        action: upsert
+        from_attribute: service.name
+        value: "unknown-service"
+
+  resourcedetection:
+    detectors: [env, system, docker]
+    timeout: 2s
+
+exporters:
+  logging:
+    verbosity: detailed
+
+  otlp:
+    endpoint: "tempo:4317"
+    tls:
+      insecure: true
+
+  prometheus:
+    endpoint: "0.0.0.0:9464"
+    namespace: "travelmate"
+
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [attributes, resourcedetection, batch]
+      exporters: [otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]

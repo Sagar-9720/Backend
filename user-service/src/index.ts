@@ -1,11 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import promClient from 'prom-client';
 import loadConfig from './config/loadConfig';
 import {startConfigBusListener} from './services/configBusListener';
 import axios from 'axios';
 import NodeCache from 'node-cache';
 import axiosRetry from 'axios-retry';
+// Import metrics from TypeScript module
+import { metricsMiddleware, getMetrics } from './middleware/metrics';
 
 const startServer = async () => {
     try {
@@ -35,12 +36,11 @@ const startServer = async () => {
         const app = express();
         const PORT = process.env.PORT || 5000;
 
-        // Prometheus metrics setup
-        promClient.collectDefaultMetrics();
-        app.get('/metrics', async (req, res) => {
-            res.set('Content-Type', promClient.register.contentType);
-            res.end(await promClient.register.metrics());
-        });
+        // Apply metrics middleware to track HTTP requests
+        app.use(metricsMiddleware);
+
+        // Prometheus metrics endpoint using our enhanced metrics
+        app.get('/metrics', getMetrics);
 
         app.use(cors());
         app.use(express.json());

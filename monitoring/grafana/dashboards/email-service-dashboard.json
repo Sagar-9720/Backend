@@ -1,0 +1,214 @@
+{
+  "title": "EmailService Dashboard",
+  "tags": ["email-service", "spring-boot", "microservice"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Email Service Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"email-service\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Instance Count",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{job=\"email-service\"})"}],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "gauge",
+      "title": "CPU Usage",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(process_cpu_seconds_total{job=\"email-service\"}[1m])) * 100"}],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 60 },
+            { "color": "red", "value": 80 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Heap Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(jvm_memory_used_bytes{job=\"email-service\",area=\"heap\"}) / sum(jvm_memory_max_bytes{job=\"email-service\",area=\"heap\"}) * 100"
+      }],
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 70 },
+            { "color": "red", "value": 85 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Email Delivery Rate",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "sum(rate(email_sent_total{job=\"email-service\"}[1m]))", "legendFormat": "Emails Sent"},
+        {"expr": "sum(rate(email_delivery_failed_total{job=\"email-service\"}[1m]))", "legendFormat": "Delivery Failed"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Email Sending Time",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(email_send_duration_seconds_sum{job=\"email-service\"}[1m])) / sum(rate(email_send_duration_seconds_count{job=\"email-service\"}[1m]))",
+        "legendFormat": "Avg Send Time"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Emails by Type",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(email_sent_total{job=\"email-service\"}[1m])) by (type)",
+        "legendFormat": "{{type}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{job=\"email-service\",area=\"heap\"}", "legendFormat": "Heap Used" },
+        { "expr": "jvm_memory_committed_bytes{job=\"email-service\",area=\"heap\"}", "legendFormat": "Heap Committed" },
+        { "expr": "jvm_memory_max_bytes{job=\"email-service\",area=\"heap\"}", "legendFormat": "Heap Max" }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Email Success Rate",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(email_sent_total{job=\"email-service\",status=\"success\"}[1m])) / sum(rate(email_sent_total{job=\"email-service\"}[1m])) * 100",
+        "instant": true
+      }],
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 20},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "red", "value": null },
+            { "color": "orange", "value": 90 },
+            { "color": "green", "value": 95 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Message Queue Size",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "email_queue_size{job=\"email-service\"}",
+        "legendFormat": "Queue Size"
+      }],
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "System Load",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "system_load_average_1m{job=\"email-service\"}",
+        "legendFormat": "1m Load Average"
+      }],
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

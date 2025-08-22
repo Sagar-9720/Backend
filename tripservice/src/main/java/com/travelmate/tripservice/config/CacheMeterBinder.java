@@ -74,15 +74,19 @@ public class CacheMeterBinder {
                     connection = redisConnectionFactory.getConnection();
                     boolean isConnected = false;
                     try {
-                        isConnected = connection != null && connection.isOpen();
+                        // Test connection by pinging Redis server instead of using isOpen()
+                        if (connection != null) {
+                            connection.ping();
+                            isConnected = true;
+                        }
                     } catch (Exception e) {
-                        logger.warn("Error checking if Redis connection is open: {}", e.getMessage());
+                        logger.warn("Error checking Redis connection: {}", e.getMessage());
                     }
                     redisStatus.set(isConnected ? 1 : 0);
                     logger.debug("Redis connection status: {}", isConnected);
                 } catch (Exception e) {
                     redisStatus.set(0);
-                    logger.warn("Error checking Redis connection: {}", e.getMessage());
+                    logger.warn("Error getting Redis connection: {}", e.getMessage());
                 } finally {
                     if (connection != null) {
                         try {

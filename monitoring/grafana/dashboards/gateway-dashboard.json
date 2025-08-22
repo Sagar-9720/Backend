@@ -1,0 +1,210 @@
+{
+  "title": "Gateway Dashboard",
+  "tags": ["gateway", "spring-cloud-gateway", "api"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Gateway Status",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "up{job=\"gateway\"}"}],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "valueOptions": {
+          "threshold": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Instance Count",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "count(up{job=\"gateway\"})"}],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "gauge",
+      "title": "CPU Usage",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "sum(rate(process_cpu_seconds_total{job=\"gateway\"}[1m])) * 100"}],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 60 },
+            { "color": "red", "value": 80 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Heap Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(jvm_memory_used_bytes{job=\"gateway\",area=\"heap\"}) / sum(jvm_memory_max_bytes{job=\"gateway\",area=\"heap\"}) * 100"
+      }],
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 70 },
+            { "color": "red", "value": 85 }
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate by Service",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(spring_cloud_gateway_requests_seconds_count{job=\"gateway\"}[1m])) by (routeId)",
+        "legendFormat": "{{routeId}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Response Time by Service",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(spring_cloud_gateway_requests_seconds_sum{job=\"gateway\"}[1m])) by (routeId) / sum(rate(spring_cloud_gateway_requests_seconds_count{job=\"gateway\"}[1m])) by (routeId)",
+        "legendFormat": "{{routeId}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate by Service",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(spring_cloud_gateway_requests_seconds_count{job=\"gateway\",outcome=~\"SERVER_ERROR|CLIENT_ERROR\"}[1m])) by (routeId) / sum(rate(spring_cloud_gateway_requests_seconds_count{job=\"gateway\"}[1m])) by (routeId) * 100",
+        "legendFormat": "{{routeId}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "JVM Memory Usage",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{job=\"gateway\",area=\"heap\"}", "legendFormat": "Heap Used" },
+        { "expr": "jvm_memory_committed_bytes{job=\"gateway\",area=\"heap\"}", "legendFormat": "Heap Committed" },
+        { "expr": "jvm_memory_max_bytes{job=\"gateway\",area=\"heap\"}", "legendFormat": "Heap Max" },
+        { "expr": "jvm_memory_used_bytes{job=\"gateway\",area=\"nonheap\"}", "legendFormat": "Non-Heap Used" }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Circuit Breaker Status",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "resilience4j_circuitbreaker_state{job=\"gateway\"}",
+        "legendFormat": "{{name}} - {{state}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "options": {
+        "legend": { "calcs": ["last"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Rate Limiter Calls",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "rate(resilience4j_ratelimiter_calls_total{job=\"gateway\"}[1m])",
+        "legendFormat": "{{name}} - {{kind}}"
+      }],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Count by Status Code",
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(rate(spring_cloud_gateway_requests_seconds_count{job=\"gateway\"}[1m])) by (status)",
+        "legendFormat": "HTTP {{status}}"
+      }],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28},
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }
+      }
+    }
+  ],
+  "time": { "from": "now-1h", "to": "now" }
+}
+

@@ -3,24 +3,22 @@ import sequelize from '../config/postgres';
 
 interface ViewAttributes {
     id: number;
-    user_id: number;
     trip_id?: number | null;
     journal_id?: string | null;
     destination_id?: number | null;
-    view_count?: number;
+    view_count: number; // Making view_count required
     created_at?: Date;
     updated_at?: Date;
 }
 
-type ViewCreationAttributes = Optional<ViewAttributes, 'id' | 'trip_id' | 'journal_id' | 'destination_id' | 'created_at' | 'updated_at' | 'view_count'>;
+type ViewCreationAttributes = Optional<ViewAttributes, 'id' | 'trip_id' | 'journal_id' | 'destination_id' | 'created_at' | 'updated_at'>;
 
 class View extends Model<ViewAttributes, ViewCreationAttributes> implements ViewAttributes {
     public id!: number;
-    public user_id!: number;
     public trip_id!: number | null;
     public journal_id!: string | null;
     public destination_id!: number | null;
-    public view_count?: number;
+    public view_count!: number; // Required field
     public readonly created_at!: Date;
     public readonly updated_at!: Date;
 }
@@ -31,10 +29,6 @@ View.init(
             type: DataTypes.INTEGER.UNSIGNED,
             autoIncrement: true,
             primaryKey: true,
-        },
-        user_id: {
-            type: DataTypes.INTEGER.UNSIGNED,
-            allowNull: false,
         },
         trip_id: {
             type: DataTypes.INTEGER.UNSIGNED,
@@ -50,7 +44,7 @@ View.init(
         },
         view_count: {
             type: DataTypes.INTEGER.UNSIGNED,
-            allowNull: true,
+            allowNull: false,
             defaultValue: 0,
         },
         created_at: {
