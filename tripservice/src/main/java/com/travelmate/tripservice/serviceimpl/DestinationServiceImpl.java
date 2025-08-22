@@ -18,6 +18,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +49,7 @@ public class DestinationServiceImpl implements DestinationService {
     private static final Logger logger = LoggerFactory.getLogger(DestinationServiceImpl.class);
 
     @Override
+    @CacheEvict(value = {"destinations", "allDestinations", "destinationsByRegion", "destinationsByCountry"}, allEntries = true)
     public DestinationModel createDestination(String role, DestinationModel destinationModel) throws DestinationExistException, UnauthorizedAccessException {
 
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
@@ -68,18 +70,21 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Cacheable(value = "destinations", key = "#id")
     public DestinationModel getDestinationById(Long id) throws DestinationNotFoundException {
-        logger.info("Fetching destination by id: {}", id);
+        logger.info("Cache miss: Fetching destination by id: {} from database", id);
         return destinationRepository.findById(id).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(id));
     }
 
     @Override
+    @Cacheable(value = "allDestinations")
     public List<DestinationModel> getAllDestinations() {
-        logger.info("Fetching all destinations");
+        logger.info("Cache miss: Fetching all destinations from database");
         return destinationRepository.findAll().stream().map(DestinationMapper::toModel).toList();
     }
 
     @Override
+    @CacheEvict(value = {"destinations", "allDestinations", "destinationsByRegion", "destinationsByCountry"}, allEntries = true)
     public DestinationModel updateDestination(String role, DestinationModel model) throws DestinationNotFoundException, UnauthorizedAccessException {
 
         if (role != null && !"user".equalsIgnoreCase(role)) {
@@ -108,9 +113,10 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Cacheable(value = "destinationsByRegion", key = "#regionId")
     public List<DestinationModel> getDestinationsByRegionId(Long regionId) throws RegionNotFoundException {
 
-        logger.info("Fetching destinations by region id: {}", regionId);
+        logger.info("Cache miss: Fetching destinations by region id: {}", regionId);
         RegionModel regionModel = regionService.getRegionById(regionId);
         if (regionModel == null) {
             throw new RegionNotFoundException(regionId);
@@ -119,8 +125,9 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     @Override
+    @Cacheable(value = "destinationsByCountry", key = "#countryId")
     public List<DestinationModel> getDestinationsByCountryId(Long countryId) throws CountryNotFoundException, UnauthorizedAccessException {
-        logger.info("Fetching destinations by country id: {}", countryId);
+        logger.info("Cache miss: Fetching destinations by country id: {}", countryId);
         CountryModel countryModel = countryService.getCountryById(countryId);
         if (countryModel == null) {
             throw new CountryNotFoundException(countryId);

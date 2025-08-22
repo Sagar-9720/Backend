@@ -1,90 +1,186 @@
 groups:
-  - name: infra.rules
+  - name: TravelMate-Service-Alerts
     rules:
-      - alert: InstanceDown
+      # Service Health Alerts
+      - alert: ServiceDown
         expr: up == 0
         for: 1m
-        labels: { severity: critical }
+        labels:
+          severity: critical
         annotations:
-          summary: "Instance {{ $labels.instance }} down"
-          description: "Target {{ $labels.job }}/{{ $labels.instance }} is not reachable."
+          summary: "Service {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} has been down for more than 1 minute."
 
-      - alert: HighCPU
-        expr: 100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 85
-        for: 5m
-        labels: { severity: warning }
+      # API Response Time Alerts
+      - alert: APIHighResponseTime
+        expr: rate(http_server_requests_seconds_sum{uri!~"/actuator.*"}[1m]) / rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[1m]) > 1.5
+        for: 2m
+        labels:
+          severity: warning
         annotations:
-          summary: "High CPU on {{ $labels.instance }}"
+          summary: "High API response time on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} API {{ $labels.uri }} is responding slowly (>1.5s)."
 
+      # Memory Alerts
       - alert: HighMemoryUsage
-        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        expr: (sum(jvm_memory_used_bytes{}) by (instance, application) / sum(jvm_memory_max_bytes{}) by (instance, application)) * 100 > 85
         for: 5m
-        labels: { severity: warning }
+        labels:
+          severity: warning
         annotations:
-          summary: "High memory usage on {{ $labels.instance }} (>90%)"
+          summary: "High memory usage on {{ $labels.application }}"
+          description: "{{ $labels.application }} memory usage is above 85% for 5 minutes."
 
-      - alert: LowDiskSpace
-        expr: 100 * (1 - node_filesystem_free_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) > 90
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: sum(rate(process_cpu_usage{}[1m])) by (instance, application) * 100 > 80
         for: 5m
-        labels: { severity: warning }
+        labels:
+          severity: warning
         annotations:
-          summary: "Low disk space on {{ $labels.instance }} (<10% free)"
+          summary: "High CPU usage on {{ $labels.application }}"
+          description: "{{ $labels.application }} CPU usage is above 80% for 5 minutes."
 
-      - alert: HighContainerCPU
-        expr: sum by (container_label_com_docker_swarm_task_name) (rate(container_cpu_usage_seconds_total[5m])) > 1
-        for: 5m
-        labels: { severity: warning }
+      # Database Connection Pools
+      - alert: DatabaseConnectionPoolSaturation
+        expr: hikaricp_connections_active / hikaricp_connections_max > 0.8
+        for: 2m
+        labels:
+          severity: warning
         annotations:
-          summary: "Container high CPU"
+          summary: "Database connection pool nearing capacity on {{ $labels.application }}"
+          description: "{{ $labels.application }} database connection pool is over 80% utilized."
 
-      - alert: ExporterDown
-        expr: up{job=~"redis|postgres|mongo|kafka|zookeeper|nginx"} == 0
-        for: 1m
-        labels: { severity: critical }
+      # Slow Queries
+      - alert: DatabaseSlowQueries
+        expr: rate(hikaricp_connections_timeout_total[1m]) > 0
+        for: 2m
+        labels:
+          severity: warning
         annotations:
-          summary: "Exporter {{ $labels.job }} down"
-          description: "Exporter {{ $labels.job }} on {{ $labels.instance }} is not reachable."
+          summary: "Database connection timeouts on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} is experiencing database connection timeouts."
 
-      - alert: PostgresTooManyConnections
-        expr: pg_stat_activity_count > 90
-        for: 5m
-        labels: { severity: warning }
+      # Cache Hit Ratio
+      - alert: LowCacheHitRatio
+        expr: rate(spring_cache_gets_total{result="miss"}[5m]) / rate(spring_cache_gets_total[5m]) > 0.5
+        for: 10m
+        labels:
+          severity: warning
         annotations:
-          summary: "Postgres too many connections (>90)"
+          summary: "Low cache hit ratio on {{ $labels.application }}"
+          description: "{{ $labels.application }} cache {{ $labels.name }} hit ratio is below 50% for 10 minutes."
 
-      - alert: RedisHighMemoryUsage
-        expr: redis_memory_used_bytes / redis_config_maxmemory_bytes > 0.9
-        for: 5m
-        labels: { severity: warning }
+      # Redis Specific Alerts
+      - alert: RedisTooManyConnections
+        expr: redis_connected_clients > 100
+        for: 2m
+        labels:
+          severity: warning
         annotations:
-          summary: "Redis memory usage > 90%"
+          summary: "Redis too many connections (instance {{ $labels.instance }})"
+          description: "Redis instance has too many connections."
 
-  - name: app.rules
-    rules:
+      # Error Rate Alerts
       - alert: HighErrorRate
-        expr: |
-          sum by (job) (rate(http_server_requests_seconds_count{status=~"5.."}[5m])) /
-          sum by (job) (rate(http_server_requests_seconds_count[5m])) > 0.05
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[1m]) / rate(http_server_requests_seconds_count[1m]) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on {{ $labels.application }}"
+          description: "{{ $labels.application }} error rate is above 5% for 2 minutes."
+
+      # Gateway Circuit Breaker Alerts
+      - alert: CircuitBreakerOpen
+        expr: resilience4j_circuitbreaker_state{state="open"} == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Circuit breaker open on {{ $labels.application }}"
+          description: "Circuit breaker {{ $labels.name }} is open in {{ $labels.application }}."
+
+  - name: TravelMate-Infrastructure-Alerts
+    rules:
+      # Disk Space Alerts
+      - alert: DiskSpaceRunningLow
+        expr: node_filesystem_avail_bytes / node_filesystem_size_bytes * 100 < 15
         for: 5m
-        labels: { severity: critical }
+        labels:
+          severity: warning
         annotations:
-          summary: "High 5xx error rate ({{ $labels.job }})"
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} has less than 15% free disk space on {{ $labels.mountpoint }}."
 
-      - alert: SlowResponses
-        expr: |
-          (rate(http_server_requests_seconds_sum{status!~"5.."}[5m]) /
-           rate(http_server_requests_seconds_count{status!~"5.."}[5m])) > 0.5
-        for: 10m
-        labels: { severity: warning }
+      # Kafka Alerts
+      - alert: KafkaHighLag
+        expr: kafka_consumergroup_lag > 1000
+        for: 5m
+        labels:
+          severity: warning
         annotations:
-          summary: "High avg response time > 500ms ({{ $labels.job }})"
+          summary: "High Kafka lag on {{ $labels.topic }}"
+          description: "Consumer group {{ $labels.consumergroup }} on topic {{ $labels.topic }} has a lag of {{ $value }} messages."
 
-      - alert: LowCacheHitRate
-        expr: |
-          sum(rate(spring_cache_gets_total{result="hit"}[5m])) /
-          (sum(rate(spring_cache_gets_total{result="hit"}[5m])) + sum(rate(spring_cache_gets_total{result="miss"}[5m]))) < 0.8
-        for: 10m
-        labels: { severity: warning }
+      # MongoDB Alerts
+      - alert: MongoDBHighConnectionCount
+        expr: mongodb_connections{state="current"} > 200
+        for: 5m
+        labels:
+          severity: warning
         annotations:
-          summary: "Cache hit rate below 80%"
+          summary: "High number of MongoDB connections"
+          description: "MongoDB has {{ $value }} connections currently open."
 
+      # PostgreSQL Alerts
+      - alert: PostgreSQLHighConnectionCount
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of PostgreSQL connections"
+          description: "PostgreSQL has {{ $value }} connections currently open."
+
+      # Nginx Alerts
+      - alert: NginxHighActiveConnections
+        expr: nginx_connections_active > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of active Nginx connections"
+          description: "Nginx has {{ $value }} active connections."
+
+  - name: TravelMate-Business-Alerts
+    rules:
+      # Trip Service Alerts
+      - alert: TripServiceSlowEndpoint
+        expr: rate(trip_getAllTrips_seconds_sum[1m]) / rate(trip_getAllTrips_seconds_count[1m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Trip service getAllTrips endpoint is slow"
+          description: "Trip service getAllTrips endpoint response time is over 2 seconds."
+
+      # Authentication Failures
+      - alert: HighAuthFailures
+        expr: sum(rate(auth_failures_total[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of authentication failures"
+          description: "There have been more than 10 authentication failures per minute for the last 5 minutes."
+
+      # Journal Service Alerts
+      - alert: JournalServiceHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application="journal-service"}[5m])) by (le, uri)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Journal service has high latency"
+          description: "Journal service endpoint {{ $labels.uri }} has 95th percentile latency > 1s."

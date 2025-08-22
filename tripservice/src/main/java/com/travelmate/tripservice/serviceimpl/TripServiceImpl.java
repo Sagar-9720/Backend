@@ -47,7 +47,10 @@ public class TripServiceImpl implements TripService {
 
 
     @Override
-    @CacheEvict(value = {"trips", "tripsAll"}, allEntries = true)
+    @CacheEvict(value = {
+            "trips", "allTrips", "tripsByDestination",
+            "tripsByPrice", "tripSuggestions", "tripNames"
+        }, allEntries = true)
     public TripLiteModel createTrip(String userName, String role, TripModel tripModel) throws TripExistsException, UnauthorizedAccessException {
 
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
@@ -80,13 +83,14 @@ public class TripServiceImpl implements TripService {
     @Override
     @Cacheable(value = "trips", key = "#id")
     public TripModel getTripById(Long id) throws TripNotFoundException, UnauthorizedAccessException {
-        logger.info("Fetching trip by id: {}", id);
+        logger.info("Cache miss for trip id: {} - fetching from database", id);
         return tripRepository.findById(id).map(TripMapper::toModel).orElseThrow(() -> new TripNotFoundException(id));
     }
 
     @Override
+    @Cacheable(value = "allTrips", key = "#role")
     public List<TripLiteModel> getAllTrips(String role) throws UnauthorizedAccessException {
-        logger.info("Fetching all trips");
+        logger.info("Cache miss: Fetching all trips from database for role: {}", role);
         List<TripLiteModel> list = tripRepository.findAll().stream().map(TripMapper::toLiteModel).toList();
         if (role.equalsIgnoreCase("USER") || role.equalsIgnoreCase("GUEST")) {
             list = list.stream().filter(TripLiteModel::isActive).collect(Collectors.toList());
@@ -95,7 +99,10 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    @CacheEvict(value = {"trips", "tripsAll"}, allEntries = true)
+    @CacheEvict(value = {
+            "trips", "allTrips", "tripsByDestination",
+            "tripsByPrice", "tripSuggestions", "tripNames"
+        }, allEntries = true)
     public TripLiteModel updateTrip(String role, TripModel updatedTripModel) throws TripNotFoundException, UnauthorizedAccessException {
 
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
@@ -142,7 +149,10 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    @CacheEvict(value = {"trips", "tripsAll"}, allEntries = true)
+    @CacheEvict(value = {
+            "trips", "allTrips", "tripsByDestination",
+            "tripsByPrice", "tripSuggestions", "tripNames"
+        }, allEntries = true)
     public TripLiteModel deleteTrip(String role, Long id) throws TripNotFoundException, UnauthorizedAccessException {
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
@@ -203,7 +213,9 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    @Cacheable(value = "tripSuggestions", key = "#query")
     public List<String> suggestTrips(String query) {
+        logger.info("Cache miss: Fetching trip suggestions for query: {}", query);
         try {
             SearchRequest searchRequest = SearchRequest.of(s -> s.index(tripIndex).query(q -> q.fuzzy(f -> f.field("title").value(query).fuzziness("AUTO"))).size(10));
             SearchResponse<TripModel> response = elasticsearchClient.search(searchRequest, TripModel.class);
@@ -214,8 +226,10 @@ public class TripServiceImpl implements TripService {
         }
     }
 
+    @Override
+    @Cacheable(value = "tripNames", key = "#tripIds.hashCode()")
     public List<Map<String, String>> getTripNamesById(List<String> tripIds) {
-        logger.info("Fetching trip names by IDs: {}", tripIds);
+        logger.info("Cache miss: Fetching trip names by IDs: {}", tripIds);
         List<Map<String, String>> tripNames = new ArrayList<>();
         for (String id : tripIds) {
             Optional<Trip> tripOpt = tripRepository.findById(Long.valueOf(id));

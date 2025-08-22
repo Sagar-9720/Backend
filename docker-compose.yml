@@ -301,7 +301,10 @@ services:
     container_name: redis-master
     ports:
       - 6379:6379
-    command: redis-server --requirepass redispass --appendonly yes --loglevel warning
+    volumes:
+      - ./config/redis.conf:/etc/redis/redis.conf
+      - redis-master-data:/data
+    command: redis-server /etc/redis/redis.conf --appendonly yes --loglevel debug
     networks:
       - backend_travel-mate-network
 
@@ -311,8 +314,9 @@ services:
     depends_on:
       - redis-master
     volumes:
-      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
-    command: redis-server /usr/local/etc/redis/redis.conf --replicaof redis-master 6379 --loglevel warning
+      - ./config/replica.conf:/etc/redis/replica.conf
+      - redis-replica-1-data:/data
+    command: redis-server /etc/redis/replica.conf --loglevel debug
     networks:
       - backend_travel-mate-network
 
@@ -322,8 +326,9 @@ services:
     depends_on:
       - redis-master
     volumes:
-      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
-    command: redis-server /usr/local/etc/redis/redis.conf --replicaof redis-master 6379 --loglevel warning
+      - ./config/replica.conf:/etc/redis/replica.conf
+      - redis-replica-2-data:/data
+    command: redis-server /etc/redis/replica.conf --loglevel warning
     networks:
       - backend_travel-mate-network
 
@@ -336,7 +341,8 @@ services:
       - 26379:26379
     volumes:
       - ./config:/etc/redis
-    command: redis-sentinel /etc/redis/sentinel.conf --loglevel warning
+      - redis-sentinel-1-data:/data
+    command: sh -c "cp /etc/redis/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf --loglevel debug"
     networks:
       - backend_travel-mate-network
 
@@ -349,7 +355,8 @@ services:
       - 26380:26379
     volumes:
       - ./config:/etc/redis
-    command: redis-sentinel /etc/redis/sentinel.conf --loglevel warning
+      - redis-sentinel-2-data:/data
+    command: sh -c "cp /etc/redis/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf --loglevel warning"
     networks:
       - backend_travel-mate-network
 
@@ -362,56 +369,57 @@ services:
       - 26381:26379
     volumes:
       - ./config:/etc/redis
-    command: redis-sentinel /etc/redis/sentinel.conf --loglevel warning
+      - redis-sentinel-3-data:/data
+    command: sh -c "cp /etc/redis/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf --loglevel warning"
     networks:
       - backend_travel-mate-network
 
   # Monitoring Stack
-  prometheus:
-    image: prom/prometheus:v2.45.0
-    container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    ports:
-      - "9090:9090"
-    networks:
-      - backend_travel-mate-network
-    healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy" ]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+  # prometheus:
+  #   image: prom/prometheus:v2.45.0
+  #   container_name: prometheus
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+  #     - '--web.console.templates=/usr/share/prometheus/consoles'
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - backend_travel-mate-network
+  #   healthcheck:
+  #     test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy" ]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 3
 
-  grafana:
-    image: grafana/grafana:10.0.0
-    container_name: grafana
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./config/grafana/provisioning:/etc/grafana/provisioning
-      - ./config/grafana/dashboards:/etc/grafana/dashboards
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_LOG_LEVEL=WARN
-    ports:
-      - "3000:3000"
-    networks:
-      - backend_travel-mate-network
-    depends_on:
-      prometheus:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health" ]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+  # grafana:
+  #   image: grafana/grafana:10.0.0
+  #   container_name: grafana
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #     - ./config/grafana/provisioning:/etc/grafana/provisioning
+  #     - ./config/grafana/dashboards:/etc/grafana/dashboards
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+  #     - GF_USERS_ALLOW_SIGN_UP=false
+  #     - GF_LOG_LEVEL=WARN
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - backend_travel-mate-network
+  #   depends_on:
+  #     prometheus:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health" ]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 3
 
   # Message Broker
   zookeeper:
@@ -581,6 +589,12 @@ volumes:
   redis_data:
   prometheus_data:
   grafana_data:
+  redis-master-data:
+  redis-replica-1-data:
+  redis-replica-2-data:
+  redis-sentinel-1-data:
+  redis-sentinel-2-data:
+  redis-sentinel-3-data:
 
 networks:
   backend_travel-mate-network:

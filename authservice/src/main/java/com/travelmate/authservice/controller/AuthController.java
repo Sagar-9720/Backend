@@ -7,6 +7,7 @@ import com.travelmate.authservice.exception.EmailAlreadyExistException;
 import com.travelmate.authservice.exception.EmailNotFoundException;
 import com.travelmate.authservice.exception.UserNotFoundException;
 import com.travelmate.authservice.exception.UnauthorizedAccessException;
+import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Timed(value = "auth.controller", description = "Auth controller timing metrics")
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
@@ -31,6 +33,7 @@ public class AuthController {
     private final AuthServiceImpl authServiceImpl;
 
     @PostMapping("/register")
+    @Timed(value = "auth.register", description = "Time taken to register a new user")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest servletRequest) {
         try {
             AuthResponse response = authServiceImpl.register(request);
@@ -43,6 +46,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Timed(value = "auth.login", description = "Time taken to login")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
         try {
             AuthResponse response = authServiceImpl.login(request);
@@ -57,6 +61,7 @@ public class AuthController {
     }
 
     @PostMapping("/validate")
+    @Timed(value = "auth.validate", description = "Time taken to validate a token")
     public ResponseEntity<CustomResponseEntity<TokenValidationResponse>> validateToken(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             logger.info("Validating token from request: {}", servletRequest.getRequestURI());
@@ -77,6 +82,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    @Timed(value = "auth.refresh", description = "Time taken to refresh a token")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> refreshToken(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             logger.info("Validating token from request: {}", servletRequest.getRequestURI());
@@ -99,6 +105,7 @@ public class AuthController {
     }
 
     @GetMapping("/verify-email")
+    @Timed(value = "auth.verifyEmail", description = "Time taken to verify email")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> verifyEmail(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             logger.info("Validating token from request: {}", servletRequest.getRequestURI());
@@ -119,6 +126,7 @@ public class AuthController {
     }
 
     @PostMapping("/resend-verification")
+    @Timed(value = "auth.resendVerification", description = "Time taken to resend verification email")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> resendVerification(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             logger.info("Resending verification email for request: {}", servletRequest.getRequestURI());
@@ -139,6 +147,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password-request")
+    @Timed(value = "auth.resetPasswordRequest", description = "Time taken to request password reset")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> resetPasswordRequest(@RequestBody String email, HttpServletRequest servletRequest) {
         AuthResponse response = authServiceImpl.resetPasswordRequest(email);
         if (response.success()) {
@@ -149,6 +158,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
+    @Timed(value = "auth.resetPassword", description = "Time taken to reset password")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> resetPassword(@RequestBody ResetPasswordRequest request, HttpServletRequest servletRequest) {
         AuthResponse response = authServiceImpl.resetPassword(request.token(), request.password());
         if (response.success()) {
@@ -159,6 +169,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Timed(value = "auth.logout", description = "Time taken to logout")
     public ResponseEntity<CustomResponseEntity<LogoutResponse>> logout(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         LogoutResponse response = authServiceImpl.logout(token);
@@ -166,6 +177,7 @@ public class AuthController {
     }
 
     @PutMapping("/update-user")
+    @Timed(value = "auth.updateUser", description = "Time taken to update user information")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> updateUser(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         if (token == null) {
@@ -180,6 +192,7 @@ public class AuthController {
     }
 
     @PutMapping("/change-password")
+    @Timed(value = "auth.changePassword", description = "Time taken to change password")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> changePassword(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         if (token == null) {
@@ -195,6 +208,7 @@ public class AuthController {
     }
 
     @DeleteMapping("/delete-user/{userId}")
+    @Timed(value = "auth.deleteUser", description = "Time taken to delete a user")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> deleteUser(@RequestHeader("Authorization") String authHeader, @PathVariable String userId, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         UserInfoDTO userInfo = authServiceImpl.deleteUser(token, userId);
@@ -202,6 +216,7 @@ public class AuthController {
     }
 
     @GetMapping("/user-info")
+    @Timed(value = "auth.getUserInfo", description = "Time taken to fetch user information")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> getUserInfo(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         UserInfoDTO userInfo = authServiceImpl.getUserInfo(token);
@@ -209,6 +224,7 @@ public class AuthController {
     }
 
     @GetMapping("/all-users")
+    @Timed(value = "auth.getAllUsers", description = "Time taken to fetch all users")
     public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllUsers(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         List<UserInfoDTO> users = authServiceImpl.getAllUsers(token);
@@ -217,6 +233,7 @@ public class AuthController {
 
 
     @GetMapping("/check-email/{email}")
+    @Timed(value = "auth.checkEmailExists", description = "Time taken to check if email exists")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> checkEmailExists(@PathVariable String email, HttpServletRequest servletRequest) {
         try {
             UserInfoDTO userInfo = authServiceImpl.checkEmailExists(email);
@@ -230,6 +247,7 @@ public class AuthController {
 
 
     @PostMapping("/register-subadmin")
+    @Timed(value = "auth.registerSubAdmin", description = "Time taken to register a new subadmin")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> registerSubAdmin(@Valid @RequestBody RegisterRequest request, @RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             String token = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
@@ -244,6 +262,7 @@ public class AuthController {
 
 
     @PutMapping("/delete-request")
+    @Timed(value = "auth.deleteRequest", description = "Time taken to submit a delete request")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> deleteRequest(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         try {
@@ -259,6 +278,7 @@ public class AuthController {
     }
 
     @PutMapping("/update-role")
+    @Timed(value = "auth.updateRole", description = "Time taken to update user role")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> updateRoleToUser(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
         try {
             logger.info("Assigning role initiated");
@@ -278,6 +298,7 @@ public class AuthController {
     }
 
     @GetMapping("/get-user-name")
+    @Timed(value = "auth.getUserName", description = "Time taken to fetch user names")
     public ResponseEntity<CustomResponseEntity<String>> getUsersName(@RequestHeader("Authorization") String authHeader, @RequestBody List<String> userIds, HttpServletRequest servletRequest) {
         try {
             String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
@@ -292,6 +313,7 @@ public class AuthController {
     }
 
     @GetMapping("/all-subadmins")
+    @Timed(value = "auth.getAllSubAdmins", description = "Time taken to fetch all subadmins")
     public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllSubAdmins(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
@@ -308,6 +330,7 @@ public class AuthController {
     }
 
     @GetMapping("/all-delete-requested-users")
+    @Timed(value = "auth.getAllDeleteRequestedUsers", description = "Time taken to fetch all delete requested users")
     public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllDeleteRequestedUsers(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;

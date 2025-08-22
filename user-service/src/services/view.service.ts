@@ -16,13 +16,15 @@ export class ViewService implements IViewService {
         // Use user identity from trusted source (e.g., req.authUser set by gateway/authservice)
         const authUserId = (req as any).user?.userId;
 
-        // Build the query condition
+        // Build the query condition - Corrected to use proper Sequelize where syntax
         const queryCondition: any = {
             user_id: authUserId,
-            ...(trip_id && {trip_id}),
-            ...(journal_id && {journal_id}),
-            ...(destination_id && {destination_id})
         };
+
+        // Only add fields that are actually provided to avoid querying for NULL values
+        if (trip_id) queryCondition.trip_id = trip_id;
+        if (journal_id) queryCondition.journal_id = journal_id;
+        if (destination_id) queryCondition.destination_id = destination_id;
 
         return View.findOne({
             where: queryCondition
@@ -52,21 +54,31 @@ export class ViewService implements IViewService {
 
         // Use user identity from trusted source (e.g., req.authUser set by gateway/authservice)
         const authUserId = (req as any).user?.userId;
-        // Check if the like already exists
+
+        // Build the query condition - Corrected to use proper Sequelize syntax
+        const queryCondition: any = {
+            user_id: authUserId,
+        };
+
+        // Only add fields that are actually provided
+        if (trip_id) queryCondition.trip_id = trip_id;
+        if (journal_id) queryCondition.journal_id = journal_id;
+        if (destination_id) queryCondition.destination_id = destination_id;
+
+        // Check if the view already exists
         const existingView = await View.findOne({
-            where: {
-                user_id: authUserId,
-                ...(trip_id && {trip_id}),
-                ...(journal_id && {journal_id}),
-                ...(destination_id && {destination_id})
-            }
+            where: queryCondition
         });
 
         if (existingView) {
-            // Unlike - delete the existing like
+            // Increment the view count
             await existingView.increment('view_count');
+            // Reload the model to get updated values
+            await existingView.reload();
+
             return {
-                increasedView: true, view: {
+                increasedView: true,
+                view: {
                     id: existingView.id.toString(),
                     user_id: existingView.user_id.toString(),
                     trip_id: existingView.trip_id?.toString() ?? undefined,
@@ -75,11 +87,10 @@ export class ViewService implements IViewService {
                     destination_id: existingView.destination_id?.toString() ?? undefined,
                     createdAt: existingView.created_at!,
                     updatedAt: existingView.updated_at!
-
                 }
             };
         } else {
-            // Like - create a new like
+            // Create a new view record
             const view = await View.create({
                 user_id: authUserId,
                 trip_id: trip_id || null,
@@ -103,6 +114,4 @@ export class ViewService implements IViewService {
             };
         }
     }
-
-
 }
