@@ -33,6 +33,9 @@ public class EmailConfig {
     @Value("${email.rate-limit.tokens-per-minute:60}")
     private int tokensPerMinute;
 
+    @Value("${spring.json.trusted.packages:com.travelmate.emailservice.dto}")
+    private String trustedPackages;
+
     @Bean
     public Bucket emailRateLimitBucket() {
         Bandwidth limit = Bandwidth.classic(tokensPerMinute,
@@ -45,7 +48,8 @@ public class EmailConfig {
     @Bean
     public ConsumerFactory<String, EmailRequest> emailConsumerFactory() {
         JsonDeserializer<EmailRequest> deserializer = new JsonDeserializer<>(EmailRequest.class);
-        deserializer.addTrustedPackages("com.travelmate.emailservice.dto");
+        deserializer.addTrustedPackages(trustedPackages);
+
         return new DefaultKafkaConsumerFactory<>(
             Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092",

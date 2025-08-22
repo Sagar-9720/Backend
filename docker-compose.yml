@@ -13,7 +13,7 @@ services:
       - postgres_trip_data:/var/lib/postgresql/data
       - ./scripts/init-trip-database.sql:/docker-entrypoint-initdb.d/init-trip-database.sql
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     depends_on:
       - postgres-auth
     healthcheck:
@@ -34,7 +34,7 @@ services:
       - postgres_auth_data:/var/lib/postgresql/data
       - ./scripts/init-auth-database.sql:/docker-entrypoint-initdb.d/init-auth-database.sql
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U traveluser -d travelmate_auth" ]
       interval: 30s
@@ -53,7 +53,7 @@ services:
       - postgres_user_data:/var/lib/postgresql/data
       - ./scripts/init-user-database.sql:/docker-entrypoint-initdb.d/init-user-database.sql
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     depends_on:
       - postgres-trip
     healthcheck:
@@ -74,7 +74,7 @@ services:
       - postgres_journal_data:/var/lib/postgresql/data
       - ./scripts/init-journal-database.sql:/docker-entrypoint-initdb.d/init-journal-database.sql
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     depends_on:
       - postgres-trip
     healthcheck:
@@ -94,7 +94,7 @@ services:
     volumes:
       - mongo_data:/data/db
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 30s
@@ -108,7 +108,7 @@ services:
     ports:
       - "8761:8761"
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     environment:
       - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=WARN
     healthcheck:
@@ -128,7 +128,7 @@ services:
     ports:
       - "8888:8888"
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     environment:
       - SPRING_PROFILES_ACTIVE=git
       - GIT_TOKEN=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
@@ -157,7 +157,7 @@ services:
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
       # DB_URL: ...
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     ports:
       - "8083:8083"
     healthcheck:
@@ -184,7 +184,7 @@ services:
       # DB_URL: ...
       CONFIG_SERVER_PROFILE: docker
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     deploy:
       replicas: 1
     healthcheck:
@@ -210,7 +210,7 @@ services:
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
       # DB_URL: ...
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     deploy:
       replicas: 1
     healthcheck:
@@ -236,7 +236,7 @@ services:
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
       # DB_URL: ...
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     deploy:
       replicas: 1
     healthcheck:
@@ -265,7 +265,7 @@ services:
       - SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG=WARN
       # Only add secrets or profile-specific variables if needed, e.g. for prod:
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     deploy:
       replicas: 1
     healthcheck:
@@ -286,14 +286,14 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   zipkin:
     image: openzipkin/zipkin:2.24
     ports:
       - "9411:9411"
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   # Redis and Sentinel Setup
   redis-master:
@@ -306,7 +306,7 @@ services:
       - redis-master-data:/data
     command: redis-server /etc/redis/redis.conf --appendonly yes --loglevel debug
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   redis-replica-1:
     image: redis:7
@@ -318,7 +318,7 @@ services:
       - redis-replica-1-data:/data
     command: redis-server /etc/redis/replica.conf --loglevel debug
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   redis-replica-2:
     image: redis:7
@@ -330,7 +330,7 @@ services:
       - redis-replica-2-data:/data
     command: redis-server /etc/redis/replica.conf --loglevel warning
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   redis-sentinel-1:
     image: redis:7
@@ -344,7 +344,7 @@ services:
       - redis-sentinel-1-data:/data
     command: sh -c "cp /etc/redis/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf --loglevel debug"
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   redis-sentinel-2:
     image: redis:7
@@ -358,7 +358,7 @@ services:
       - redis-sentinel-2-data:/data
     command: sh -c "cp /etc/redis/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf --loglevel warning"
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   redis-sentinel-3:
     image: redis:7
@@ -372,7 +372,7 @@ services:
       - redis-sentinel-3-data:/data
     command: sh -c "cp /etc/redis/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf --loglevel warning"
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   # Monitoring Stack
   # prometheus:
@@ -389,7 +389,7 @@ services:
   #   ports:
   #     - "9090:9090"
   #   networks:
-  #     - backend_travel-mate-network
+  #     - travel-mate-network
   #   healthcheck:
   #     test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy" ]
   #     interval: 30s
@@ -411,7 +411,7 @@ services:
   #   ports:
   #     - "3000:3000"
   #   networks:
-  #     - backend_travel-mate-network
+  #     - travel-mate-network
   #   depends_on:
   #     prometheus:
   #       condition: service_healthy
@@ -430,7 +430,7 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
       ZOO_LOG_LEVEL: WARN
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   kafka:
     image: bitnami/kafka:3.6
@@ -446,7 +446,7 @@ services:
       zookeeper:
         condition: service_healthy
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     healthcheck:
       test: [ "CMD", "sh", "-c", "echo ruok | nc zookeeper 2181 | grep imok" ]
       interval: 10s
@@ -470,7 +470,7 @@ services:
       - MAIL_USERNAME=your-email@gmail.com
       - MAIL_PASSWORD=your-app-specific-password
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     ports:
       - "8085:8085"
     healthcheck:
@@ -489,7 +489,7 @@ services:
     ports:
       - "9200:9200"
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
     deploy:
       resources:
         limits:
@@ -508,7 +508,7 @@ services:
       - postgres-auth
       - auth-service
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   init-tripservice-data:
     image: postgres:15-alpine
@@ -521,7 +521,7 @@ services:
       - postgres-trip
       - trip-service
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   init-user-postgres-demo:
     image: postgres:15-alpine
@@ -536,7 +536,7 @@ services:
       - init-authservice-users
       - init-tripservice-data
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   init-journal-postgres-demo:
     image: postgres:15-alpine
@@ -551,7 +551,7 @@ services:
       - init-authservice-users
       - init-tripservice-data
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   init-mongodb-user-service:
     image: mongo:6
@@ -565,7 +565,7 @@ services:
       - init-tripservice-data
       - init-authservice-users
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
   init-mongodb-journalservice:
     image: mongo:6
@@ -578,7 +578,7 @@ services:
       - trip-service
       - journal-service
     networks:
-      - backend_travel-mate-network
+      - travel-mate-network
 
 volumes:
   postgres_trip_data:
@@ -597,7 +597,7 @@ volumes:
   redis-sentinel-3-data:
 
 networks:
-  backend_travel-mate-network:
+  travel-mate-network:
     driver: bridge
 
 # Note: Service-specific SQL (tables/data) should be run by each service on startup, not mounted here.
