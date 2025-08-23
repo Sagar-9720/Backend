@@ -143,8 +143,8 @@ public class ItineraryServiceImpl implements ItineraryService {
                 .filter(java.util.Objects::nonNull)
                 .filter(itinerary -> destinationId == null ||
                        (itinerary.destination() != null &&
-                        itinerary.destination().id() != null &&
-                        itinerary.destination().id().equals(destinationId)))
+                        itinerary.destination().getId() != null &&
+                        itinerary.destination().getId().equals(destinationId)))
                 .map(itineraryModel -> {
                     Map<String, String> result = new HashMap<>();
                     result.put("id", itineraryModel.id().toString());
