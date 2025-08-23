@@ -51,6 +51,7 @@ class ElasticsearchDataInitializer {
             List<Trip> trips = tripRepository.findAll();
             for (Trip trip : trips) {
                 Map<String, Object> doc = new HashMap<>();
+                doc.put("id", trip.getId());
                 doc.put("title", trip.getTitle());
                 doc.put("description", trip.getDescription());
                 elasticsearchClient.index(IndexRequest.of(i -> i.index("trips").id(String.valueOf(trip.getId())).document(doc)));

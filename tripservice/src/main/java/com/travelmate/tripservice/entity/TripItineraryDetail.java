@@ -52,6 +52,8 @@ public class TripItineraryDetail {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime departureTime;
 
-    @OneToMany(mappedBy = "tripItineraryDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany
+    @JoinTable(name = "trip_itinerary_detail_activity", joinColumns = @JoinColumn(name = "trip_itinerary_detail_id"), inverseJoinColumns = @JoinColumn(name = "activity_id"))
     private Set<ItineraryActivity> activities;
+
 }

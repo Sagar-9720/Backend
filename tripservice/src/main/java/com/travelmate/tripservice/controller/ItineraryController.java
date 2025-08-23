@@ -34,8 +34,8 @@ public class ItineraryController {
     @GetMapping("/{id}")
     public ResponseEntity<CustomResponseEntity<ItineraryModel>> getItineraryById(@RequestHeader("X-UserInfo") String authHeader, @PathVariable Long id) {
         try {
-            Optional<ItineraryModel> itinerary = itineraryService.getItineraryById(id);
-            return itinerary.map(itineraryModel -> ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary fetched", itineraryModel, "/api/trip/itineraries/" + id))).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(404, "Itinerary not found", "/api/trip/itineraries/" + id)));
+            ItineraryModel itinerary = itineraryService.getItineraryById(id);
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary fetched", itinerary, "/api/trip/itineraries/" + id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/trip/itineraries/" + id));
         }
@@ -74,9 +74,9 @@ public class ItineraryController {
     }
 
     @GetMapping("/suggest")
-    public ResponseEntity<CustomResponseEntity<List<Map<String, String>>>> suggestItineraries(@RequestHeader("X-UserInfo") String authHeader, @RequestParam String keyword, @RequestParam(required = false) Long destinationId) {
+    public ResponseEntity<CustomResponseEntity<List<ItineraryModel>>> suggestItineraries(@RequestHeader("X-UserInfo") String authHeader, @RequestParam String keyword, @RequestParam(required = false) Long destinationId) {
         try {
-            List<Map<String, String>> suggestions = itineraryService.suggestItineraries(keyword, destinationId);
+            List<ItineraryModel> suggestions = itineraryService.suggestItineraries(keyword, destinationId);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary suggestions fetched", suggestions, "/api/trip/itineraries/suggest?keyword=" + keyword));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/trip/itineraries/suggest?keyword=" + keyword));

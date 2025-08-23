@@ -9,8 +9,7 @@ import com.travelmate.tripservice.entity.*;
 import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.mapper.*;
 import com.travelmate.tripservice.model.*;
-import com.travelmate.tripservice.repository.TripRepository;
-import com.travelmate.tripservice.repository.TripRequestRepository;
+import com.travelmate.tripservice.repository.*;
 import com.travelmate.tripservice.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -41,129 +41,175 @@ public class TripServiceImpl implements TripService {
 
     @Value("${elasticsearch.index.trips:trips}")
     private String tripIndex;
+
     private static final Logger logger = LoggerFactory.getLogger(TripServiceImpl.class);
+
     @Autowired
     private TripItineraryDetailService tripItineraryDetailService;
 
+    @Autowired
+    private ItineraryActivityRepository activityRepository;
 
     @Override
-    @CacheEvict(value = {
-            "trips", "allTrips", "tripsByDestination",
-            "tripsByPrice", "tripSuggestions", "tripNames"
-        }, allEntries = true)
+    @CacheEvict(value = {"trips", "allTrips", "tripsByDestination", "tripsByPrice", "tripSuggestions", "tripNames"}, allEntries = true)
+    @Transactional
     public TripLiteModel createTrip(String userName, String role, TripModel tripModel) throws TripExistsException, UnauthorizedAccessException {
 
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
+
         logger.info("Creating trip: {}", tripModel.title());
+
         List<Trip> existing = tripRepository.findByTitleContainingIgnoreCase(tripModel.title());
         if (!existing.isEmpty()) {
             throw new TripExistsException(tripModel.title());
         }
+
         Trip trip = TripMapper.toEntity(tripModel);
-        if (tripModel.destination().id() == null) {
-            trip.setMainDestination(DestinationMapper.toEntity(destinationService.createDestination(role, tripModel.destination())));
-        }
-        if (tripModel.itineraryDetails() != null && !tripModel.itineraryDetails().isEmpty()) {
-            Set<TripItineraryDetail> itineraries = new HashSet<>();
-            for (TripItineraryDetailModel itinerary : tripModel.itineraryDetails()) {
-                TripItineraryDetail tripItineraryDetail = TripItineraryDetailMapper.toEntity(itinerary);
-                itineraries.add(TripItineraryDetailMapper.toEntity(tripItineraryDetailService.create(TripItineraryDetailMapper.toModel(tripItineraryDetail))));
-            }
-            trip.setTripItineraryDetails(itineraries);
-        }
         trip.setCreatedBy(userName);
         trip.setIsActive(true);
+
+        // Handle main destination
+        if (tripModel.destination() != null) {
+            if (tripModel.destination().id() == null) {
+                trip.setMainDestination(DestinationMapper.toEntity(destinationService.createDestination(role, tripModel.destination())));
+            } else {
+                trip.setMainDestination(DestinationMapper.toEntity(destinationService.getDestinationById(tripModel.destination().id())));
+            }
+        }
+
+        // Handle itinerary details with activities
+        if (tripModel.itineraryDetails() != null && !tripModel.itineraryDetails().isEmpty()) {
+            Set<TripItineraryDetail> itineraries = tripModel.itineraryDetails().stream().map(itineraryModel -> {
+                TripItineraryDetail detail = TripItineraryDetailMapper.toEntity(itineraryModel);
+
+                // Map activities
+                if (itineraryModel.activities() != null) {
+                    Set<ItineraryActivity> activities = itineraryModel.activities().stream().map(act -> activityRepository.findById(act.id()).orElseThrow(() -> new RuntimeException("Activity not found: " + act.id()))).collect(Collectors.toSet());
+                    detail.setActivities(activities);
+                }
+                return detail;
+            }).collect(Collectors.toSet());
+
+            trip.setTripItineraryDetails(itineraries);
+        }
+
         Trip savedTrip = tripRepository.save(trip);
         indexTrip(TripMapper.toModel(savedTrip));
+
         return TripMapper.toLiteModel(savedTrip);
     }
 
     @Override
     @Cacheable(value = "trips", key = "#id")
-    public TripModel getTripById(Long id) throws TripNotFoundException, UnauthorizedAccessException {
+    public TripModel getTripById(Long id) throws TripNotFoundException {
         logger.info("Fetching trip by id: {}", id);
-        return tripRepository.findById(id)
-                .map(TripMapper::toModel)
-                .orElseThrow(() -> new TripNotFoundException(id));
+        return tripRepository.findById(id).map(TripMapper::toModel).orElseThrow(() -> new TripNotFoundException(id));
     }
 
     @Override
-    @Cacheable(value = "allTrips", key = "#role")
-    public List<TripLiteModel> getAllTrips(String role) throws UnauthorizedAccessException {
+    @Cacheable(value = "allTrips", key = "#role.toLowerCase()")
+    public List<TripLiteModel> getAllTrips(String role) {
         logger.info("Cache miss: Fetching all trips from database for role: {}", role);
-        List<TripLiteModel> list = tripRepository.findAll().stream().map(TripMapper::toLiteModel).toList();
-        if (role.equalsIgnoreCase("USER") || role.equalsIgnoreCase("GUEST")) {
+        List<TripLiteModel> list = tripRepository.findAll().stream().map(TripMapper::toLiteModel).collect(Collectors.toList());
+
+        if ("user".equalsIgnoreCase(role) || "guest".equalsIgnoreCase(role)) {
             list = list.stream().filter(TripLiteModel::isActive).collect(Collectors.toList());
         }
         return list;
     }
 
     @Override
-    @CacheEvict(value = {
-            "trips", "allTrips", "tripsByDestination",
-            "tripsByPrice", "tripSuggestions", "tripNames"
-        }, allEntries = true)
+    @CacheEvict(value = {"trips", "allTrips", "tripsByDestination", "tripsByPrice", "tripSuggestions", "tripNames"}, allEntries = true)
+    @Transactional
     public TripLiteModel updateTrip(String role, TripModel updatedTripModel) throws TripNotFoundException, UnauthorizedAccessException {
 
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
-        Long id = updatedTripModel.id();
-        logger.info("Updating trip id: {}", id);
-        Trip existingTrip = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException(id));
+
+        Trip existingTrip = tripRepository.findById(updatedTripModel.id()).orElseThrow(() -> new TripNotFoundException(updatedTripModel.id()));
+
         existingTrip.setTitle(updatedTripModel.title());
         existingTrip.setDescription(updatedTripModel.description());
         existingTrip.setStartDate(updatedTripModel.startDate());
         existingTrip.setEndDate(updatedTripModel.endDate());
         existingTrip.setPrice(updatedTripModel.price());
 
-        // Set main destination (create if needed)
+        // Update main destination
         if (updatedTripModel.destination() != null) {
             if (updatedTripModel.destination().id() == null) {
                 existingTrip.setMainDestination(DestinationMapper.toEntity(destinationService.createDestination(role, updatedTripModel.destination())));
             } else {
-                DestinationModel destinationModel = destinationService.getDestinationById(updatedTripModel.destination().id());
-                if (destinationModel == null) {
-                    throw new DestinationNotFoundException(updatedTripModel.destination().id());
-                }
-                existingTrip.setMainDestination(DestinationMapper.toEntity(destinationModel));
+                existingTrip.setMainDestination(DestinationMapper.toEntity(destinationService.getDestinationById(updatedTripModel.destination().id())));
             }
         }
-        // Set itinerary details (create if needed)
+
+        // Update itinerary details
         if (updatedTripModel.itineraryDetails() != null && !updatedTripModel.itineraryDetails().isEmpty()) {
-            Set<TripItineraryDetail> itineraryDetails = new HashSet<>();
-            for (TripItineraryDetailModel itinerary : updatedTripModel.itineraryDetails()) {
-                TripItineraryDetail tripItineraryDetail = TripItineraryDetailMapper.toEntity(itinerary);
-                if (itinerary.id() == null) {
-                    itineraryDetails.add(TripItineraryDetailMapper.toEntity(tripItineraryDetailService.create(TripItineraryDetailMapper.toModel(tripItineraryDetail))));
+            Set<TripItineraryDetail> itineraryDetails = updatedTripModel.itineraryDetails().stream().map(itineraryModel -> {
+                TripItineraryDetail detail;
+                if (itineraryModel.id() != null) {
+                    TripItineraryDetailModel existingDetail = tripItineraryDetailService.getById(itineraryModel.id());
+                    detail = TripItineraryDetailMapper.toEntity(existingDetail);
                 } else {
-                    TripItineraryDetailModel existingItinerary = tripItineraryDetailService.getById(itinerary.id());
-                    itineraryDetails.add(TripItineraryDetailMapper.toEntity(existingItinerary));
+                    detail = TripItineraryDetailMapper.toEntity(itineraryModel);
                 }
-            }
+
+                // Map activities
+                if (itineraryModel.activities() != null) {
+                    Set<ItineraryActivity> activities = itineraryModel.activities().stream().map(act -> activityRepository.findById(act.id()).orElseThrow(() -> new RuntimeException("Activity not found: " + act.id()))).collect(Collectors.toSet());
+                    detail.setActivities(activities);
+                }
+                return detail;
+            }).collect(Collectors.toSet());
+
             existingTrip.setTripItineraryDetails(itineraryDetails);
         }
+
         Trip savedTrip = tripRepository.save(existingTrip);
-        indexTrip(TripMapper.toModel(savedTrip)); // Re-index the updated trip in Elasticsearch
+        indexTrip(TripMapper.toModel(savedTrip));
         return TripMapper.toLiteModel(savedTrip);
     }
 
     @Override
-    @CacheEvict(value = {
-            "trips", "allTrips", "tripsByDestination",
-            "tripsByPrice", "tripSuggestions", "tripNames"
-        }, allEntries = true)
+    @CacheEvict(value = {"trips", "allTrips", "tripsByDestination", "tripsByPrice", "tripSuggestions", "tripNames"}, allEntries = true)
     public TripLiteModel deleteTrip(String role, Long id) throws TripNotFoundException, UnauthorizedAccessException {
         if (!"admin".equalsIgnoreCase(role) && !"subadmin".equalsIgnoreCase(role)) {
             throw new UnauthorizedAccessException("User is not ADMIN or SUBADMIN");
         }
-        logger.info("Disabling trip id: {}", id);
+
         Trip trip = tripRepository.findById(id).orElseThrow(() -> new TripNotFoundException(id));
         trip.setIsActive(false);
         tripRepository.save(trip);
+
         return TripMapper.toLiteModel(trip);
+    }
+
+    @Override
+    public void indexTrip(TripModel tripModel) {
+        try {
+            IndexRequest<TripModel> request = IndexRequest.of(i -> i.index(tripIndex).id(tripModel.id() != null ? tripModel.id().toString() : tripModel.title()).document(tripModel));
+            elasticsearchClient.index(request);
+        } catch (Exception e) {
+            logger.error("Failed to index trip in Elasticsearch: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    @Cacheable(value = "tripSuggestions", key = "#query")
+    public List<TripModel> suggestTrips(String query) {
+        logger.info("Fetching trip suggestions for query: {}", query);
+        try {
+            SearchRequest searchRequest = SearchRequest.of(s -> s.index(tripIndex).query(q -> q.bool(b -> b.should(sh -> sh.prefix(p -> p.field("title.keyword").value(query.toLowerCase()))).should(sh -> sh.wildcard(w -> w.field("title").value("*" + query.toLowerCase() + "*"))).minimumShouldMatch("1"))).size(10));
+
+            SearchResponse<TripModel> response = elasticsearchClient.search(searchRequest, TripModel.class);
+            return response.hits().hits().stream().map(Hit::source).filter(Objects::nonNull).toList();
+        } catch (Exception e) {
+            logger.error("Failed to suggest trips from Elasticsearch: {}", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
 
@@ -200,63 +246,6 @@ public class TripServiceImpl implements TripService {
                 trip.setIsActive(false);
                 tripRepository.save(trip);
             }
-        }
-    }
-
-
-    @Override
-    public void indexTrip(TripModel tripModel) {
-        try {
-            IndexRequest<TripModel> request = IndexRequest.of(i -> i.index(tripIndex).id(tripModel.id() != null ? tripModel.id().toString() : tripModel.title()).document(tripModel));
-            elasticsearchClient.index(request);
-        } catch (Exception e) {
-            logger.error("Failed to index trip in Elasticsearch: {}", e.getMessage());
-        }
-    }
-
-    @Override
-    @Cacheable(value = "tripSuggestions", key = "#query")
-    public List<Map<String, String>> suggestTrips(String query) {
-        logger.info("Cache miss: Fetching trip suggestions for query: {}", query);
-        try {
-            SearchRequest searchRequest = SearchRequest.of(s -> s
-                .index(tripIndex)
-                .query(q -> q
-                    .bool(b -> b
-                        .should(sh -> sh
-                            // Match prefixes (starts with)
-                            .prefix(p -> p
-                                .field("title")
-                                .value(query.toLowerCase())
-                            )
-                        )
-                        .should(sh -> sh
-                            // Match anywhere in the text
-                            .wildcard(w -> w
-                                .field("title")
-                                .value("*" + query.toLowerCase() + "*")
-                            )
-                        )
-                        .minimumShouldMatch("1")
-                    )
-                )
-                .size(10)
-            );
-
-            SearchResponse<TripModel> response = elasticsearchClient.search(searchRequest, TripModel.class);
-            return response.hits().hits().stream()
-                .map(Hit::source)
-                .filter(java.util.Objects::nonNull)
-                .map(tripModel -> {
-                    Map<String, String> result = new HashMap<>();
-                    result.put("id", tripModel.id().toString());
-                    result.put("title", tripModel.title());
-                    return result;
-                })
-                .toList();
-        } catch (Exception e) {
-            logger.error("Failed to suggest trips from Elasticsearch: {}", e.getMessage());
-            return List.of();
         }
     }
 

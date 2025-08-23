@@ -8,7 +8,6 @@ import com.travelmate.tripservice.model.TripModel;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public interface TripService {
 
@@ -41,7 +40,7 @@ public interface TripService {
 
     TripModel getTripById(Long id) throws TripNotFoundException;
 
-    List<Map<String, String>> suggestTrips(String query);
+    List<TripModel> suggestTrips(String query);
 
     void indexTrip(TripModel tripModel);
 

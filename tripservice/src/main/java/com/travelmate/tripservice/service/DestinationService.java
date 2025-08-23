@@ -4,7 +4,6 @@ import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.model.DestinationModel;
 
 import java.util.List;
-import java.util.Map;
 
 public interface DestinationService {
 
@@ -24,7 +23,7 @@ public interface DestinationService {
 
     List<DestinationModel> searchDestinationByName(String name) throws DestinationNotFoundException;
 
-    List<Map<String, String>> suggestDestinations(String query);
+    List<DestinationModel> suggestDestinations(String query);
 
     void indexDestination(DestinationModel destinationModel);
 }

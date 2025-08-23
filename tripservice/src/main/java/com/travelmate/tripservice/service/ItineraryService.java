@@ -5,7 +5,6 @@ import com.travelmate.tripservice.exceptions.ItineraryNotFoundException;
 import com.travelmate.tripservice.model.ItineraryModel;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface ItineraryService {
@@ -20,7 +19,7 @@ public interface ItineraryService {
     List<ItineraryModel> getAllItineraries();
 
     //Both Admin and User Operations
-    List<Map<String, String>> suggestItineraries(String keyword, Long destinationId);
+    List<ItineraryModel> suggestItineraries(String keyword, Long destinationId);
 
-    Optional<ItineraryModel> getItineraryById(Long id) throws ItineraryNotFoundException;
+    ItineraryModel getItineraryById(Long id) throws ItineraryNotFoundException;
 }

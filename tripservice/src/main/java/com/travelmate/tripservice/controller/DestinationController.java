@@ -1,8 +1,6 @@
 package com.travelmate.tripservice.controller;
 
 import com.travelmate.tripservice.dto.UserInfo;
-import com.travelmate.tripservice.entity.Destination;
-import com.travelmate.tripservice.mapper.DestinationMapper;
 import com.travelmate.tripservice.model.DestinationModel;
 import com.travelmate.tripservice.response.CustomResponseEntity;
 import com.travelmate.tripservice.service.ExtractHeader;
@@ -13,13 +11,11 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/trip/destinations")
@@ -105,18 +101,13 @@ public class DestinationController {
 
     @GetMapping("/suggest")
     @Timed(value = "destination.suggestDestinations", description = "Time taken to suggest destinations")
-    public ResponseEntity<Map<String, Object>> suggestDestinations(@RequestParam("q") String query) {
-        List<Map<String, String>> suggestions = new ArrayList<>();
+    public ResponseEntity<CustomResponseEntity<List<DestinationModel>>> suggestDestinations(@RequestParam("q") String query) {
         try {
-            suggestions = destinationServiceImpl.suggestDestinations(query);
+            List<DestinationModel> suggestions = destinationServiceImpl.suggestDestinations(query);
+            return ResponseEntity.ok(CustomResponseEntity.success(200, "Destination suggestions fetched", suggestions, "/api/trip/destinations/suggest?q=" + query));
         } catch (Exception e) {
             logger.error("Error getting destination suggestions for query: {}", query, e);
-            // Continue with empty suggestions rather than propagating error
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(500, e.getMessage(), "/api/trip/destinations/suggest?q=" + query));
         }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("suggestions", suggestions);
-        response.put("count", suggestions.size());
-        return ResponseEntity.ok(response);
     }
 }

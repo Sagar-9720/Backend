@@ -23,8 +23,10 @@ public class CountryServiceImpl implements CountryService {
 
     @Override
     public List<CountryModel> getAllCountries() {
-        logger.info("Fetching all countries");
-        return countryRepository.findAll().stream().map(CountryMapper::toModel).toList();
+
+        List<CountryModel> countries = countryRepository.findAll().stream().map(CountryMapper::toModel).toList();
+        logger.info("Fetched {} countries", countries.size());
+        return countries;
     }
 
     @Override
@@ -54,8 +56,6 @@ public class CountryServiceImpl implements CountryService {
 
     public CountryModel getCountryById(Long countryId) {
         logger.info("Fetching country by id: {}", countryId);
-        return countryRepository.findById(countryId)
-                .map(CountryMapper::toModel)
-                .orElseThrow(() -> new CountryNotFoundException(countryId));
+        return countryRepository.findById(countryId).map(CountryMapper::toModel).orElseThrow(() -> new CountryNotFoundException(countryId));
     }
 }

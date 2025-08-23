@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.Set;
+
 @Entity
 @Getter
 @Setter
@@ -24,8 +26,7 @@ public class ItineraryActivity {
 
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trip_itinerary_detail_id", nullable = false)
+    @ManyToMany(mappedBy = "activities")
     @JsonIgnore
-    private TripItineraryDetail tripItineraryDetail;
+    private Set<TripItineraryDetail> tripItineraryDetails;
 }

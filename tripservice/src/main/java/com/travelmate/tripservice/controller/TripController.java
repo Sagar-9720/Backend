@@ -169,8 +169,8 @@ public class TripController {
 
     @GetMapping("/suggest")
     @Timed(value = "trip.suggestTrips", description = "Time taken to suggest trips")
-    public ResponseEntity<CustomResponseEntity<List<Map<String, String>>>> suggestTrips(@RequestParam("q") String query) {
-        List<Map<String, String>> suggestions = tripService.suggestTrips(query);
+    public ResponseEntity<CustomResponseEntity<List<TripModel>>> suggestTrips(@RequestParam("q") String query) {
+        List<TripModel> suggestions = tripService.suggestTrips(query);
         return ResponseEntity.ok(CustomResponseEntity.success(200, "Trip suggestions fetched", suggestions, "/api/trip/trips/suggest?q=" + query));
     }
 

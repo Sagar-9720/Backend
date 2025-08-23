@@ -19,10 +19,10 @@ public class CacheSyncManager {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-    
+
     @Autowired
     private CacheManager cacheManager;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
 

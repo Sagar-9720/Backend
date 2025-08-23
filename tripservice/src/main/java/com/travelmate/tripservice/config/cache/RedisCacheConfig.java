@@ -3,6 +3,7 @@ package com.travelmate.tripservice.config.cache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -25,54 +26,35 @@ public class RedisCacheConfig {
         this.meterRegistry = meterRegistry;
     }
 
+    /**
+     * Generic RedisTemplate for TripModel, DestinationModel, lists, etc.
+     */
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        try {
-            RedisTemplate<String, Object> template = new RedisTemplate<>();
-            template.setConnectionFactory(connectionFactory);
-            template.setKeySerializer(new StringRedisSerializer());
-            template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-            return template;
-        } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating RedisTemplate, Redis features will be disabled.", e);
-            return null;
-        }
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory, @Qualifier("redisObjectMapper") ObjectMapper redisObjectMapper) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(serializer);
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(serializer);
+
+        return template;
     }
+
 
     @Bean
     public RedisMessageListenerContainer redisMessageListener(RedisConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter) {
-        try {
-            RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-            container.setConnectionFactory(connectionFactory);
-            container.addMessageListener(listenerAdapter, new ChannelTopic(CACHE_SYNC_TOPIC));
-            return container;
-        } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating RedisMessageListenerContainer, Redis pub/sub will be disabled.", e);
-            return null;
-        }
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(listenerAdapter, new ChannelTopic(CACHE_SYNC_TOPIC));
+        return container;
     }
 
     @Bean
     public MessageListenerAdapter messageListener(CacheSyncManager cacheSyncManager) {
-        try {
-            MessageListenerAdapter adapter = new MessageListenerAdapter(new CacheMessageListener(cacheSyncManager), "onMessage");
-            adapter.setSerializer(new GenericJackson2JsonRedisSerializer());
-            return adapter;
-        } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating MessageListenerAdapter, Redis pub/sub will be disabled.", e);
-            return null;
-        }
-    }
-
-    @Bean
-    public ObjectMapper objectMapper() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.findAndRegisterModules(); // registers JavaTimeModule, etc.
-            return mapper;
-        } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(RedisCacheConfig.class).error("Error creating ObjectMapper", e);
-            throw e;
-        }
+        return new MessageListenerAdapter(new CacheMessageListener(cacheSyncManager), "onMessage");
     }
 }
