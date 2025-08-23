@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/trip/itinerary-activities")
@@ -57,9 +58,9 @@ public class ItineraryActivityController {
     }
 
     @GetMapping("/suggest")
-    public ResponseEntity<CustomResponseEntity<List<ItineraryActivityModel>>> suggest(@RequestHeader("X-UserInfo") String authHeader, @RequestParam String keyword) {
+    public ResponseEntity<CustomResponseEntity<List<Map<String, String>>>> suggest(@RequestHeader("X-UserInfo") String authHeader, @RequestParam String keyword) {
         try {
-            List<ItineraryActivityModel> suggestions = service.suggest(keyword);
+            List<Map<String, String>> suggestions = service.suggest(keyword);
             return ResponseEntity.ok(CustomResponseEntity.success(200, "Itinerary activity suggestions fetched", suggestions, "/api/itinerary-activities/suggest?keyword=" + keyword));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CustomResponseEntity.error(403, e.getMessage(), "/api/itinerary-activities/suggest?keyword=" + keyword));

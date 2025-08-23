@@ -109,6 +109,77 @@ services:
       - backend_travel-mate-network
     restart: unless-stopped
 
+  postgres-auth-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: postgres-auth-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://traveluser:postgres@postgres-auth:5432/travelmate_auth?sslmode=disable"
+    ports: [ "9188:9187" ]
+    networks:
+      - monitoring
+      - backend_travel-mate-network
+    restart: unless-stopped
+
+  postgres-user-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: postgres-user-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://traveluser:postgres@postgres-user:5432/user_service_db?sslmode=disable"
+    ports: [ "9189:9187" ]
+    networks:
+      - monitoring
+      - backend_travel-mate-network
+    restart: unless-stopped
+
+  postgres-journal-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: postgres-journal-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://traveluser:postgres@postgres-journal:5432/journal_service_db?sslmode=disable"
+    ports: [ "9190:9187" ]
+    networks:
+      - monitoring
+      - backend_travel-mate-network
+    restart: unless-stopped
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40.0
+    container_name: mongodb-exporter
+    ports: [ "9216:9216" ]
+    command:
+      - "--mongodb.uri=mongodb://admin:password@mongo:27017"
+      - "--discovering-mode"
+      - "--compatible-mode"
+    networks:
+      - monitoring
+      - backend_travel-mate-network
+    restart: unless-stopped
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter
+    ports: [ "9308:9308" ]
+    command:
+      - "--kafka.server=kafka:9092"
+      - "--topic.filter=.*"
+      - "--group.filter=.*"
+    networks:
+      - monitoring
+      - backend_travel-mate-network
+    restart: unless-stopped
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.10.0
+    container_name: nginx-exporter
+    command:
+      - "-nginx.scrape-uri=http://nginx:80/stub_status"
+    ports:
+      - "9113:9113"
+    networks:
+      - monitoring
+      - backend_travel-mate-network
+    restart: unless-stopped
+
   # ---------------- Logging ----------------
   loki:
     image: grafana/loki:2.9.5

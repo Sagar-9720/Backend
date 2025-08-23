@@ -115,6 +115,28 @@ scrape_configs:
       - targets: ["postgres-exporter:9187"]
         labels:
           database: "postgres"
+          instance: "trip_service_db"
+  
+  - job_name: "postgres-auth-exporter"
+    static_configs:
+      - targets: ["postgres-auth-exporter:9187"]
+        labels:
+          database: "postgres" 
+          instance: "travelmate_auth"
+  
+  - job_name: "postgres-user-exporter"
+    static_configs:
+      - targets: ["postgres-user-exporter:9187"]
+        labels:
+          database: "postgres"
+          instance: "user_service_db"
+  
+  - job_name: "postgres-journal-exporter"
+    static_configs:
+      - targets: ["postgres-journal-exporter:9187"]
+        labels:
+          database: "postgres"
+          instance: "journal_service_db"
 
   - job_name: "mongodb-exporter"
     static_configs:
@@ -127,6 +149,12 @@ scrape_configs:
       - targets: ["redis-exporter:9121"]
         labels:
           database: "redis"
+    metric_relabel_configs:
+      # Add replica and sentinel labels based on instance info
+      - source_labels: [__name__, addr]
+        regex: '(redis_.*);(.*)'
+        target_label: redis_instance
+        replacement: '${2}'
 
   # Message broker monitoring
   - job_name: "kafka-exporter"

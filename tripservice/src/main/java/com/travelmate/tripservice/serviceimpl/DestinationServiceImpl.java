@@ -22,14 +22,13 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.LinkedHashMap;
 
 @Service
 public class DestinationServiceImpl implements DestinationService {
@@ -75,18 +74,10 @@ public class DestinationServiceImpl implements DestinationService {
     @Override
     @Cacheable(value = "destinations", key = "#id")
     public DestinationModel getDestinationById(Long id) throws DestinationNotFoundException {
-        try {
-            Object result = org.springframework.cache.interceptor.SimpleKeyGenerator.generateKey(id); // Simulate cache lookup
-            if (result instanceof LinkedHashMap) {
-                ObjectMapper mapper = new ObjectMapper();
-                return mapper.convertValue(result, DestinationModel.class);
-            }
-            return (DestinationModel) result;
-        } catch (ClassCastException e) {
-            // Fallback to database
-            logger.info("Cache miss: Fetching destination by id: {} from database", id);
-            return destinationRepository.findById(id).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(id));
-        }
+        logger.info("Fetching destination by id: {}", id);
+        return destinationRepository.findById(id)
+                .map(DestinationMapper::toModel)
+                .orElseThrow(() -> new DestinationNotFoundException(id));
     }
 
     @Override
@@ -171,11 +162,44 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Override
     @Cacheable(value = "destinationSuggestions", key = "#query")
-    public List<String> suggestDestinations(String query) {
+    public List<Map<String, String>> suggestDestinations(String query) {
+        logger.info("Cache miss: Fetching destination suggestions for query: {}", query);
         try {
-            SearchRequest searchRequest = SearchRequest.of(s -> s.index(destinationIndex).query(q -> q.fuzzy(f -> f.field("name").value(query).fuzziness("AUTO"))).size(10));
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                .index(destinationIndex)
+                .query(q -> q
+                    .bool(b -> b
+                        .should(sh -> sh
+                            // Match prefixes (starts with)
+                            .prefix(p -> p
+                                .field("name")
+                                .value(query.toLowerCase())
+                            )
+                        )
+                        .should(sh -> sh
+                            // Match anywhere in the text
+                            .wildcard(w -> w
+                                .field("name")
+                                .value("*" + query.toLowerCase() + "*")
+                            )
+                        )
+                        .minimumShouldMatch("1")
+                    )
+                )
+                .size(10)
+            );
+
             SearchResponse<DestinationModel> response = elasticsearchClient.search(searchRequest, DestinationModel.class);
-            return response.hits().hits().stream().map(Hit::source).filter(java.util.Objects::nonNull).map(DestinationModel::name).toList();
+            return response.hits().hits().stream()
+                .map(Hit::source)
+                .filter(java.util.Objects::nonNull)
+                .map(destinationModel -> {
+                    Map<String, String> result = new HashMap<>();
+                    result.put("id", destinationModel.id().toString());
+                    result.put("name", destinationModel.name());
+                    return result;
+                })
+                .toList();
         } catch (Exception e) {
             logger.error("Failed to suggest destinations from Elasticsearch: {}", e.getMessage());
             return List.of();

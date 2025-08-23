@@ -15,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ItineraryActivityServiceImpl implements ItineraryActivityService {
@@ -58,11 +60,43 @@ public class ItineraryActivityServiceImpl implements ItineraryActivityService {
     }
 
     @Override
-    public List<ItineraryActivityModel> suggest(String keyword) {
+    public List<Map<String, String>> suggest(String keyword) {
         try {
-            SearchRequest searchRequest = SearchRequest.of(s -> s.index(itineraryActivityIndex).query(q -> q.fuzzy(f -> f.field("activityName").value(keyword).fuzziness("AUTO"))).size(10));
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                .index(itineraryActivityIndex)
+                .query(q -> q
+                    .bool(b -> b
+                        .should(sh -> sh
+                            // Match prefixes (starts with)
+                            .prefix(p -> p
+                                .field("activityName")
+                                .value(keyword.toLowerCase())
+                            )
+                        )
+                        .should(sh -> sh
+                            // Match anywhere in the text
+                            .wildcard(w -> w
+                                .field("activityName")
+                                .value("*" + keyword.toLowerCase() + "*")
+                            )
+                        )
+                        .minimumShouldMatch("1")
+                    )
+                )
+                .size(10)
+            );
+
             SearchResponse<ItineraryActivityModel> response = elasticsearchClient.search(searchRequest, ItineraryActivityModel.class);
-            return response.hits().hits().stream().map(Hit::source).filter(java.util.Objects::nonNull).toList();
+            return response.hits().hits().stream()
+                .map(Hit::source)
+                .filter(java.util.Objects::nonNull)
+                .map(activityModel -> {
+                    Map<String, String> result = new HashMap<>();
+                    result.put("id", activityModel.id().toString());
+                    result.put("activityName", activityModel.activityName());
+                    return result;
+                })
+                .toList();
         } catch (Exception e) {
             // Log error
             return List.of();

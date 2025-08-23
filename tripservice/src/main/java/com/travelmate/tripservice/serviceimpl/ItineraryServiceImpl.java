@@ -20,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -108,12 +110,48 @@ public class ItineraryServiceImpl implements ItineraryService {
     }
 
     @Override
-    public List<ItineraryModel> suggestItineraries(String keyword, Long destinationId) {
+    public List<Map<String, String>> suggestItineraries(String keyword, Long destinationId) {
         logger.info("Suggesting itineraries for keyword: {} and destinationId: {}", keyword, destinationId);
         try {
-            SearchRequest searchRequest = SearchRequest.of(s -> s.index(itineraryIndex).query(q -> q.fuzzy(f -> f.field("itineraryName").value(keyword).fuzziness("AUTO"))).size(10));
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                .index(itineraryIndex)
+                .query(q -> q
+                    .bool(b -> b
+                        .should(sh -> sh
+                            // Match prefixes (starts with)
+                            .prefix(p -> p
+                                .field("itineraryName")
+                                .value(keyword.toLowerCase())
+                            )
+                        )
+                        .should(sh -> sh
+                            // Match anywhere in the text
+                            .wildcard(w -> w
+                                .field("itineraryName")
+                                .value("*" + keyword.toLowerCase() + "*")
+                            )
+                        )
+                        .minimumShouldMatch("1")
+                    )
+                )
+                .size(10)
+            );
+
             SearchResponse<ItineraryModel> response = elasticsearchClient.search(searchRequest, ItineraryModel.class);
-            return response.hits().hits().stream().map(Hit::source).filter(java.util.Objects::nonNull).filter(itinerary -> destinationId == null || (itinerary.destination().getId() != null && itinerary.destination().getId().equals(destinationId))).toList();
+            return response.hits().hits().stream()
+                .map(Hit::source)
+                .filter(java.util.Objects::nonNull)
+                .filter(itinerary -> destinationId == null ||
+                       (itinerary.destination() != null &&
+                        itinerary.destination().id() != null &&
+                        itinerary.destination().id().equals(destinationId)))
+                .map(itineraryModel -> {
+                    Map<String, String> result = new HashMap<>();
+                    result.put("id", itineraryModel.id().toString());
+                    result.put("name", itineraryModel.itineraryName());
+                    return result;
+                })
+                .toList();
         } catch (Exception e) {
             logger.error("Failed to suggest itineraries from Elasticsearch: {}", e.getMessage());
             return List.of();

@@ -106,7 +106,7 @@ public class DestinationController {
     @GetMapping("/suggest")
     @Timed(value = "destination.suggestDestinations", description = "Time taken to suggest destinations")
     public ResponseEntity<Map<String, Object>> suggestDestinations(@RequestParam("q") String query) {
-        List<String> suggestions = new ArrayList<>();
+        List<Map<String, String>> suggestions = new ArrayList<>();
         try {
             suggestions = destinationServiceImpl.suggestDestinations(query);
         } catch (Exception e) {

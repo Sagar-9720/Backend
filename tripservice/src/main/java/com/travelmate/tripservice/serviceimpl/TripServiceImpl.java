@@ -5,7 +5,6 @@ import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.travelmate.tripservice.entity.*;
 import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.mapper.*;
@@ -84,18 +83,10 @@ public class TripServiceImpl implements TripService {
     @Override
     @Cacheable(value = "trips", key = "#id")
     public TripModel getTripById(Long id) throws TripNotFoundException, UnauthorizedAccessException {
-        try {
-            Object result = org.springframework.cache.interceptor.SimpleKeyGenerator.generateKey(id); // Simulate cache lookup
-            if (result instanceof LinkedHashMap) {
-                ObjectMapper mapper = new ObjectMapper();
-                return mapper.convertValue(result, TripModel.class);
-            }
-            return (TripModel) result;
-        } catch (ClassCastException e) {
-            // Fallback to database
-            logger.info("Cache miss for trip id: {} - fetching from database", id);
-            return tripRepository.findById(id).map(TripMapper::toModel).orElseThrow(() -> new TripNotFoundException(id));
-        }
+        logger.info("Fetching trip by id: {}", id);
+        return tripRepository.findById(id)
+                .map(TripMapper::toModel)
+                .orElseThrow(() -> new TripNotFoundException(id));
     }
 
     @Override
@@ -225,12 +216,44 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Cacheable(value = "tripSuggestions", key = "#query")
-    public List<String> suggestTrips(String query) {
+    public List<Map<String, String>> suggestTrips(String query) {
         logger.info("Cache miss: Fetching trip suggestions for query: {}", query);
         try {
-            SearchRequest searchRequest = SearchRequest.of(s -> s.index(tripIndex).query(q -> q.fuzzy(f -> f.field("title").value(query).fuzziness("AUTO"))).size(10));
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                .index(tripIndex)
+                .query(q -> q
+                    .bool(b -> b
+                        .should(sh -> sh
+                            // Match prefixes (starts with)
+                            .prefix(p -> p
+                                .field("title")
+                                .value(query.toLowerCase())
+                            )
+                        )
+                        .should(sh -> sh
+                            // Match anywhere in the text
+                            .wildcard(w -> w
+                                .field("title")
+                                .value("*" + query.toLowerCase() + "*")
+                            )
+                        )
+                        .minimumShouldMatch("1")
+                    )
+                )
+                .size(10)
+            );
+
             SearchResponse<TripModel> response = elasticsearchClient.search(searchRequest, TripModel.class);
-            return response.hits().hits().stream().map(Hit::source).filter(java.util.Objects::nonNull).map(TripModel::title).toList();
+            return response.hits().hits().stream()
+                .map(Hit::source)
+                .filter(java.util.Objects::nonNull)
+                .map(tripModel -> {
+                    Map<String, String> result = new HashMap<>();
+                    result.put("id", tripModel.id().toString());
+                    result.put("title", tripModel.title());
+                    return result;
+                })
+                .toList();
         } catch (Exception e) {
             logger.error("Failed to suggest trips from Elasticsearch: {}", e.getMessage());
             return List.of();

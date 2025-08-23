@@ -41,7 +41,7 @@ public interface TripService {
 
     TripModel getTripById(Long id) throws TripNotFoundException;
 
-    List<String> suggestTrips(String query);
+    List<Map<String, String>> suggestTrips(String query);
 
     void indexTrip(TripModel tripModel);
 

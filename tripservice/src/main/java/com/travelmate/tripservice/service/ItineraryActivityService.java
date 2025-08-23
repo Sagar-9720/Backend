@@ -3,6 +3,7 @@ package com.travelmate.tripservice.service;
 import com.travelmate.tripservice.model.ItineraryActivityModel;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ItineraryActivityService {
     ItineraryActivityModel create(ItineraryActivityModel model);
@@ -13,5 +14,5 @@ public interface ItineraryActivityService {
 
     List<ItineraryActivityModel> getAll();
 
-    List<ItineraryActivityModel> suggest(String keyword);
+    List<Map<String, String>> suggest(String keyword);
 }
