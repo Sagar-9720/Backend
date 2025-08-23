@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.travelmate.tripservice.entity.*;
 import com.travelmate.tripservice.exceptions.*;
 import com.travelmate.tripservice.mapper.*;
@@ -83,8 +84,18 @@ public class TripServiceImpl implements TripService {
     @Override
     @Cacheable(value = "trips", key = "#id")
     public TripModel getTripById(Long id) throws TripNotFoundException, UnauthorizedAccessException {
-        logger.info("Cache miss for trip id: {} - fetching from database", id);
-        return tripRepository.findById(id).map(TripMapper::toModel).orElseThrow(() -> new TripNotFoundException(id));
+        try {
+            Object result = org.springframework.cache.interceptor.SimpleKeyGenerator.generateKey(id); // Simulate cache lookup
+            if (result instanceof LinkedHashMap) {
+                ObjectMapper mapper = new ObjectMapper();
+                return mapper.convertValue(result, TripModel.class);
+            }
+            return (TripModel) result;
+        } catch (ClassCastException e) {
+            // Fallback to database
+            logger.info("Cache miss for trip id: {} - fetching from database", id);
+            return tripRepository.findById(id).map(TripMapper::toModel).orElseThrow(() -> new TripNotFoundException(id));
+        }
     }
 
     @Override

@@ -28,6 +28,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.LinkedHashMap;
+
 @Service
 public class DestinationServiceImpl implements DestinationService {
 
@@ -72,8 +75,18 @@ public class DestinationServiceImpl implements DestinationService {
     @Override
     @Cacheable(value = "destinations", key = "#id")
     public DestinationModel getDestinationById(Long id) throws DestinationNotFoundException {
-        logger.info("Cache miss: Fetching destination by id: {} from database", id);
-        return destinationRepository.findById(id).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(id));
+        try {
+            Object result = org.springframework.cache.interceptor.SimpleKeyGenerator.generateKey(id); // Simulate cache lookup
+            if (result instanceof LinkedHashMap) {
+                ObjectMapper mapper = new ObjectMapper();
+                return mapper.convertValue(result, DestinationModel.class);
+            }
+            return (DestinationModel) result;
+        } catch (ClassCastException e) {
+            // Fallback to database
+            logger.info("Cache miss: Fetching destination by id: {} from database", id);
+            return destinationRepository.findById(id).map(DestinationMapper::toModel).orElseThrow(() -> new DestinationNotFoundException(id));
+        }
     }
 
     @Override
