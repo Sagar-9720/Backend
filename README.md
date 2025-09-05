@@ -113,3 +113,8 @@ Change the value to `local`, `docker`, or `prod` as needed.
 ---
 
 _This README summarizes the current state of the backend as of August 2025. For more details, see the README files in each service directory._
+
+## Structure Image of architecture
+
+<img alt="Structure Image of architecture" height="800" src="./Architecture.png" width="800"/>
+
