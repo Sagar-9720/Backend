@@ -51,4 +51,14 @@ public interface AuthService {
     List<UserInfoDTO> getAllSubAdmins(String token) throws UnauthorizedAccessException;
 
     List<UserInfoDTO> getALlDeleteRequestedUsers(String token) throws UnauthorizedAccessException;
+
+    /**
+     * Returns availability and a few suggestions for usernames.
+     *
+     * Response shape:
+     * - available: boolean
+     * - normalized: String
+     * - suggestions: List<String>
+     */
+    Map<String, Object> checkUsernameAvailability(String username);
 }

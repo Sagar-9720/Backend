@@ -15,6 +15,9 @@ public record RegisterRequest(
     @Email(message = "Email should be valid")
     String email,
 
+    String username,
+    String bio,
+
     String phone,
 
     @NotBlank(message = "Password is required")

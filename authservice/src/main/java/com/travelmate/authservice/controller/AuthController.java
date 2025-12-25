@@ -1,12 +1,14 @@
 package com.travelmate.authservice.controller;
 
+import com.travelmate.authservice.constants.AuthApiPaths;
+import com.travelmate.authservice.constants.AuthMessages;
 import com.travelmate.authservice.dto.*;
-import com.travelmate.authservice.response.CustomResponseEntity;
-import com.travelmate.authservice.service.AuthServiceImpl;
 import com.travelmate.authservice.exception.EmailAlreadyExistException;
 import com.travelmate.authservice.exception.EmailNotFoundException;
-import com.travelmate.authservice.exception.UserNotFoundException;
 import com.travelmate.authservice.exception.UnauthorizedAccessException;
+import com.travelmate.authservice.exception.UserNotFoundException;
+import com.travelmate.authservice.response.CustomResponseEntity;
+import com.travelmate.authservice.service.AuthService;
 import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -22,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(AuthApiPaths.AUTH_BASE)
 @RequiredArgsConstructor
 @Timed(value = "auth.controller", description = "Auth controller timing metrics")
 public class AuthController {
@@ -30,13 +32,13 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
-    private final AuthServiceImpl authServiceImpl;
+    private final AuthService authService;
 
-    @PostMapping("/register")
+    @PostMapping(AuthApiPaths.REGISTER)
     @Timed(value = "auth.register", description = "Time taken to register a new user")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest servletRequest) {
         try {
-            AuthResponse response = authServiceImpl.register(request);
+            AuthResponse response = authService.register(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(CustomResponseEntity.success(HttpStatus.CREATED.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (EmailAlreadyExistException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponseEntity.error(HttpStatus.BAD_REQUEST.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -45,11 +47,11 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/login")
+    @PostMapping(AuthApiPaths.LOGIN)
     @Timed(value = "auth.login", description = "Time taken to login")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
         try {
-            AuthResponse response = authServiceImpl.login(request);
+            AuthResponse response = authService.login(request);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (EmailNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -60,7 +62,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/validate")
+    @PostMapping(AuthApiPaths.VALIDATE)
     @Timed(value = "auth.validate", description = "Time taken to validate a token")
     public ResponseEntity<CustomResponseEntity<TokenValidationResponse>> validateToken(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
@@ -68,20 +70,20 @@ public class AuthController {
             logger.debug("Authorization header: {}", authHeader);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
+                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, AuthMessages.INVALID_AUTH_HEADER.value());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI()));
             }
             String token = authHeader.substring(7);
-            TokenValidationResponse response = authServiceImpl.validateToken(token);
+            TokenValidationResponse response = authService.validateToken(token);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Token validation failed", servletRequest.getRequestURI()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), AuthMessages.TOKEN_VALIDATION_FAILED.value(), servletRequest.getRequestURI()));
         }
     }
 
-    @PostMapping("/refresh")
+    @PostMapping(AuthApiPaths.REFRESH)
     @Timed(value = "auth.refresh", description = "Time taken to refresh a token")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> refreshToken(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
@@ -89,11 +91,11 @@ public class AuthController {
             logger.debug("Authorization header: {}", authHeader);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
+                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, AuthMessages.INVALID_AUTH_HEADER.value());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI()));
             }
             String refreshToken = authHeader.substring(7);
-            AuthResponse response = authServiceImpl.refreshToken(refreshToken);
+            AuthResponse response = authService.refreshToken(refreshToken);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -104,7 +106,7 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/verify-email")
+    @GetMapping(AuthApiPaths.VERIFY_EMAIL)
     @Timed(value = "auth.verifyEmail", description = "Time taken to verify email")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> verifyEmail(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
@@ -112,11 +114,11 @@ public class AuthController {
             logger.debug("Authorization header: {}", authHeader);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
+                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, AuthMessages.INVALID_AUTH_HEADER.value());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI()));
             }
             String token = authHeader.substring(7);
-            AuthResponse response = authServiceImpl.verifyEmail(token);
+            AuthResponse response = authService.verifyEmail(token);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -125,17 +127,17 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/resend-verification")
+    @PostMapping(AuthApiPaths.RESEND_VERIFICATION)
     @Timed(value = "auth.resendVerification", description = "Time taken to resend verification email")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> resendVerification(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             logger.info("Resending verification email for request: {}", servletRequest.getRequestURI());
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, "Invalid authorization header");
+                TokenValidationResponse response = new TokenValidationResponse(false, null, null, null, null, AuthMessages.INVALID_AUTH_HEADER.value());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), response.message(), servletRequest.getRequestURI()));
             }
             String token = authHeader.substring(7);
-            AuthResponse response = authServiceImpl.resendVerificationEmail(token);
+            AuthResponse response = authService.resendVerificationEmail(token);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (EmailNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -146,10 +148,10 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/reset-password-request")
+    @PostMapping(AuthApiPaths.RESET_PASSWORD_REQUEST)
     @Timed(value = "auth.resetPasswordRequest", description = "Time taken to request password reset")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> resetPasswordRequest(@RequestBody String email, HttpServletRequest servletRequest) {
-        AuthResponse response = authServiceImpl.resetPasswordRequest(email);
+        AuthResponse response = authService.resetPasswordRequest(email);
         if (response.success()) {
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } else {
@@ -157,10 +159,10 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/reset-password")
+    @PostMapping(AuthApiPaths.RESET_PASSWORD)
     @Timed(value = "auth.resetPassword", description = "Time taken to reset password")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> resetPassword(@RequestBody ResetPasswordRequest request, HttpServletRequest servletRequest) {
-        AuthResponse response = authServiceImpl.resetPassword(request.token(), request.password());
+        AuthResponse response = authService.resetPassword(request.token(), request.password());
         if (response.success()) {
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
         } else {
@@ -168,76 +170,76 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/logout")
+    @PostMapping(AuthApiPaths.LOGOUT)
     @Timed(value = "auth.logout", description = "Time taken to logout")
     public ResponseEntity<CustomResponseEntity<LogoutResponse>> logout(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        LogoutResponse response = authServiceImpl.logout(token);
+        LogoutResponse response = authService.logout(token);
         return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), response.message(), response, servletRequest.getRequestURI()));
     }
 
-    @PutMapping("/update-user")
+    @PutMapping(AuthApiPaths.UPDATE_USER)
     @Timed(value = "auth.updateUser", description = "Time taken to update user information")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> updateUser(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), AuthMessages.UNAUTHORIZED_NO_TOKEN.value(), servletRequest.getRequestURI()));
         }
         try {
-            UserInfoDTO userInfo = authServiceImpl.updateUserInfo(token, request);
-            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User updated successfully", userInfo, servletRequest.getRequestURI()));
+            UserInfoDTO userInfo = authService.updateUserInfo(token, request);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), AuthMessages.USER_UPDATED_SUCCESS.value(), userInfo, servletRequest.getRequestURI()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "User update failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
-    @PutMapping("/change-password")
+    @PutMapping(AuthApiPaths.CHANGE_PASSWORD)
     @Timed(value = "auth.changePassword", description = "Time taken to change password")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> changePassword(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), AuthMessages.UNAUTHORIZED_NO_TOKEN.value(), servletRequest.getRequestURI()));
         }
         try {
-            UserInfoDTO userInfo = authServiceImpl.changePassword(token, request);
-            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "Password changed successfully", userInfo, servletRequest.getRequestURI()));
+            UserInfoDTO userInfo = authService.changePassword(token, request);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), AuthMessages.PASSWORD_CHANGED_SUCCESS.value(), userInfo, servletRequest.getRequestURI()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "User update failed: " + e.getMessage(), servletRequest.getRequestURI()));
         }
 
     }
 
-    @DeleteMapping("/delete-user/{userId}")
+    @DeleteMapping(AuthApiPaths.DELETE_USER)
     @Timed(value = "auth.deleteUser", description = "Time taken to delete a user")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> deleteUser(@RequestHeader("Authorization") String authHeader, @PathVariable String userId, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        UserInfoDTO userInfo = authServiceImpl.deleteUser(token, userId);
-        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User deleted successfully", userInfo, servletRequest.getRequestURI()));
+        UserInfoDTO userInfo = authService.deleteUser(token, userId);
+        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), AuthMessages.USER_DELETED_SUCCESS.value(), userInfo, servletRequest.getRequestURI()));
     }
 
-    @GetMapping("/user-info")
+    @GetMapping(AuthApiPaths.USER_INFO)
     @Timed(value = "auth.getUserInfo", description = "Time taken to fetch user information")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> getUserInfo(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        UserInfoDTO userInfo = authServiceImpl.getUserInfo(token);
-        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User info fetched successfully", userInfo, servletRequest.getRequestURI()));
+        UserInfoDTO userInfo = authService.getUserInfo(token);
+        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), AuthMessages.USER_INFO_FETCHED_SUCCESS.value(), userInfo, servletRequest.getRequestURI()));
     }
 
-    @GetMapping("/all-users")
+    @GetMapping(AuthApiPaths.ALL_USERS)
     @Timed(value = "auth.getAllUsers", description = "Time taken to fetch all users")
     public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllUsers(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
-        List<UserInfoDTO> users = authServiceImpl.getAllUsers(token);
-        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "All users fetched successfully", users, servletRequest.getRequestURI()));
+        List<UserInfoDTO> users = authService.getAllUsers(token);
+        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), AuthMessages.ALL_USERS_FETCHED_SUCCESS.value(), users, servletRequest.getRequestURI()));
     }
 
 
-    @GetMapping("/check-email/{email}")
+    @GetMapping(AuthApiPaths.CHECK_EMAIL)
     @Timed(value = "auth.checkEmailExists", description = "Time taken to check if email exists")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> checkEmailExists(@PathVariable String email, HttpServletRequest servletRequest) {
         try {
-            UserInfoDTO userInfo = authServiceImpl.checkEmailExists(email);
-            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "Email check complete", userInfo, servletRequest.getRequestURI()));
+            UserInfoDTO userInfo = authService.checkEmailExists(email);
+            return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), AuthMessages.EMAIL_CHECK_COMPLETE.value(), userInfo, servletRequest.getRequestURI()));
         } catch (EmailNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
         } catch (Exception e) {
@@ -245,13 +247,19 @@ public class AuthController {
         }
     }
 
+    @GetMapping(AuthApiPaths.CHECK_USERNAME)
+    public ResponseEntity<CustomResponseEntity<Map<String, Object>>> checkUsername(@PathVariable String username, HttpServletRequest servletRequest) {
+        Map<String, Object> result = authService.checkUsernameAvailability(username);
+        return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), AuthMessages.USERNAME_CHECK_COMPLETE.value(), result, servletRequest.getRequestURI()));
+    }
 
-    @PostMapping("/register-subadmin")
+
+    @PostMapping(AuthApiPaths.REGISTER_SUBADMIN)
     @Timed(value = "auth.registerSubAdmin", description = "Time taken to register a new subadmin")
     public ResponseEntity<CustomResponseEntity<AuthResponse>> registerSubAdmin(@Valid @RequestBody RegisterRequest request, @RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             String token = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
-            AuthResponse response = authServiceImpl.registerSubAdmin(request, token);
+            AuthResponse response = authService.registerSubAdmin(request, token);
             return ResponseEntity.status(HttpStatus.CREATED).body(CustomResponseEntity.success(HttpStatus.CREATED.value(), response.message(), response, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -261,12 +269,12 @@ public class AuthController {
     }
 
 
-    @PutMapping("/delete-request")
+    @PutMapping(AuthApiPaths.DELETE_REQUEST)
     @Timed(value = "auth.deleteRequest", description = "Time taken to submit a delete request")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> deleteRequest(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
         try {
-            UserInfoDTO userInfo = authServiceImpl.deleteRequest(token);
+            UserInfoDTO userInfo = authService.deleteRequest(token);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "Delete request submitted successfully", userInfo, servletRequest.getRequestURI()));
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -277,16 +285,16 @@ public class AuthController {
         }
     }
 
-    @PutMapping("/update-role")
+    @PutMapping(AuthApiPaths.UPDATE_ROLE)
     @Timed(value = "auth.updateRole", description = "Time taken to update user role")
     public ResponseEntity<CustomResponseEntity<UserInfoDTO>> updateRoleToUser(@RequestHeader("Authorization") String authHeader, @RequestBody UserUpdateInfoRequest request, HttpServletRequest servletRequest) {
         try {
             logger.info("Assigning role initiated");
             String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
             if (token == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), AuthMessages.UNAUTHORIZED_NO_TOKEN.value(), servletRequest.getRequestURI()));
             }
-            UserInfoDTO userInfo = authServiceImpl.updateRoleToUser(token, request);
+            UserInfoDTO userInfo = authService.updateRoleToUser(token, request);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User role updated successfully", userInfo, servletRequest.getRequestURI()));
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponseEntity.error(HttpStatus.NOT_FOUND.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -297,30 +305,30 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/get-user-name")
+    @GetMapping(AuthApiPaths.GET_USER_NAME)
     @Timed(value = "auth.getUserName", description = "Time taken to fetch user names")
     public ResponseEntity<CustomResponseEntity<String>> getUsersName(@RequestHeader("Authorization") String authHeader, @RequestBody List<String> userIds, HttpServletRequest servletRequest) {
         try {
             String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
             if (token == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), AuthMessages.UNAUTHORIZED_NO_TOKEN.value(), servletRequest.getRequestURI()));
             }
-            List<Map<String, String>> userName = authServiceImpl.getUserNameThroughId(token, userIds);
+            List<Map<String, String>> userName = authService.getUserNameThroughId(token, userIds);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "User name fetched successfully", userName.toString(), servletRequest.getRequestURI()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomResponseEntity.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to fetch user name: " + e.getMessage(), servletRequest.getRequestURI()));
         }
     }
 
-    @GetMapping("/all-subadmins")
+    @GetMapping(AuthApiPaths.ALL_SUBADMINS)
     @Timed(value = "auth.getAllSubAdmins", description = "Time taken to fetch all subadmins")
     public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllSubAdmins(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
             if (token == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), AuthMessages.UNAUTHORIZED_NO_TOKEN.value(), servletRequest.getRequestURI()));
             }
-            List<UserInfoDTO> subAdmins = authServiceImpl.getAllSubAdmins(token);
+            List<UserInfoDTO> subAdmins = authService.getAllSubAdmins(token);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "All subadmins fetched successfully", subAdmins, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));
@@ -329,15 +337,15 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/all-delete-requested-users")
+    @GetMapping(AuthApiPaths.ALL_DELETE_REQUESTED_USERS)
     @Timed(value = "auth.getAllDeleteRequestedUsers", description = "Time taken to fetch all delete requested users")
     public ResponseEntity<CustomResponseEntity<List<UserInfoDTO>>> getAllDeleteRequestedUsers(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
         try {
             String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;
             if (token == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access: No token provided", servletRequest.getRequestURI()));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), AuthMessages.UNAUTHORIZED_NO_TOKEN.value(), servletRequest.getRequestURI()));
             }
-            List<UserInfoDTO> deleteRequestedUsers = authServiceImpl.getALlDeleteRequestedUsers(token);
+            List<UserInfoDTO> deleteRequestedUsers = authService.getALlDeleteRequestedUsers(token);
             return ResponseEntity.ok(CustomResponseEntity.success(HttpStatus.OK.value(), "All delete requested users fetched successfully", deleteRequestedUsers, servletRequest.getRequestURI()));
         } catch (UnauthorizedAccessException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CustomResponseEntity.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), servletRequest.getRequestURI()));

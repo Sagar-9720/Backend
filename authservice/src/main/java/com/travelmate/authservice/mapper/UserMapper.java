@@ -10,6 +10,8 @@ public record UserMapper() {
                 .userId(user.getUserId() != null ? user.getUserId().toString() : null)
                 .name(user.getName())
                 .email(user.getEmail())
+                .username(user.getUsername())
+                .bio(user.getBio())
                 .phone(user.getPhone())
                 .dob(user.getDob() != null ? user.getDob().toString() : null)
                 .gender(user.getGender() != null ? user.getGender().toString() : null)

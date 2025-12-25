@@ -7,6 +7,8 @@ public record UserInfoDTO(
     String userId,
     String name,
     String email,
+    String username,
+    String bio,
     String phone,
     String dob,
     String gender,

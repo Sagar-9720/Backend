@@ -63,6 +63,12 @@ public class User implements UserDetails {
 
     @Builder.Default
     private boolean requestDelete = false;
+    
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    @Column(length = 500)
+    private String bio;
 
     public enum Gender {
         MALE, FEMALE, OTHER

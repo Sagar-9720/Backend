@@ -19,8 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
@@ -59,8 +64,11 @@ public class AuthServiceImpl implements AuthService {
             logger.warn("Attempt to register with already registered email: {}", request.email());
             throw new EmailAlreadyExistException("Email already exists: " + request.email());
         }
+
+        String username = ensureUniqueUsername(request.username(), request.name(), request.email());
+
         // Create new user
-        User user = User.builder().name(request.name()).email(request.email()).phone(request.phone()).dob(request.dob()).password(passwordEncoder.encode(request.password())).build();
+        User user = User.builder().name(request.name()).email(request.email()).username(username).bio(request.bio()).phone(request.phone()).dob(request.dob()).password(passwordEncoder.encode(request.password())).build();
 
         if (request.gender() != null) {
             user.setGender(User.Gender.valueOf(request.gender().toUpperCase()));
@@ -138,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse resendVerificationEmail(String token) {
-        logger.info("Resending verification email to: {}");
+        logger.info("Resending verification email");
         try {
             if (token == null || token.isEmpty()) {
                 throw new UnauthorizedAccessException("Invalid or missing token");
@@ -252,7 +260,7 @@ public class AuthServiceImpl implements AuthService {
             jwtUtil.revokeToken(token);
             return new LogoutResponse(name, "Successfully logged out");
         }
-        return new LogoutResponse((String) null, "Invalid token");
+        return new LogoutResponse(null, "Invalid token");
     }
 
     @Override
@@ -269,6 +277,15 @@ public class AuthServiceImpl implements AuthService {
         if (request.phone() != null) user.setPhone(request.phone());
         if (request.dob() != null) user.setDob(LocalDate.parse(request.dob()));
         if (request.profileImg() != null) user.setProfileImg(request.profileImg());
+        if (request.bio() != null) user.setBio(request.bio());
+
+        if (request.username() != null && !request.username().isBlank()) {
+            String normalized = normalizeUsername(request.username());
+            if (!normalized.equalsIgnoreCase(user.getUsername()) && userRepository.existsByUsername(normalized)) {
+                throw new RuntimeException("Username already taken: " + normalized);
+            }
+            user.setUsername(normalized);
+        }
 
         User updatedUser = userRepository.save(user);
         logger.info("User info updated for userId: {}", updatedUser.getUserId());
@@ -308,7 +325,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findById(Long.parseLong(userId)).orElseThrow(() -> new RuntimeException("User not found"));
 
         // Store user info before deletion for return
-        UserInfoDTO userInfo = new UserInfoDTO(user.getUserId().toString(), user.getName(), user.getEmail(), user.getPhone(), user.getDob() != null ? user.getDob().toString() : null, user.getGender() != null ? user.getGender().toString() : null, user.getProfileImg() != null ? user.getProfileImg() : "", user.getRole().toString());
+        UserInfoDTO userInfo = UserMapper.toUserInfoDTO(user);
 
         try {
             userRepository.delete(user);
@@ -451,8 +468,12 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistException("Email already exists: " + request.email());
         }
+
+        String username = ensureUniqueUsername(request.username(), request.name(), request.email());
+
         String subAdminRole = "SUBADMIN";
-        User user = new User().builder().name(request.name()).email(request.email()).phone(request.phone()).dob(request.dob()).password(passwordEncoder.encode(request.password())).emailVerified(true).role(User.Role.valueOf(subAdminRole)).build();
+        User user = User.builder().name(request.name()).email(request.email()).username(username).bio(request.bio()).phone(request.phone()).dob(request.dob()).password(passwordEncoder.encode(request.password())).emailVerified(true).role(User.Role.valueOf(subAdminRole)).build();
+
         User savedUser = userRepository.save(user);
         logger.info("Subadmin saved with ID: {}", savedUser.getUserId());
 
@@ -460,13 +481,82 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponse(true, "Subadmin registered successfully", null, null, userInfo);
     }
 
-    public List<Map<String, String>> getUserNameThroughId(String token, List<String> userIds) {
-        logger.info("Fetching user names for userIds: {}", userIds);
-        if (token == null || !jwtUtil.validateToken(token)) {
-            logger.warn("Invalid token for getUserNameThroughId");
-            throw new UnauthorizedAccessException("Invalid token");
+    @Override
+    public Map<String, Object> checkUsernameAvailability(String username) {
+        String normalized = normalizeUsername(username);
+        boolean available = normalized != null && !normalized.isBlank() && !userRepository.existsByUsername(normalized);
+        List<String> suggestions = generateUsernameSuggestions(normalized, 5);
+
+        return Map.of("available", available, "normalized", normalized != null ? normalized : "", "suggestions", suggestions);
+    }
+
+    private String ensureUniqueUsername(String requestedUsername, String name, String email) {
+        String base;
+        if (requestedUsername != null && !requestedUsername.isBlank()) {
+            base = normalizeUsername(requestedUsername);
+        } else if (email != null && email.contains("@")) {
+            base = normalizeUsername(email.substring(0, email.indexOf('@')));
+        } else {
+            base = normalizeUsername(name);
         }
-        return userRepository.findAllById(userIds.stream().map(Long::parseLong).collect(toList())).stream().map(user -> Map.of("userId", user.getUserId().toString(), "name", user.getName())).collect(toList());
+
+        if (base == null || base.isBlank()) {
+            base = "user";
+        }
+
+        if (!userRepository.existsByUsername(base)) {
+            return base;
+        }
+
+        for (String candidate : generateUsernameSuggestions(base, 20)) {
+            if (!userRepository.existsByUsername(candidate)) {
+                return candidate;
+            }
+        }
+
+        // ultimate fallback
+        return base + "_" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private String normalizeUsername(String username) {
+        if (username == null) return null;
+        String normalized = username.trim().toLowerCase(Locale.ROOT);
+        // allow letters, digits, underscore, dot
+        normalized = normalized.replaceAll("[^a-z0-9._]", "_");
+        // compress multiple underscores
+        normalized = normalized.replaceAll("_+", "_");
+        // trim dots/underscores on edges
+        normalized = normalized.replaceAll("^[._]+", "").replaceAll("[._]+$", "");
+        return normalized;
+    }
+
+    private List<String> generateUsernameSuggestions(String base, int count) {
+        String safeBase = (base == null || base.isBlank()) ? "user" : base;
+
+        Set<String> unique = new HashSet<>();
+        List<String> out = new ArrayList<>();
+        Random random = new Random();
+
+        // deterministic-ish first suggestions
+        String[] suffixes = {"travel", "mate", "journey", "trips", "explore", "wander"};
+        for (String suffix : suffixes) {
+            if (out.size() >= count) break;
+            String candidate = normalizeUsername(safeBase + "_" + suffix);
+            if (candidate != null && !candidate.isBlank() && unique.add(candidate) && !userRepository.existsByUsername(candidate)) {
+                out.add(candidate);
+            }
+        }
+
+        int tries = 0;
+        while (out.size() < count && tries < 50) {
+            tries++;
+            String candidate = normalizeUsername(safeBase + "_" + (10 + random.nextInt(9999)));
+            if (candidate != null && !candidate.isBlank() && unique.add(candidate) && !userRepository.existsByUsername(candidate)) {
+                out.add(candidate);
+            }
+        }
+
+        return out;
     }
 
     @Override
@@ -489,5 +579,15 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedAccessException("Only ADMIN can fetch delete requested users");
         }
         return userRepository.findAll().stream().filter(User::isRequestDelete).map(UserMapper::toUserInfoDTO).collect(toList());
+    }
+
+    @Override
+    public List<Map<String, String>> getUserNameThroughId(String token, List<String> userIds) {
+        logger.info("Fetching user names for userIds: {}", userIds);
+        if (token == null || !jwtUtil.validateToken(token)) {
+            logger.warn("Invalid token for getUserNameThroughId");
+            throw new UnauthorizedAccessException("Invalid token");
+        }
+        return userRepository.findAllById(userIds.stream().map(Long::parseLong).collect(toList())).stream().map(user -> Map.of("userId", user.getUserId().toString(), "name", user.getName(), "username", user.getUsername() != null ? user.getUsername() : "")).collect(toList());
     }
 }
