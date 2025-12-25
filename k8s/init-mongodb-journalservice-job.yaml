@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-mongodb-journalservice
+  namespace: travelmate
+spec:
+  template:
+    spec:
+      containers:
+      - name: init-mongodb-journalservice
+        image: mongo:6
+        command: ["sh", "-c"]
+        args:
+          - |
+            mongosh --host mongo -u admin -p password --authenticationDatabase admin /scripts/init-mongodb-journalservice.js
+        volumeMounts:
+          - name: init-scripts
+            mountPath: /scripts
+      restartPolicy: OnFailure
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: init-mongodb-journalservice-js
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-mongodb-journalservice-js
+  namespace: travelmate
+data:
+  init-mongodb-journalservice.js: |
+    // Placeholder demo data for journalservice MongoDB.
+    // If you have a real ./scripts/init-mongodb-journalservice.js, paste its content here.
+    db = db.getSiblingDB('journaldb');
+    db.init.insertOne({ ok: true, createdAt: new Date() });
+

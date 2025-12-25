@@ -5,6 +5,9 @@ metadata:
   namespace: travelmate
 data:
   SPRING_PROFILES_ACTIVE: "docker"
+  # In k8s we rely on the routes bundled with the gateway image.
+  # If Config Server doesn't provide matching routes, Spring Gateway returns 404 "No static resource ...".
+  SPRING_CLOUD_CONFIG_ENABLED: "false"
+  SPRING_CLOUD_CONFIG_IMPORT_CHECK_ENABLED: "false"
   SPRING_CLOUD_CONFIG_URI: "http://config-server:8888"
   SPRING_LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG: "WARN"
-

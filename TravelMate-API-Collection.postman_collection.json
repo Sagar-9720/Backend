@@ -20,6 +20,13 @@
       }
     ]
   },
+  "variable": [
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
   "item": [
     {
       "name": "Auth Service",
@@ -1850,6 +1857,120 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "AI Service",
+      "item": [
+        {
+          "name": "Trending Trips (via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/ai/trending?entity=trip&limit=10&debug=true",
+              "host": ["{{gateway_url}}"],
+              "path": ["api", "ai", "trending"],
+              "query": [
+                {"key": "entity", "value": "trip"},
+                {"key": "limit", "value": "10"},
+                {"key": "debug", "value": "true"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Trending Journals (via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/ai/trending?entity=journal&limit=10&debug=true",
+              "host": ["{{gateway_url}}"],
+              "path": ["api", "ai", "trending"],
+              "query": [
+                {"key": "entity", "value": "journal"},
+                {"key": "limit", "value": "10"},
+                {"key": "debug", "value": "true"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Trending Destinations (via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/ai/trending?entity=destination&limit=10&debug=true",
+              "host": ["{{gateway_url}}"],
+              "path": ["api", "ai", "trending"],
+              "query": [
+                {"key": "entity", "value": "destination"},
+                {"key": "limit", "value": "10"},
+                {"key": "debug", "value": "true"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Chat (Gemini + Tools) (via Gateway)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/ai/chat",
+              "host": ["{{gateway_url}}"],
+              "path": ["api", "ai", "chat"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I want to create a trip for 3 people for Manali for 5-7 days\"\n}"
+            }
+          }
+        },
+        {
+          "name": "MCP - List Tools (via Gateway)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/mcp/tools",
+              "host": ["{{gateway_url}}"],
+              "path": ["api", "mcp", "tools"]
+            }
+          }
+        },
+        {
+          "name": "MCP - Call Tool (example: trip_search_by_destination)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/api/mcp/call",
+              "host": ["{{gateway_url}}"],
+              "path": ["api", "mcp", "call"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"trip_search_by_destination\",\n  \"args\": {\n    \"destination\": \"Manali\"\n  }\n}"
+            }
+          }
         }
       ]
     }

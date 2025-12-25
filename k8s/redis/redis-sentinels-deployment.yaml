@@ -11,7 +11,8 @@ spec:
   template:
     metadata:
       labels:
-        app: redis-sentinel-1
+        app: redis-sentinels
+        sentinel-id: redis-sentinel-1
     spec:
       containers:
         - name: redis-sentinel-1
@@ -46,7 +47,8 @@ spec:
   template:
     metadata:
       labels:
-        app: redis-sentinel-2
+        app: redis-sentinels
+        sentinel-id: redis-sentinel-2
     spec:
       containers:
         - name: redis-sentinel-2
@@ -81,7 +83,8 @@ spec:
   template:
     metadata:
       labels:
-        app: redis-sentinel-3
+        app: redis-sentinels
+        sentinel-id: redis-sentinel-3
     spec:
       containers:
         - name: redis-sentinel-3
@@ -102,4 +105,3 @@ spec:
         - name: redis-sentinel-config
           configMap:
             name: redis-sentinel-config
-

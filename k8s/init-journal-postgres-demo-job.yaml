@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-journal-postgres-demo
+  namespace: travelmate
+spec:
+  template:
+    spec:
+      containers:
+      - name: init-journal-postgres-demo
+        image: postgres:15-alpine
+        env:
+          - name: PGPASSWORD
+            value: postgres
+        command: ["sh", "-c"]
+        args:
+          - |
+            psql -h postgres-journal -U traveluser -d journal_service_db -f /scripts/init-journal-postgres-demo.sql
+        volumeMounts:
+          - name: init-scripts
+            mountPath: /scripts
+      restartPolicy: OnFailure
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: init-journal-postgres-demo-sql
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-journal-postgres-demo-sql
+  namespace: travelmate
+data:
+  init-journal-postgres-demo.sql: |
+    -- Placeholder demo data for journal-service.
+    -- If you have a real ./scripts/init-journal-postgres-demo.sql, paste its content here.
+    SELECT 1;
+

@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-journal-pvc
+  namespace: travelmate
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-journal
+  namespace: travelmate
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres-journal
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-journal
+  namespace: travelmate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-journal
+  template:
+    metadata:
+      labels:
+        app: postgres-journal
+    spec:
+      containers:
+        - name: postgres-journal
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: journal_service_db
+            - name: POSTGRES_USER
+              value: traveluser
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-journal-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-journal-database
+              mountPath: /docker-entrypoint-initdb.d/init-journal-database.sql
+              subPath: init-journal-database.sql
+      volumes:
+        - name: postgres-journal-data
+          persistentVolumeClaim:
+            claimName: postgres-journal-pvc
+        - name: init-journal-database
+          configMap:
+            name: init-journal-database
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-journal-database
+  namespace: travelmate
+  labels:
+    app: postgres-journal
+data:
+  init-journal-database.sql: |
+    DO
+    $$
+        BEGIN
+            IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'journal_service_db') THEN
+                CREATE DATABASE journal_service_db;
+            END IF;
+        END
+    $$;
+

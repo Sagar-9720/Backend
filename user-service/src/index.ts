@@ -28,6 +28,7 @@ const startServer = async () => {
         const commentRoutes = (await import('./routes/comment.routes')).default;
         const likeRoutes = (await import('./routes/like.routes')).default;
         const viewRoutes = (await import('./routes/view.routes')).default;
+        const statsRoutes = (await import('./routes/stats.routes')).default;
         const SavedTrip = (await import('./models/saved_trip.model')).default;
         const Like = (await import('./models/like.model')).default;
         const View = (await import('./models/view.model')).default;
@@ -59,6 +60,7 @@ const startServer = async () => {
         app.use('/api/users/comments', commentRoutes);
         app.use('/api/users/like', likeRoutes);
         app.use('/api/users/view', viewRoutes);
+        app.use('/api/users/stats', statsRoutes);
         // Add axios-retry for Feign-like retry logic
         axiosRetry(axios, {retries: 3, retryDelay: axiosRetry.exponentialDelay});
 

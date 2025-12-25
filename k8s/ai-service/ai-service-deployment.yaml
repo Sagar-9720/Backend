@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-service
+  namespace: travelmate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-service
+  template:
+    metadata:
+      labels:
+        app: ai-service
+    spec:
+      containers:
+        - name: ai-service
+          image: backend-ai-service:latest
+          ports:
+            - containerPort: 8086
+          env:
+            - name: PORT
+              value: "8086"
+            - name: TRIP_SERVICE_BASE_URL
+              value: "http://trip-service:8082"
+            - name: JOURNAL_SERVICE_BASE_URL
+              value: "http://journal-service:8081"
+            - name: USER_SERVICE_BASE_URL
+              value: "http://user-service:5000"
+            - name: REDIS_URL
+              value: "redis://redis-master:6379"
+            - name: EUREKA_SERVER_HOST
+              value: "eureka-server"
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: "ai-service"
+            - name: GEMINI_MODEL
+              value: "gemini-1.5-flash"
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-service-secret
+                  key: GEMINI_API_KEY
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8086
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8086
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
