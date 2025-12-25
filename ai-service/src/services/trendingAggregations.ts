@@ -1,11 +1,9 @@
 import {Env} from '../config/env';
 import {Cache} from './cache';
-import {listTrips} from '../clients/tripServiceClient';
+import {listTrips, listDestinations} from '../clients/tripServiceClient';
 import {listPublicJournals} from '../clients/journalServiceClient';
 import {getStatsBatch, StatsResponse} from '../clients/userServiceClient';
 import {scoreTrip} from './scoring';
-
-export type TrendingEntity = 'trip' | 'journal' | 'destination';
 
 export type TrendingItem = {
   type: 'TRIP' | 'JOURNAL' | 'DESTINATION';
@@ -117,18 +115,62 @@ export async function trendingJournals(env: Env, xUserInfo: string | undefined, 
 
 export async function trendingDestinations(env: Env, xUserInfo: string | undefined, limit: number, cache: Cache | null, debug: boolean) {
   const safeLimit = Math.max(1, Math.min(limit || 10, 20));
-  const cacheKey = `ai:trending:destination:v1:limit=${safeLimit}`;
+  const cacheKey = `ai:trending:destination:v2:limit=${safeLimit}`;
 
   if (cache) {
     const cached = await cache.get(cacheKey);
     if (cached) return JSON.parse(cached);
   }
 
-  // We don't have a destination list endpoint in user-service; trip-service has destinations controller.
-  // For MVP: infer trending destinations by grouping trips by destination_id (or destination_name when present)
-  // and scoring by trip engagement.
-
   const toolsUsed: any[] = [];
+
+  // Preferred path (v2): rank destinations directly using destination ids + destination stats.
+  try {
+    const destRes = await listDestinations(env.tripServiceBaseUrl, xUserInfo);
+    toolsUsed.push({ tool: 'trip.destinationList', ok: true });
+
+    const destinations = extractDataList(destRes);
+    const candidates = destinations.slice(0, 50);
+    const destIds = candidates
+      .map((d: any) => d?.id)
+      .filter((v: any) => v !== undefined && v !== null)
+      .map((v: any) => String(v));
+
+    const stats = destIds.length ? await getStatsBatch(env.userServiceBaseUrl, 'destination', destIds, xUserInfo) : [];
+    toolsUsed.push({ tool: 'user.statsBatch', type: 'destination', count: destIds.length, ok: true });
+
+    const statsById = new Map(stats.map(s => [String(s.id), s]));
+
+    const ranked: TrendingItem[] = candidates
+      .map((dest: any) => {
+        const id = String(dest.id);
+        const s = statsById.get(id) || { type: 'destination', id, likes: 0, comments: 0, views: 0, saves: 0 };
+        return {
+          type: 'DESTINATION' as const,
+          id,
+          score: statsToScore(s),
+          stats: { likes: s.likes, comments: s.comments, views: s.views, saves: s.saves },
+          payload: dest
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, safeLimit);
+
+    const result = {
+      entity: 'destination',
+      items: ranked,
+      generatedAt: new Date().toISOString(),
+      ...(debug ? { debug: { toolsUsed, candidateCount: candidates.length } } : {})
+    };
+
+    if (cache) await cache.set(cacheKey, JSON.stringify(result), 120);
+    return result;
+  } catch (e: any) {
+    // Fallback (v1) so the endpoint still works if destination listing/stats aren't available.
+    toolsUsed.push({ tool: 'trip.destinationList', ok: false, error: e?.message || String(e) });
+  }
+
+  // Fallback: infer trending destinations by aggregating trip engagement.
   const tripsRes = await listTrips(env.tripServiceBaseUrl, xUserInfo);
   toolsUsed.push({ tool: 'trip.listTrips', ok: true });
 
@@ -147,7 +189,6 @@ export async function trendingDestinations(env: Env, xUserInfo: string | undefin
     const tripId = String(trip.id);
     const s = statsByTripId.get(tripId) || { type: 'trip', id: tripId, likes: 0, comments: 0, views: 0, saves: 0 };
 
-    // Try common fields that may exist in TripLiteModel.
     const destinationKey = String(trip.destination_id ?? trip.destinationId ?? trip.destinationName ?? trip.destination ?? 'unknown');
 
     const existing = agg.get(destinationKey) || {

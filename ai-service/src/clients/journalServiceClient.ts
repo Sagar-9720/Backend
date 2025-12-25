@@ -21,3 +21,28 @@ export async function journalsByTag(baseUrl: string, tag: string, xUserInfo?: st
   return res.data;
 }
 
+export async function listAllJournals(baseUrl: string, xUserInfo?: string) {
+  const res = await http.get(`${baseUrl}/api/journal/journals`, {
+    headers: xUserInfo ? { 'X-UserInfo': xUserInfo } : undefined
+  });
+  return res.data;
+}
+
+export async function getJournalById(baseUrl: string, journalId: string, xUserInfo?: string) {
+  const res = await http.get(`${baseUrl}/api/journal/journals/${journalId}`, {
+    headers: xUserInfo ? { 'X-UserInfo': xUserInfo } : undefined
+  });
+  return res.data;
+}
+
+export async function listTags(baseUrl: string) {
+  const res = await http.get(`${baseUrl}/api/journal/tags`);
+  return res.data;
+}
+
+export async function suggestTags(baseUrl: string, q: string) {
+  const res = await http.get(`${baseUrl}/api/journal/tags/suggest`, {
+    params: { q }
+  });
+  return res.data;
+}
