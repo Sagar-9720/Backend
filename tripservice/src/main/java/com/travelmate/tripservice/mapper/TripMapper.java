@@ -47,6 +47,7 @@ public class TripMapper {
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
                 .updatedAt(entity.getUpdatedAt())
+                .destinationModel(entity.getMainDestination() != null ? DestinationMapper.toModel(entity.getMainDestination()) : null)
                 .price(entity.getPrice())
                 .createdBy(entity.getCreatedBy())
                 .build();
